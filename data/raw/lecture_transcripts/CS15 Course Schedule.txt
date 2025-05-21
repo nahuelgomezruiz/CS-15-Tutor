@@ -1,0 +1,155 @@
+Note: All lectures will be recorded and posted on the course Canvas page under "Echo360."
+Week 1: 1/12/2025
+Tuesday No lab held
+Lab: (Optional) Quick Intro to Writing, Running, Submitting Programs
+WednesdayLecture: Welcome - Introduction
+Read: CS15 Admin & Policies
+Browse: CS15 Reference Page
+Read: Shaffer 1.1-1.2
+Lecture: C++ Review: Classes (and more!)
+employee code
+Lecture: ArrayLists
+IntArrayList.h
+vectors.cpp
+Read: Intro to Valgrind
+ThursdayFriday
+Week 2: 1/19/2025
+MondayNo School
+TuesdayLab: Unit Testing, ArrayLists
+HW1 Out: ArrayLists
+WednesdaySubstitute Monday Schedule
+Lecture: The Big Three
+shallow_example.cpp
+deep_example.cpp
+Lecture: (Virtual Mini-Lecture) Exceptions
+Slides
+exceptions.cpp
+Read: CS 15 Style Guide
+ThursdayFriday
+Week 3: 1/26/2025
+MondayLecture: Linked Lists 1
+StringLinkedList.h
+Read: Shaffer 4.1.2, 4.1.5
+TuesdayLab: Linked Lists
+HW1 due by 23:59:59
+HW2 Out: Linked Lists
+WednesdayLecture: Linked Lists 2
+Lecture: Makefiles
+make example code
+Read: Makefile Handout
+ThursdayFriday
+Week 4: 2/2/2025
+MondayLecture: Complexity
+Read: Shaffer 3.0-3.5
+TuesdayLab: make, diff
+HW2 due by 23:59:59
+Project 1 Out: MetroSim
+WednesdayLecture: Queues
+Read: Shaffer 4.3
+Lecture: Stacks
+paren_matching.cpp
+Read: Shaffer 4.2
+ThursdayFridayLab: (prelab) Circular buffers
+Week 5: 2/9/2025
+MondayLecture: File I/O
+isprime.cpp
+Read: File I/O Handout
+Lecture: Recursion
+TuesdayLab: Stacks, Queues, and Circular Buffers
+WednesdayProj 1 checkoff and phase 1 due by 11:59pm
+Lecture: Binary Search
+is_in_array.cpp
+ThursdayFriday
+Week 6: 2/16/2025
+MondayNo School
+TuesdayLab: Recursion
+Project 1 due by 23:59:59
+Project 2 Out: CalcYouLater
+WednesdayLecture: Project 2 Background
+Lecture: Trees
+int_tree_example.cpp
+ThursdaySubstitute Monday Schedule: WE HAVE LECTURE!
+Lecture: Binary Trees and their Traversals
+Lecture: Sets
+Friday
+Week 7: 2/23/2025
+MondayLecture: Binary Search Trees (BSTs)
+TuesdayLab: Binary Tree Traversals
+WednesdayProj 2 design checkoff and phase 1 due by 11:59pm
+Lecture: BST (cont'd) and AVL Trees
+Lecture Recording
+Read: Shaffer 13.2-13.2.1
+ThursdayFridayLab: (prelab) AVL Trees Preview
+Week 8: 3/2/2025
+MondayLecture: AVL (continued)
+Lecture: Templates
+LinkedList.h
+ListClient.cpp
+TuesdayLab: AVL Trees
+Project 2 due by 23:59:59
+WednesdayLecture: Midterm Info
+Midterm Practice Questions
+Midterm Practice Solutions
+Lecture: Huffman Coding
+ThursdayFriday
+Week 9: 3/9/2025
+MondayLecture: Binary Search
+is_in_array.cpp
+Lecture: Midterm Review
+TuesdayLab: Midterm Review (no spec)
+WednesdayMidterm
+ThursdayFriday
+Week 10: 3/16/2025
+MondayNo School
+TuesdayNo School
+WednesdayNo School
+ThursdayNo School
+FridayNo School
+Week 11: 3/23/2025
+MondayLecture: Priority Queues and Heaps
+Read: Shaffer 5.5
+Project 3 Out: zap
+TuesdayLab: Heaps
+WednesdayLecture: Hashes
+dict.cpp
+collision_tester.cpp
+Read: Shaffer 9.4-9.4.2
+ThursdayFriday
+Week 12: 3/30/2025
+MondayLecture: Hashes (continued)
+TuesdayProj 3 phase 1 due by 11:59pm
+Lab: Hashes
+WednesdayLecture: Intro to Graphs
+Read: Shaffer 11.0-11.2
+ThursdayFriday
+Week 13: 4/6/2025
+MondayLecture: Graph Traversals
+Read: Shaffer 11.3-11.4
+TuesdayLab: Graph Traversals
+Project 3 due by 23:59:59
+Project 4 Out: gerp
+WednesdayLecture: Dijkstra's Algorithm
+ThursdayFriday
+Week 14: 4/13/2025
+MondayLecture: Sorting I
+TuesdayLab: Dijkstra's Algorithm Worksheet
+WednesdayProj 4 design checkoff and phase 1 due by 11:59pm
+Lecture: Sorting II
+ThursdayFriday
+Week 15: 4/20/2025
+MondayNo School
+TuesdayLab: Sorting
+WednesdayLecture: Sorting: Non-Comparison Sorts
+Project 4 Due by 23:59:59
+Thursday
+FridaySaturday
+Week 16: 4/27/2025
+MondayLecture: Final Info
+Lecture: Wrap Up
+Lecture: CS 40 Preview
+TuesdayReading Period
+WednesdayReading Period
+ThursdayReading Period
+FridayFinal Exam (May 2nd)
+Sec. 1: 12-2pm
+Sec. 2: 3:30-5:30pm

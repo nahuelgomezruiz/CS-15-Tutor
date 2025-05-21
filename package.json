@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.4.1"
+  },
+  "dependencies": {
+    "@types/react-router": "^5.1.20",
+    "dotenv": "^16.4.7"
+  }
+}

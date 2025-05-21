@@ -1,0 +1,317 @@
+PROJECT GERP
+
+Time and Space Constraints
+When designing and implementing your program you should have it build its index and run queries
+as quickly as possible. You may find that there is a trade-off between the two (e.g. a program that
+builds an index quickly may not search as fast). It is important to document your design choices,
+your justification of those choices, and their effects in your README.
+    To get full credit, your program will need to be able to index and run queries on the following
+directories within the following amounts of time:
+
+   • tinyData under 15 seconds
+
+   • smallGutenberg under 15 seconds
+
+   • mediumGutenberg under 2 minutes
+
+   • largeGutenberg under 8 minutes
+
+Roughly, this means your solution can be about 15 times as slow as the reference (which already is
+not the best solution). Furthermore, your program can use a maximum of 6 GB of RAM. If you
+take too much time or use too much memory on a test, you will not receive points for that test.
+   You should check the time and memory usage of your program using the following command:
+gerp_perf [DirectoryToIndex] [OutputFile]
+
+This command will display your program’s memory usage and execution time of building the index.
+It will also display these metrics for the reference implementation. [OutputFile] will store the
+non-cout output of your program as usual. Note, to use this program, you will need to have added
+use -q comp15 to your .cshrc file as you would have done to use unit_test.
+    Before submitting to Gradescope, please make sure you have run your implementation on larger
+directories. If Gradescope times out during a submission, it likely means your implementation is
+too slow so it is good to get it working decently well before submitting. If Gradescope times out,
+it will still count as a submission which we generally will not give back.Reference Implementation and
+Testing
+
+Introduction
+In order to help you with your testing and to get familiar with the user interface expectations of
+this project, we have provided you with a fully compiled reference implementation called the_gerp.
+By the end of the project your gerp implementation should behave exactly the same as the_gerp.
+Your version of gerp should behave exactly as the reference in all circumstances.
+Therefore, you should extensively test the reference in order to figure out how it
+behaves.
+
+
+Testing Directories
+In order to help you test your implementation, we have provided you with some directories. The
+folder /comp/15/files/proj-gerp-test-dirs contains all of the relevant directories, which are
+
+   • A Directory tinyData, which you can use to quickly test your work.
+
+   • Small, medium and large subsets of Project Gutenberg. These are samples from a massive
+     free online library—for more information on this, see the Project Gutenberg Website. In-
+     dexing/querying the medium/large subsets will give you a chance to test the time and space
+     efficiency of your code. For this datasets, be sure that your submission matches the expecta-
+     tions described earlier (indexing in under 10 minutes, no more than 6GB memory usage).
+
+Note: This directory contains all the testing directories, so you should not copy it. It is
+large and will take up your storage quota. Instead, gerp takes a directory as a command
+line argument, so you don’t need the directory locally; just run gerp specifying, e. g.,
+/comp/15/files/proj-gerp-test-dirs/mediumGutenberg and the program should work!
+
+
+Redirecting Input/Output in unix
+In order to test your implementation against the reference, using redirects to send input files to
+and from your program and the reference will be useful. To send data to the std::cin of a unix
+program, do the following:
+./programname < fileforcin.txt
+
+In our case, gerp takes multiple arguments: a directory to query, and a file to send the program’s
+output to. So, to send a file to the reference implementation’s std::cin, you would do:
+
+                                               11
+./the_gerp Directory ref_output.txt < commands.txt
+
+This command will send commands.txt to the standard input stream for the reference implemen-
+tation. You can likewise do the same with your implementation. In order to redirect a program’s
+std::cout to a file, do the following:
+./programname > fileforcin.txt
+
+Again, in our case,
+./the_gerp Directory ref_output.txt > ref_std_out.txt
+
+To combine redirection of input and output, you can do the following:
+./the_gerp Directory ref_out.txt < cmds.txt > ref_std_out.txt
+
+Recall that, even though gerp sends most data to the the output file, it will send some to std::cout
+- namely, the Query? lines, which will then be redirected to, in this case, ref_std_out.txt.
+
+
+Using Diff
+Once you have run the same input on the reference and on your implemenation, you can test that
+your and the reference’s outputs (the contents of ref_out.txt above) are equivalent by:
+
+  1. Sorting the output
+
+  2. Using diff to compare the sorted files
+
+Sorting is necessary because, while your program must produce output for all occurances of the
+query, the order in which multiple lines appear is not specified. Print out multiple lines in whatever
+order your data structure and algorithm choices find convenient. To sort the output, you can use
+the unix sort command.
+sort ref_output.txt > ref_output_sorted.txt
+sort my_output.txt > my_output_sorted.txt
+
+After sorting, use the diff command to find any differences. For example:
+diff ref_output_sorted.txt my_output_sorted.txt
+
+diff will print the differences in the file, if there are any. If nothing prints out, then the files are
+identical.
+    Keep in mind that, to compare the redirected std::cout streams of your implementation and
+the reference, you should not sort the output files before running diff.
+
+
+
+
+                                                  12
+README
+
+You will be required to submit a README along with your code. Your README should have the
+following sections:
+
+  A The title of the homework and the author names (you and your partner)
+
+  B The purpose of the program
+
+  C Acknowledgements for any help you received, including references to outside sources you
+    consulted (though there is no need list C++ references like cplusplus.com).
+
+  D The files that you provided and a short description of what each file is and its purpose
+
+   E How to compile and run your program
+
+   F An “architectural overview,” i.e., a description of how your various program modules relate.
+     For example, the FSTree implementation keeps a pointer to the root DirNode.
+
+  G An outline of the data structures and algorithms that you used. Given that this is a data
+    structures class, you need to always discuss any data structures that you used and justify why
+    you used them. For this assignment it is imperative that you explain your data structures
+    and algorithms in detail, as it will help us understand your code since there is no single right
+    way of completing this assignment.
+
+  H Details and an explanation of how you tested the various parts of your classes and the program
+    as a whole. You may reference the testing files that you submitted to aid in your explanation.
+
+   I. Please let us know approximately how many hours you spent working on this project. This
+      should include both weeks one and two.
+
+Each of the sections should be clearly delineated and begin with a section heading which describes
+the content of the section.
+
+
+
+
+                                                13
+Submitting Your Work
+
+You will be submitting your work in 2 parts:
+
+
+Part 1: Design, FSTree, and String Manipulation
+Design
+As part of your design checkoff, you must do two things:
+
+  1. Provide answers to the questions in the file gerp_design_checkoff.txt, included in the
+     starter files. When you’re done, submit your answers to the assignment titled “gerp Design
+     Checkoff” on Gradescope. You must submit this file prior to your design checkoff
+     meeting (described below).
+
+  2. Sign up for an in-person design checkoff meeting with a TA. Both you and your partner must
+     attend the meeting. You can find the design checkoff form linked here. At that meeting,
+     among other things, you will be required to address the answers that you submitted with
+     your design checkoff questions. You should also bring drawings that capture your design.
+
+FSTree and String Processing
+To complete this part you will need to write 2 functions:
+
+  1. a directory traversal function that prints out the full paths of each file in the tree on separate
+     lines
+
+  2. a function that strips all leading and trailing non-alphanumeric characters from a given string
+
+Directory Traversal
+You will be implementing this in traverseDirectory in processing.h and processing.cpp. The
+function takes a directory as an argument and then prints the full paths of all the files accessible
+from that directory. Do not worry about the order that the file paths print in, just ensure that
+each one of them prints. For example, if you have a directory named Foo, with:
+
+   • files a.cpp, b.cpp, and c.cpp inside it
+
+   • a subdirectory Bar, with:
+
+         ◦ files x.cpp, y.cpp, z.cpp
+
+Then one possible output for running traverseDirectory(Foo) would be:
+
+
+                                                 14
+Foo/Bar/x.cpp
+Foo/Bar/y.cpp
+Foo/Bar/z.cpp
+Foo/a.cpp
+Foo/b.cpp
+Foo/c.cpp
+
+Again, the order here does not matter. You may assume that the directory name has no trailing /.
+
+String Manipulation
+You will be implementing this in stripNonAlphaNum in processing.h and processing.cpp. The
+function takes a string and removes all leading and trailing non-alphanumeric characters. For
+example, when stripNonAlphaNum("@##!!#!@!#COMP-15!!!!!!!") returns "COMP-15".
+
+Part I README
+Your README does not need to contain everything we normally ask for. For this phase, you can just
+write a very brief summary with any infromation you’d like the grader to see (e.g. if you have a
+nettlesome bug you have not yet been able to fix). Additionally, make sure to write both author’s
+names (i.e., you and your partner).
+
+Submitting Phase 1
+Note: Only one of you or your partner should submit your code each time you submit
+– otherwise you may receive a grade for the wrong submission. Make sure both names
+are in the submitted README. You will need to submit at least the following files:
+      processing.h
+      processing.cpp
+      README
+   You should only include other C++ files you write if your solution to stripNonAlphaNum or
+traverseDirectory depend on them. You do not need to submit DirNode or FSTree. You must
+submit them using Gradescope to the assignment proj_gerp_phase1. Submit these files directly,
+do not try to submit them in a folder. Make sure to add your partner on Gradescope each
+time you submit.
+
+
+Part 2 - Final Submission
+For this part you will submit all of the files required (including a Makefile) to compile your gerp
+program. Make sure to include any testing files. Once again, only one of you or your partner
+should submit each time you submit. Furthermore, make sure you add your partner
+for each submission. You will need to submit the following files:
+      Makefile
+      README
+      (... all the C++ .h, .cpp files that implement your program)
+      (... all your testing files)
+   You must also submit:
+
+
+                                                15
+   • Any unit tests you write for your program. This may be done in a file called unit_tests.h,
+     using the unit_test framework that we have used on past assignments. Alternatively, you
+     can create your own testing main functions, e.g., submit a file called Gerp_tests.cpp with a
+     main function that calls out to tests. Whatever testing files you use, you must submit them!
+   • Any command files (excluding the command files provided).
+   • Note, you only need to include testing input files. You do not need to include output files of
+     any kind (stdout or stderr).
+    You should submit your final implementation to the assignment proj_gerp on Gradescope.
+    Note: Make sure you submit everything we will need to run your program. Maybe copy the files
+into another directoy, type make test the program, do a make clean and then submit everything.
+We should be able to use make or make gerp to build your program. You do not need to submit
+any provided files (FSTree.h, FSTree.o, DirNode.h, DirNode.o).
+
+   Note, you only need to include testing input files. For example, files you are searching or files
+with queries. You do not need to include output files of any kind (stdout, stderr, or output files
+where you store the file:line occurrences of words).
+
+    Before submitting your work, please make sure your code and documentation (including sec-
+tions of the README) conform to the course style guide.
+
+
+
+
+Helpful Tips
+
+Testing
+We will test your solution on several directories, including smallGutenberg and mediumGutenberg
+and largeGutenberg. You can see some test queries and reference implementation output in
+/comp/15/files/proj-gerp-sample-execution. You should match this output exactly (except
+that the order can be different as explained above).
+
+
+Hashing and Hash Tables
+There are example uses of the std::hash facility in the files we’ve given you. See hash_test.cpp
+and hashExample.cpp. If you use a hash table, then you MUST have it dynamically resize. You
+must monitor the load factor and expand if the load factor is exceeded.
+
+
+Runtime
+The runtime of your query processing must depend on the size of the output, not on the size of the
+input (that is, the index structure should be very close to constant time to search).
+
+                                                16
+Space
+Finally, space usage will be an issue. Your program will have enough memory to store all the data
+in the largeGutenberg collection once or twice, but not 5 or 6 times. If you are not cognizant of
+space usage, then your program will work fine for the small or maybe even the medium collection,
+but will fail on the large collection when it runs out of memory. You might find the provided
+file exceedmem.cpp helpful regarding memory issues; it shows different examples of situations you
+might encounter when attempting to allocate too much memory.
+     If you are stuck, then you should get something that at least works correctly on the small data
+collections. To work on larger collections, you will need to choose a strategy that considers space.
+
+
+Hints
+   • Hint: Every copy of a string requires space proportional to the length of the string. (An
+     std::string is an ArrayList of characters.)
+
+   • Hint: Do not store a pointer to an element in a vector. A good final exam question
+     would be: “Why should you not store the address of an element in a vector?” An std::vector
+     is an ArrayList, remember.
+
+   • Hint: Pay attention to how you pass variables to functions. For example, consider the follow-
+     ing two function signatures:
+     void foo_a(string word)
+     void foo_b(string &word)
+     Passing a string to foo_b, which uses a reference parameter, will be more space and time
+     efficient than passing a string to foo_a. See why? Leverage this to your advantage!
+
+
+
+
+                                                17
+

@@ -1,0 +1,80 @@
+                                  Lab 11: Dijkstra’s Algorithm
+                                               COMP 15
+
+
+1       Introduction
+   Today for lab we are going to run Dijkstra’s Algorithm on two different graphs. Dijkstra’s Algorithm
+is useful when we want to find the shortest and most cost-effective path between two vertices. Instead of
+implementing Dijkstra’s algorithm using C++, today we will use pen and paper (or tablet and stylus) to
+report the results of running the algorithm. Please fill out the table provided as shown in lecture, once
+you have completed filling out the tables, please submit your work using the usual provide command.
+
+
+
+
+    V    Known    Prev     Dist    v=A       v=B        v=D      v=C       v=F       v=E       v=G
+
+    A      FT
+           S      0         0
+
+    B      FT
+           S      A         5        5
+
+    C      FT
+           S      B         7                   7
+
+    D      FT
+           S      B         6                   6
+
+    E      FT
+           S      D         9                             9
+
+    F      FT
+           S      C         8                                       8
+
+    G      FT
+           S      FE
+                  S         11                                               12        11
+
+
+
+
+                                                    1
+V   Known   Prev   Dist   v=A   v=C      v=B   v=D   v=E   v=F   v=G
+
+
+A    FT
+     S      0       0
+
+
+B    FT
+     S      AC
+            @       3      5     3
+
+
+C    FT
+     S      A       2      2
+
+
+D    FT
+     S      C       6            6
+
+
+E    FT
+     S      CB
+            @       7            9        7
+
+
+F    FT
+     S      DE
+            @       10                          14    10
+
+
+G    FT
+     S      D       12                          12
+
+
+
+
+                                     2
+

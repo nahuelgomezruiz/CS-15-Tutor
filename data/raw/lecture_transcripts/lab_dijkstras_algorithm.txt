@@ -1,0 +1,85 @@
+CS15 Dijkstra’s Algorithm
+Lab
+
+Introduction
+Today for lab we are going to run Dijkstra’s Algorithm on two different
+graphs. Dijkstra’s Algorithm is useful when we want to find the shortest
+and most cost-effective path between two vertices. Instead of implementing
+Dijkstra’s algorithm using C++, today we will use pen and paper (or tablet
+and stylus) to report the results of running the algorithm. Please fill out
+the table provided as shown in lecture, starting from vertex A. Remember:
+initially, the “Known” column should be false for all vertices, and the “Dist”
+column should be 0 for the starting vertex, and infinity for all others. Once
+you have completed filling out the tables, please submit your work by doing
+the following:
+
+
+   • Copy table.txt into your lab 12 folder by running:
+     cp /comp/15/files/lab_dijkstras_algorithm/* .
+
+   • Fill out table.txt and then you will need to submit the following
+     files:
+                                table.txt
+
+     You must submit them using Gradescope to the assignment lab_dijkstras_algorithm.
+     Submit these files directly, do not try to submit them in a folder.
+
+
+
+
+                                      1
+V   Known   Prev   Dist   v=   v=   v=   v=   v=   v=   v=
+
+
+A
+
+
+B
+
+
+C
+
+
+D
+
+
+E
+
+
+F
+
+
+G
+
+
+
+
+                                    2
+V   Known   Prev   Dist   v=   v=   v=   v=   v=   v=   v=
+
+
+A
+
+
+B
+
+
+C
+
+
+D
+
+
+E
+
+
+F
+
+
+G
+
+
+
+
+                                    3
+

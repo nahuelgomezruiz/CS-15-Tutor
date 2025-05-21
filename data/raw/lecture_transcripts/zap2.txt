@@ -1,0 +1,293 @@
+PROJECT ZAP
+
+
+Reference Implementation and Testing
+
+To assist you with implementing and testing your program, we have provided you with the_zap, a
+compiled reference implementation. You should play around with this implementation to get a feel
+for how it works, and use it to test your own implementation once it is built.
+    It is important to note one thing: There is an ambiguity in the Huffman coding algorithm which
+may affect your testing. Specifically, when building the Huffman tree, the algorithm dictates that
+when there are more than two minimum frequency nodes, the tie can be broken arbitrarily: any two
+minimum nodes may be picked next. As a result, there may be multiple valid Huffman trees, and
+hence multiple valid Huffman encodings for a particular text. How an encoding ultimately is chosen
+may rely on unimportant factors, like the order in which HuffmanTreeNodes are added to the priority
+queue.
+    What this means for you: It is possible that providing the same input text to your program and to
+the reference implementation will result in two different zap files. Hence, it will not always be possible
+to use diff testing with zap files.
+    Luckily, one property will always hold true: any valid Huffman encoding will always be the same
+size. Therefore, though the zap file created by your implementation may differ from the reference, the
+size of the encodings should be the same, and thus the message printed to cout regarding encoding
+size should always be the same. For example, if the reference prints to cout:
+Success! Encoded given text using 25053897 bits.
+then your program’s output should print the exact same thing. So, you should rely on redirecting the
+output from cout and cerr to specific files, and diff test those files against the reference’s output.
+    There are other ways to test your program as well. For example, any zap file created by your
+implementation should be unzap-able by the reference implementation, and vice versa. Try it out:
+zap a file with your implementation, and unzap with the reference. Is the resulting text the same as
+the original? If not, something has gone wrong.
+    You can also test your own implementation’s encoder against its decoder, for example:
+./zap zap A.txt B.zap
+./zap unzap B.zap C.txt
+diff A.txt C.txt
+
+     Calling diff above should result in no output—A.txt and C.txt should contain identical contents.
+If they don’t, you have some debugging to do.
+     As always, beyond diff testing, you should unit test your program early and often. Because
+you will likely have many private functions to test, you may find it useful to temporarily make these
+functions public for testing purposes—just be certain to make them private again before your final
+submission.
+     Finally, make sure to submit all testing files you create, whether for unit or diff testing. This
+includes any new input text files you create to pass to ./zap zap in addition to the provided text
+files. You should describe these files and how you used them in your testing in the README (e.g. did
+you check the stdout of ./zap zap? did you check just the output of ./zap zap or something else?).
+
+
+Testing Utilities
+With your starter code, you also received a few files that will be useful when testing your program
+(especially your phase one submission). These files are described below.
+
+   • ZapUtil.h and its corresponding .o file: these files are provided by us. Three functions are
+     defined in these files: makeFigure1Tree, printTree, and treeEquals. makeFigure1Tree creates
+     a tree based off of the tree in Figure 1 out of HuffmanTreeNodes. Note that the nodes in this tree
+     are all allocated on the heap. printTree prints a tree of HuffmanTreeNodes in a nice format,
+     level by level with structure and both node values and frequency. Node that the internal node
+     value can be set to non-printable characters, so their value is replaced by the string [] when a
+     tree is printed. treeEquals determines if two trees of HuffmanTreeNodes are equal. Equality
+     can be determined based solely on structure and value, or it can consider frequency as well. For
+     more information about all three of these functions, please read the comments in ZapUtil.h.
+   • ZapUtilExample.cpp: this file is provided by us. This file shows you how to use the three
+     functions in ZapUtil.h. It also shows you how to construct a tree from HuffmanTreeNodes
+     using set_left and set_right. This may be useful to you when you’re testing individual
+     functions in your implementation.
+
+   • bad_zap_file: this file is provided by us. This file is an example of a bad compression. That is,
+     if you tried to decode this file, you would end up in the middle of a root to leaf path traversal.
+     This should result in your HuffmanCoder::decoder function throwing a std::runtime_error.
+     This is all discussed in the last two paragraphs of the Decoding section.
+
+
+Testing Data Files
+To test your solution, we have also provided you with some text files. You can copy them from
+/comp/15/files/proj-zap-test-files/. You should use them to test if your compression size
+matches the reference solution. The files are:
+
+   • banana.txt contains the text in the example for the count_freqs function in Phase One. This
+     file is 6 bytes.
+
+   • hi.txt contains the text in the example for the count_freqs function in Phase One. This file
+     is 8 bytes.
+
+   • banana_apple.txt contains the text in the example in Counting Character Frequencies. This
+     file is 20 bytes.
+
+   • sentences.txt contains a few sentences from a novel. This file is 225 bytes.
+
+   • all_conll_english.txt contains the 2003 CoNLL English dataset used commonly in Natural
+     Language Processing. This file is about 5 MB.
+
+   • works_of_shakespeare.txt contains the works of William Shakespeare. This file is about 5
+     MB.
+
+   • ecoli.coli contains the E.coli genome made up of the 4 nucleotide bases of DNA. This file is
+     about 5 MB.
+
+
+
+
+Makefile and README
+
+Makefile
+You must write and submit a Makefile along with your code. When we run make and/or make zap,
+your Makefile should build your program and produce an executable named zap that we can run.
+
+
+
+
+                                                  11
+README
+In addition to your program and testing files, you should submit a README file that includes the
+following sections:
+  A. The title of the assignment and your name.
+  B. The purpose of the program.
+  C. Acknowledgments for any help you received.
+  D. A list of the files that you provided and a short description of what each file is and its purpose.
+  E. Instructions on how to compile and run your program.
+  F. An outline of the data structures and algorithms that you used. Given that this is a data
+     structures class, you need to always discuss the ADT that you used and the data structure
+     that you used to implement it and justify why you used it. There should be a number of data
+     structures for this assignment. Discuss each one, and why it was the correct choice for the
+     task at hand. In addition to discussing the features of the data structure, please include (with
+     some justification/explanation) two other situations/circumstances/problems where you could
+     utilize it. The algorithm overview is always relevant. Please pick a couple interesting/complex
+     algorithms to discuss in the README.
+  G. Details and an explanation of how you tested the various parts of assignment and the program
+     as a whole. You may reference the testing files that you submitted to aid in your explanation.
+   I. Please let us know approximately how many hours you spent working on this project. This
+      should include both weeks one and two.
+   Each of the sections should be clearly delineated and begin with a heading that describes the
+content of the section.
+
+
+
+
+Submitting your work
+
+Phase One
+You will need to submit two files for phase one:
+   • phaseOne.h
+   • phaseOne.cpp
+    phaseOne.h should contain the declarations of three functions, and phaseOne.cpp should contain
+their definitions. These functions are described below.
+    Note: You should not declare or define any classes for this phase! Though we are used to splitting
+up interface/implementation files for classes, in this case you are only declaring and defining functions,
+not classes.
+    The functions in these files should be the following:
+
+                                                   12
+CONTENTS                                                                                             13
+
+
+   • void count_freqs(std::istream &text)
+     This function takes an istream reference text as input (remember, an istream could be various
+     kinds of streams: an ifstream, an istringstream, cin...). It should read in the entire stream
+     and count the number of occurrences of every character. Finally, it should print to cout the
+     number of occurrences of every character. Each character should be printed on its own line using
+     the format:
+     CHAR: NUM
+     For example, if text contains the string BaNana, your function should print to cout:
+     B:   1
+     a:   3
+     N:   1
+     n:   1
+
+
+     The function can print the character counts in any order. Note that your function should count
+     non-alphanumeric characters as well. This could make the format of the output looks strange,
+     especially in the presence of whitespace characters, but that is okay. For example, if text
+     contains:
+     hi hi
+     hi
+
+
+     Your function should print to cout:
+     h: 3
+     i: 3
+      : 1
+
+     : 1
+
+
+     Notice that the newline’s frequency is reported across two lines.
+
+   • std::string serialize_tree(HuffmanTreeNode *root)
+     This function takes a pointer to the root of a Huffman tree as input, and it returns the serialized
+     version of the tree. The tree should be serialized according to the format described earlier.
+
+   • HuffmanTreeNode *deserialize_tree(const std::string &serial_tree)
+     This function goes in the other direction: given a serialized tree as input, it reconstructs the
+     Huffman tree and returns a pointer to its root. Though this function should allocate memory
+     on the heap for the new nodes, for your phase one submission, you don’t need to worry about
+     freeing this memory—our autograder will do it for you.
+
+   You may declare/define additional helper functions in phase one, but you are not required to.
+You should test your functions thoroughly. How you do so is up to you—you can use the unit_test
+framework, or you can write your own main() function (but you should do so in a separate file, since
+our autograder will use its own mains).
+
+Submitting Phase 1
+You will need to submit at least the following files:
+          phaseOne.h, phaseOne.cpp
+          README
+          (... any testing files)
+CONTENTS                                                                                           14
+
+
+   You should only include other C++ files if your solutions to the phase 1 functions depend on
+them. Do not submit HuffmanCoder.cpp for example. You must submit them using Gradescope to
+the assignment proj_zap_phase1. Submit these files directly, do not try to submit them in a folder.
+Your README does not need to contain everything we normally ask for. For this phase, you can just
+write a very brief summary with any information you’d like the grader to see (e.g., if there is a bug
+you have not been able to fix).
+
+
+Phase Two
+When you begin working on your final submission, you will find the functions from phase one useful.
+For the final submission, you do not need to keep these functions within the phaseOne files, and you
+are welcome to change other properties of the functions as well (their names, type signatures, etc.).
+At a minimum, you will not want your count_freqs function to print anything to cout. But you will
+want to reuse the logic within the functions.
+    For this part you will submit all of the files required to compile your zap program, including a
+Makefile. Be sure to include any files you used for testing, including test data that you created. You
+will need to submit the following files:
+        HuffmanCoder.h, HuffmanCoder.cpp
+        main.cpp
+        Makefile
+        unit_tests.h
+        README
+        (... all the C++ .h, .cpp files that implement your program)
+        (... any testing files)
+You must also submit:
+
+   • Any unit tests you write for your program. This may be done in a file called unit_tests.h,
+     using the unit_test framework that we have used on past assignments. Alternatively, you can
+     create your own testing main functions, e.g., submit a file called Zap_tests.cpp with a main
+     function that calls out to tests. Like HW1 and HW2, this assignment can be easily unit tested,
+     so each step of the encoder() and decoder() should have dedicated tests. Whatever testing
+     files you use, you must submit them!
+
+   • Any .txt files given to encoder() (excluding the command file provided).
+
+   • Note, you only need to include testing input files. You do not need to include output files of any
+     kind (stdout, stderr, or compressed files).
+
+   • A detailed testing description in the README. Since you shouldn’t submit output files, you must
+     describe how you diff tested your program with the reference to check for correctness. How did
+     you test that the zapped file encoder created was correct? What about the file decoder created?
+     Etc.
+
+    You must submit them using Gradescope to the assignment proj_zap.
+    Note: Make sure to submit everything we need to run your program. Maybe copy the files to
+another directory, type make to try building your program, do a make clean and then submit every-
+thing in the directory. We should be able to use make or make zap to build your program. You do not
+need to submit any provided files (HuffmanTreeNode.h, HuffmanTreeNode.o, ZapUtil.h, ZapUtil.o).
+
+    Before submitting your work, please make sure your code and documentation (including sections
+of the README) conform to the course style guide.
+
+
+
+
+Helpful Tips
+
+   • At various points in your program, you’ll need to read characters one at a time from a stream.
+     Most likely, you do not want to use the >> operator to do this. This operator skips over
+     whitespace characters—but in order to correctly compress and decompress text, whitespace
+     characters should not be skipped. Instead try using the get() function, which can read any
+     single character from a stream. Here is the documentation for istream’s get() function: https:
+     //cplusplus.com/reference/istream/istream/get/
+
+   • We will only test your program on ASCII text. Recall that modern ASCII encodings use 8 bits
+     to represent up to 256 characters. Moreover, under the hood, C++’s chars are represented using
+     the character’s ASCII integer. That means you can use a char in contexts where an integer is
+     expected, you can cast chars to ints, or you can use the int() constructor to get a char’s
+     ASCII number—e.g., for a char c, the expression int(c) will give you the character’s ASCII
+     number. You may find it useful to leverage this knowledge in your implementation.
+
+
+  • Say you have two string variables named str and other_str. Though they may appear identical,
+    it turns out there is a big difference in the following two lines:
+ 1   str += other_str;
+ 2   str = str + other_str;
+
+
+     Line 1 appends other_str to the back of str. Line 2 concatenates str and other_str, and
+     stores the result in a completely new place in memory. Line 1 can be significantly more time
+     efficient, especially for larger strings, as it can avoid time spent copying to a new place in memory.
+     You’ll want to keep this in mind as you build out your implementation.
+
+  • Make sure to have VS Code setup properly to not have Windows line breaks and only Linux line
+    breaks. This way, you will avoid introducing Windows line breaks into any text files you create.
+    As a reminder, the instructions on how to do this are here.
+

@@ -1,0 +1,412 @@
+    CS 15 Project 2: CalcYouLater
+Introduction
+
+Preamble
+Welcome to the second project! It’s a calculator, but it’s even more. It’s almost a real programming
+language! This is a more involved project, for which you have been given ample time, if you start
+right away.
+
+                               Do not try to do it in one sitting
+
+Read it right away. Jot down and draw ideas. It’s better to work on it in 90 minute or 2 hour
+chunks of time. If you do that, and you’re organized, it will go smoothly. The stack implementation
+itself should be doable in a single sitting. Be sure to note the multiple phases of the project. Come
+in to talk to one of us about your plan as early as you can.
+
+Note on File I/O
+For this project, you’ll find knowledge you acquired about file I/O in Project 1 helpful. In particular,
+the ability to pass a reference to an std::istream to a function makes it easy to modularize your
+code by allowing a function to process input from any input stream, whether it be std::cin or a
+stream that you attached to a file using open.
+    There is an additional piece here. C++ has a way for you to treat a std::string as if it were
+an input stream! It has a class,
+called std::istringstream. Its constructor and an example of how to use a std::istringstream
+for input can be found here. A istringstream has eof and fail member functions, just like
+std::cin or any other input stream. The idea for our purposes is to make an std::istringstream
+from a std::string, and then pass that std::istringstream to a function that requests an
+std::istream &, and it will work!
+
+
+Introduction
+In this project you will implement a Reverse Polish Notation (RPN) calculator. RPN is also known
+as “postfix” notation1 . This means that the operator comes after its operands rather than in
+between. For example:
+
+      • 3 4 + is equal to 7
+
+      • 3 4 * is equal to 12
+
+      • 1 2 - is equal to -1 (note the order)
+
+      • 8 2 / is equal to 4 (note the order)
+
+Cool fact: RPN does not need any parentheses as long as each operator has a fixed number of
+operands (which is the case in this assignment). For example, the infix expression:
+
+      5 + ((1 + 2) * 4) - 3
+
+can be written in postfix notation as follows:
+
+      5 1 2 + 4 * + 3 -
+
+Your RPNCalc will support more than just integers, however! It will support Datum objects! More
+on this in a moment.
+
+
+
+
+Project Planning and Deliverables
+
+    Before writing any functions, sit down and read the assignment specification in full. There is a
+lot of complexity here! Then, begin to plan your solution. It would be prudent to organize and plan
+your solution to be as modular as possible. Use helper functions! Doing this initial planning will be
+extremely helpful down the road when it comes to testing and debugging; it also helps the course
+staff more easily understand and read your work (which can only help you). It is not advisable
+that you sit down and attempt to write this in one sitting, particularly if that sitting is close to
+the deadline. For that reason, the CS 15 course staff has come up with a project implementation
+plan, split into three required (read: graded) phases:
+  1
+      The notation you’re used to, with the operator between the operands is called “infix” notation.
+
+Week One
+Deliverable #1: Design Checkoff
+First, complete the required design checkoff questions given in the starter file cyl design checkoff.txt,
+and submit your answers on Gradescope under the assignment “CalcYouLater Design Checkoff.”
+You must submit this file prior to meeting with a TA.
+    Then, go to office hours and talk to a TA about your plan. You should be prepared to discuss
+the answers you submitted. You are welcome to bring other materials as well, though you are not
+required to: drawings, pseudocode, etc.
+    The design checkoff helps twofold: you plan out your project and get your brain working on
+it in the background, and you also get design feedback before it’s too late. TAs will check off
+your design, but reserve the right to not check off your design if they believe your design was not
+thoroughly mapped out enough. Please sign up for a design check off on the form linked here.
+
+Deliverables #2 and #3: DatumStack class and parseRString
+Write and submit the DatumStack class and parseRString function (these are described in detail
+under sections of their own names below). These are not expected to be strenuous exercises, but
+have been known to occasionally hide latent bugs that mess up the rest of your RPNCalc. So, start
+them early, get them right, and make sure they are well-tested.
+
+
+Week Two
+Deliverable #4: CalcYouLater
+Write CalcYouLater! (described in detail below) Implement some of the less involved operations
+first. Then do the more complicated operations.
+
+Datum Class
+
+Introduction
+Before diving in to the details of the RPNCalc and DatumStack clases, we will go over the Datum
+class. A Datum object is essentially a container for one of three things:
+   • int
+   • bool
+   • rstring (short for RPN string)
+The type of the value contained by any given Datum object is chosen from the above three options
+at construction-time, and does not change during the lifetime of that Datum object. We have coded
+the Datum class for you, but it would be worth your while to understand the interface.
+Datum Interface
+   • Four Constructors: one constructor for each type a Datum object can contain, plus a copy
+     constructor. Note that there is no default constructor. Also note that, under the hood,
+     rstrings are represented as C++ strings.
+  1   Datum(int i);
+  2   Datum(bool b);
+  3   Datum(string s);
+  4   Datum(const Datum &d);
+
+   • A destructor
+
+   • An assignment operator overload
+
+   • Three type query functions:
+  1   bool isInt();
+  2   bool isBool();
+  3   bool isRString();
+
+
+   • An equals (==) operator for comparing two different Datum objects. This allows us to call,
+     e.g., d1 == d2 where d1 and d2 are instances of the Datum class. If d1 and d2 contain values
+     of different types, this would return false. If d1 and d2 contain values of the same type,
+     then the underlying values will be compared.
+
+   • The less-than (<) operator for Datum holding integers. Using the less-than operator and
+     the is-equal-to operator, we can build less-than-or-equal (<=), greater-than-or-equal (>=), and
+     greater-than (>). Use of any of these operators on Datum which hold booleans or rstrings
+     will raise a std::runtime_error with the message “datum_not_int”.
+
+   • Three data access functions:
+  1   int getInt(); // throws "datum_not_int"
+  2   bool getBool(); // throws "datum_not_bool"
+  3   std::string getRString(); // throws "datum_not_rstring"
+
+
+      These functions each throw an std::runtime_error with the associated message above if
+      they are called on a Datum of the wrong type. For instance, if I have a Datum that contains a
+      boolean value, and I call getRString() on it, it will raise a std::runtime_error with the
+      message datum_not_rstring.
+
+   • toString(), a function that creates a string representation of the Datum. This is useful for
+     printing and debugging.
+
+
+File Organization for the Provided Datum Files
+The Datum class is given to you as two files: Datum.h and Datum.o. Datum.h contains the interface
+of the Datum class; Datum.o contains a pre-compiled object file. That is, it is a non-human-readable
+file which was compiled from a .cpp file, and it contains all of the working machine code that you
+can use in your project, but does not give you any information about how it works. What it
+does, however, can be gleaned from Datum.h (the interface). To use the Datum class, you must
+
+#include "Datum.h" at the top of whichever file will use it, and you must link Datum.o with your
+compiled code. To review linking .o files, see the Makefile lecture and lab.
+
+
+DatumStack Class
+
+Introduction
+The DatumStack class will maintain a stack of Datum objects, and will be used heavily by the
+RPNCalc class. Part of your Week 1 assignment is to to implement this interface.
+
+
+DatumStack Interface
+You DatumStack class must have the following interface (all the following members are public):
+
+   • Two constructors as follows:
+
+        ◦ A default constructor, which takes no parameters and initializes an empty stack.
+        ◦ A constructor which takes an array of Datum and an integer specifying the size of the
+          array as parameters and creates a stack initialized so that the elements of the array are
+          on the stack with the array’s element 0 pushed on first and it’s (size - 1)th element
+          at the top of the stack. Example:
+       1   Datum data[2] = { Datum(5), Datum(true) };
+       2   DatumStack d(data, 2);
+       3   // d now has a true Datum as the top element
+
+
+   • If necessary, define the Big Three (destructor, copy constructor, assignment operator).
+
+   • An isEmpty function that takes no parameters and returns a boolean value that is true if
+     this specific instance of the DatumStack class is empty and false otherwise.
+
+   • A clear function that takes no parameters and has a void return type. It makes the current
+     stack into an empty stack.
+
+   • A size function that takes no parameters and returns an integer value that is the number of
+     Datum elements on the stack.
+
+   • A top function that takes no parameters and returns the top Datum element on the stack.
+     NOTE: It does not remove the top element from the stack. If the stack is empty, it throws
+     a std::runtime_error exception with the message “empty_stack”.
+
+   • A pop function that takes no parameters and has a void return type. It removes the top
+     element on the stack. NOTE: It does not return the element. If the stack is empty it throws
+     a std::runtime_error exception with the message “empty_stack”.
+
+   • A push function that takes a Datum element and puts it on the top of the stack.
+
+
+RPNCalc Class
+
+Introduction
+The interface for the RPNCalc class is rather straightforward—the complexity is not in the number
+of functions, but rather is in the logic of processing the commands that come to the run function.
+
+
+RPNCalc Interface
+   • Define a default constructor which takes no parameters and initializes the RPNCalc object.
+
+   • Define a run function that takes no parameters and returns nothing. This function reads
+     in commands from standard input (std::cin). Each command can be read as a string and
+     commands will be separated by whitespace. Commands do not have to be on different lines.
+     See below for details.
+
+   • Optional: Define a destructor that destroys/deletes/recycles any heap-allocated data you
+     may have used in the RPNCalc instance.
+
+
+The ‘Simpler’ RPNCalc Commands
+The supported operations will be extended by the “harder” commands, but implement these simpler
+commands first and get them working before continuing on.
+   • A number causes a Datum containing the number to be pushed onto the stack.
+
+   • #t causes a Datum with the boolean true to be pushed on the stack.
+
+   • #f causes a Datum with the boolean false to be pushed on the stack.
+
+   • not reads and pops the top element off the stack, a boolean, and causes a Datum with the
+     opposite boolean value of the popped element to be pushed on the stack.
+
+   • print prints the value on the top of the stack to std::cout (without popping it) followed
+     by a new line.
+
+   • clear clears the calculator, emptying the stack.
+
+   • drop causes the top element on the stack to be removed.
+
+   • dup duplicates the top element on the stack.
+
+   • swap swaps the top two elements on the stack.
+
+   • quit, quits the calculator completely. When the program quits, it prints the following message
+     to std::cerr: “Thank you for using CalcYouLater.\n” (It should print this message whether
+     it quits with the quit command or by reaching the end of input on std::cin).
+
+   • The operators +, -, *, /, or mod. Any of these causes the top two elements (which must both
+     be integers) to be popped off the stack, the operation to be performed on them (addition,
+     subtraction, multiplication, division, or remainder), and a Datum with the result to be pushed
+     on the top of the stack. The first operand of the operation is the first (deeper) item on the
+     stack. NOTE: The result does not print.
+
+   • The operators <, >, <=, >=, or ==. Any of these causes the top two elements to be popped off
+     the stack, the operation to be performed on them (some kind of logical comparison) and a
+     Datum with the result (a boolean) to be pushed on the top of the stack. The first operand of
+     the operation is the first (deeper) item on the stack. NOTE: The result does not print.
+
+
+The ‘more Complex’ Commands
+Any rstring
+You can think of an rstring as a sequence of commands to be saved and executed later. For our
+purposes, an rstring will be defined as a sequence of characters that follows this pattern:
+
+   • The sequence must begin with "{ " (note the space!).
+
+   • The sequence must end with " }" (note the space!).
+
+Any rstring that is provided as input to RPNCalc will be put inside of a Datum as an std::string,
+and the Datum will be pushed onto the stack. To clarify, “rstring” itself is not a command; rather,
+an example of a command that would be parsed as an rstring and pushed onto the stack would
+be “{ 2 8 + }”. Another example would be “{ 2 + }”.
+    Note: The braces must match up, and the spacing around the beginning and ending
+braces must be correct. I.e., { 2 + } is treated as an rstring, while {2 +} is treated as
+two unrecognized commands (think about why that is!). Also, rstrings can be nested
+- to see an example of nested rstrings, read on about if.
+    Clearly, processing rstrings will be important for the success of your RPNCalc class. Thus, part
+of your Week 1 assignment is to implement a function to parse rstrings. While reading in input,
+once you read a "{ ", you should call this parsing function. See the section titled parseRString
+Specification (below) for details.
+
+exec
+exec takes the topmost element on the stack, which must be an rstring, and processes its contents
+as a sequence of commands. If the topmost element of the stack is not an rstring, it should print
+“Error: cannot execute non rstring\n” to std::cerr, and your program should continue to accept
+input.
+
+file
+file pops the top element off of the stack, which must be an rstring. If it is not an rstring it
+should print “Error: file operand not rstring\n” to std::cerr, and continue to accept input.
+
+   For example, the rstring might be “{ square.cylc }”, in which case the filename is “square.cylc”.
+The contents of the named file is then read and processed as if its commands had been typed into the
+command loop. If the file cannot be opened or read, the message “Unable to read FILENAME\n”
+(where “FILENAME” is replaced with the name of the file specified in the command) is printed to
+std::cerr. The program does not crash or throw an exception. The command loop then continues
+reading data from its last input source.
+
+if
+if Overview
+if has a few steps. The command if:
+
+     1. pops an rstring off of the stack—this rstring will be executed if the condition is false.
+
+     2. pops another rstring off of the stack—this rstring will be executed if the condition is true.
+
+     3. pops a boolean off of the stack—this is the condition to test.
+
+To clarify, if assumes that the stack will look like this at the time it is called:
+
+top:            | FalseCase     |
+                | TrueCase      |
+bottom:         | TestCondition |
+                -----------------
+
+If the test condition is the boolean true, then the TrueCase in the diagram above should be exec’d.
+If the test is the boolean false, the FalseCase in the diagram above should be exec’d. If any of
+the elements encountered are of the wrong type, choose the appropriate error message to print to
+std::cerr:
+
+     • “Error: expected rstring in if branch\n”
+
+     • “Error: expected boolean in if test\n”
+
+Your program should not throw an exception. After printing to std::cerr, it should continue
+accepting input.
+
+if Examples
+Here are some examples of if in action that you might find helpful. Please note that the > characters
+below are the prompt (which you should not output, but we have included for readability in this
+document), not the greater-than sign.
+                                            useless if input to RPNCalc
+    > 3 4 <
+    > { #t } { #f } if
+    > print
+    #t
+    >
+
+
+                                                 translated to C++
+1   if (3 < 4) {
+2       return true;
+3   } else {
+4       return false;
+5   }
+
+
+                                      if   that mimics the behavior of “not”
+    > 3 4 <
+    > { #f } { #t } if
+    > print
+    #f
+    >
+
+
+                                                 translated to C++
+1   if (3 < 4) {
+2       return false;
+3   } else {
+4       return true;
+5   }
+
+
+                                           A more complicated nested if
+    > 4 dup 10 ==
+    > { 1 0 / }
+    > { 6 + dup 10 < { 10 > } { 10 == } if }
+    > if
+    > print
+    #t
+    >
+
+    Which should read as follows:
+
+       • Push 4 onto the stack twice. Check if 4 is equal to 10.
+
+       • If so, execute the rstring “{ 1 0 / }”.
+
+       • If not:
+
+            ◦ try adding 6 to the 4 on the stack.
+            ◦ check if that result is smaller than 10 (it shouldn’t be).
+                   - If it is, check if it is greater than 10 (it shouldn’t be).
+                   - If it is not, check if it is equal to 10 (it should be).
+    CONTENTS                                                                                      11
+
+
+                                           translated to C++
+1     if (4 == 10) {
+2         return 1 / 0;
+3     } else {
+4         if (4 + 6 < 10) {
+5              return 10 > 10;
+6         } else {
+7              return 10 == 10;
+8         }
+9     }
+
+
+
+    Just For Fun Exercises!
+       • set followed by the name of a variable causes the variable to be set to the value on the top
+         of the stack, which is then popped.
+
+       • get followed by the name of a variable pushes the value of the variable onto the stack. If
+         the variable has not yet been defined, print the variable name and then “: undefined” on
+         std::cerr (e.g. “x: undefined”). It should not throw an exception. After printing, it should
+         continue accepting input.

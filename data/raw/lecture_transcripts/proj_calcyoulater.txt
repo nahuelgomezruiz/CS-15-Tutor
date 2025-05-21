@@ -1,0 +1,389 @@
+
+
+    Handling Errors in RPNCalc::run
+    Unrecognized Input
+    For any other input that is not a recognized command, print the offending input and print “:
+    unimplemented” to std::cerr followed by a newline (e.g. “x: unimplemented\n”). It should not
+    throw an exception. After printing, it should continue accepting input.
+
+    Exception Handling
+    Your RPNCalc class should catch any exceptions that may be thrown from the DatumStack class. If
+    the DatumStack class throws an exception the RPNCalc should print the string associated with the
+    exception to std::cerr. For example if the stack threw an std::runtime_error exception with
+    the message “empty_stack”, the RPNCalc should print “Error: empty_stack\n” to std::cerr,
+    then continue to accept input.
+        Note: the exception message from the DatumStack class does not include “Error: ”, but RPNCalc
+    should print the error message given when the exeception is (or would be) thrown.
+        Your run() function should also catch all other exceptions thrown during evaluation. For
+    example, since the Datum class can throw std::runtime_errors, you should catch those and print
+    them appropriately to std::cerr:
+       • “Error: datum_not_int\n”
+
+       • “Error: datum_not_bool\n”
+
+       • “Error: datum_not_rstring\n”
+    You can review the lecture on Exceptions for a reminder of how to catch exceptions and print the
+    corresponding exception message.
+    We expect your program to never crash. This means you must test for
+    possible edge cases. If you come up with an edge case, you MUST use
+    the reference implementation to determine what the behavior of your
+    program should be for that case, as we will be using the reference,
+    and the exact error messages for grading your assignment.
+
+Errors while getting command parameters from the stack
+When running a command that must pop off parameters from the stack, RPNCalc’s run should
+first pop both elements off of the stack, and then display the first error enountered, then continue
+processing input from the input source. That means that all parameters that had been popped off
+by the error producing command will be discarded.
+
+Example: Datum of wrong type when running the + command
+The + command expects that the first two elements on the stack are ints. If the + command was
+run on a stack that had a Datum that wasn’t an int at the top, e.g.:
+
+top:       | rstring |
+           | int     |
+bottom:    | boolean |
+           -----------
+
+Then the approriate error message should be output and the run function should continue processing
+input. All Datum that had popped off by + leading up to the error would have been discarded, i.e
+the stack would look like:
+
+top:          | boolean |
+bottom:       |         |
+              -----------
+
+Error output prints to std::cerr
+As mentioned above, all error output (and the final program termination message) is sent to
+std::cerr. The only program output that goes to std::cout is generated when print command
+is sent to RPNCalc.
+
+
+
+
+parseRString Specification
+
+Introduction and Function Signature
+Implementing the parseRString function will be required as part of your deliverables for Week 1.
+Specifically, you will submit two files called parser.h and parser.cpp. They should respectively
+
+    contain the declaration and definition of one function called parseRString which takes a reference
+    to an istream as a parameter to continue reading input from. The function signature will be as
+    follows
+1   std::string parseRString(std::istream &input);
+
+
+
+    parseRString Implementation
+    Assume this function is called after an initial “{” has been read from the input stream passed as
+    a parameter. parseRString continues reading input from the stream until all curly braces are
+    matched or until it reaches the end of the input. It returns an rstring (i.e, an std::string), with
+    the preceding rstring specifications.
+
+    Examples
+
+    Example 1 (Again, note the spacing between commands): { 1 2 + }
+    Call parseRString after you see the first {
+    That is, pass " 1 2 + }" or "1 2 + }" to parseRString
+    It should return the string "{ 1 2 + }"
+
+
+    Example 2: { 1 { 4 2 / } / }"
+    Call parseRString after you see the first {
+    That is, pass " 1 { 4 2 / } / }" or "1 { 4 2 / } / }"
+    It should return the string: "{ 1 { 4 2 / } / }"
+
+    Note: parseRString assumes, therefore, that the first “{” has already been processed, and returns
+    a complete rstring based on the information after that. If you just call parseRString immediately
+    before the first “{”, it will print two “{” characters. This is expected behavior. Later, you will
+    find this function useful when reading in an rstring as input—it allows you to read in a complete
+    rstring, with balanced braces, thereby enabling RPNCalc to handle nested rstrings.
+        If parseRString gets to the end of the input stream without finding the final matching "}",then
+    you can choose what to do. Throwing an exception would be reasonable. We will not test you on
+    this case.
+        Lastly, parseRString should collapse any contiguous sequences of whitespace into a single
+    space. For example, suppose you are given an istream containing:
+    1
+
+    2
+    + }
+
+    The two consecutive newlines between 1 and 2 should be replaced by a space as well as the single
+    new line between 2 and +. The correct output string would be:
+    { 1 2 + }
+
+
+
+    Integrating parseRString in Your Code
+        Note that we’ve given you the declaration for parseRString, but it’s up to you as to how you
+    integrate it into your code for part ii. You have a few options, but we recommend:
+   • Keep the function in a file named parser.cpp (remove main.cpp from this file if it’s there
+     from part i)
+
+   • Include parser.h to the top of whichever file that uses the parseRString function.
+
+   • Add a rule to compile your parser.cpp to parser.o
+
+   • Make sure to add parser.o to the linking step in your Makefile.
+
+
+
+
+cylc and cyl files
+
+   RPNCalc runs on files with extension .cylc. For example, if you have a sequence of commands
+saved in my_example.cylc, you can execute them by either:
+   • Sending the file to program’s standard input (cin) using <
+     (e.g. ./CalcYouLater < my_example.cylc)
+
+   • Pushing the rstring “{ my_example.cylc }” on to the stack, then using the file command.
+
+.cylc files can be tricky to read and understand. Thus, you can also use .cyl files, which allow
+you to add comments. In .cyl files, comments begin with the character %. Because RPNCalc does
+not support comments, you must then convert the .cyl file to a .cylc file. We have given you a
+program called cylc that does this for you (it stands for “CalcYouLaterCompiler”).
+    As examples, we have provided you with four .cyl files in the starter code: add.cyl carries
+out some simple additions, fact.cyl implements the factorial function using RPNCalc commands,
+fib.cyl implements the Fibonacci function, and fib_debug.cyl uses Fibonacci to demonstrate a
+way to debug RPNCalc programs. Take a look at these files and the comments within them! They
+will be a useful reference when it comes time to test your program.
+    In order to convert the above files to .cylc files that can actually be run, use the cylc program
+we have provided you. For example, you can run ./cylc fact.cyl. This will create a new file
+called fact.cylc, which contains no comments or blank lines, and which can therefore be run by
+CalcYouLater.
+    You can see a video showing how to use the cylc program and make here: https://asciinema.
+org/a/zJ6yilB6daCFaaJqUzBpkdVBV
+
+
+
+
+Implementation Notes and Advice
+
+   You will write both the DatumStack and RPNCalc classes from scratch. They will each have two
+files associated with them - a .h file and a .cpp file. In addition to the public interfaces for the
+class defined above, you are free to add any private member functions / variables that you wish.
+
+       • The names of your functions / methods as well as the order
+         and types of parameters and return types of the interface of
+         the DatumStack and RPNCalc classes and the parseRString
+         functions defined above must be exactly as specified. This is
+         important because we will be compiling and linking the code
+         you wrote with our own client code!
+
+       • Any print statements or exception messages should likewise
+         print exactly as specified and use the given error type.
+
+       • For the two classes, you may not have any other public func-
+         tions.
+
+       • All data members must be private.
+
+       • You may not use std::stack or any other built-in facility that
+         would render the assignment trivial.
+
+
+Notes Regarding the Starter Code
+To get the starter materials, run the following command, which will give you copies of a few files
+plus links to Datum.h, Datum.o, and theCalcYouLater reference implementation.
+/comp/15/files/proj_calcyoulater/setup
+
+Note - do not manually copy the files, just run the command.
+
+   • The file cyl design checkoff.txt contains some questions that you must answer and submit
+     prior to your design checkoff.
+
+   • The file Datum+vector_example.cpp in the starter code demonstrates the basic usage of the
+     Datum class.
+
+   • The files RPNCalc.h and RPNCalc.cpp. You will need to implement your program via an
+     RPNCalc class as described above. RPNCalc.h is empty. RPNCalc.cpp contains a function
+     got_int that can test whether a string can be interpreted as an integer, and, if so, what
+     the value of the integer is. You may use this function as-is. You should understand how
+     the parameter works, but you do not need to know the details of the implementation. You
+     must use this function to check and convert a string to an integer - do NOT write your own
+     function to implement this conversion.
+
+   • The binary file theCalcYouLater is a reference implementation that you may refer to to help
+     you understand what you are supposed to do, and to help you test your own implementation.
+     To familarize yourself with the reference, start by running:
+             ./theCalcYouLater
+             4 5 + print
+
+  • The other files are described further in other sections
+
+    Sometimes strange things happen with Datum.o. For example, students may accidentally try to
+re-compile the file or add an incorrect (and unnecessary) Makefile rule for it. If you see something
+weird going on with Datum.o, copy the original file back into your directory with:
+cp /comp/15/files/proj_calcyoulater/*.o .
+
+This is generally the first thing a TA would try.
+
+
+Files to Submit
+The following files for this assignment will be written from scratch:
+DatumStack.h
+DatumStack.cpp
+RPNCalc.h
+RPNCalc.cpp
+main.cpp
+README
+Makefile
+
+You must also submit:
+
+   • Any unit tests you write for your program. This may be done in a file called unit_tests.h,
+     using the unit_test framework that we have used on past assignments. Alternatively, you
+     can create your own testing main functions, e.g., submit a file called DatumStack_tests.cpp
+     with a main function that calls out to tests. Whatever testing files you use, you must submit
+     them!
+
+   • Any command files (.cyl files that you used for testing, i.e., files that you ran with RPNCalc
+     using the file command). You should have some command files!
+
+The files DatumStack.h and RPNCalc.h will contain your class definitions only. The files DatumStack.cpp
+and RPNCalc.cpp will contain your implementations. main.cpp will contain your main calculator
+program. The Makefile will contain the instructions for make to compile your program. README
+will have the sections described in README Outline section below.
+
+
+DatumStack Implementation
+Implement DatumStack however you like. We suggest using a LinkedList or an ArrayList as
+discussed in class. You may use std::vector or std::list but you must NOT use std::stack.
+
+
+Other Tips
+*DO NOT IMPLEMENT EVERTHING AT ONCE!*
+*DO NOT WRITE CODE IMMEDIATELY!*
+Before doing anything, use the the reference program to get a sense of how things work. This may
+seem like a lot, but if you break it into pieces, it’s perfectly manageable. Before writing code for
+any function, draw before and after pictures and write, in English, an algorithm for the function.
+Only after you’ve tried this on several examples should you think about coding.
+CONTENTS                                                                                           17
+
+
+Getting Started
+To get up and running,
+
+  1. create the two files for the classes DatumStack and RPNCalc
+
+  2. start filling in the .h file
+
+  3. #include the .h file in the .cpp file
+
+  4. define an empty main function in a main.cpp file (just return 0)
+
+  5. compile!
+
+If you start with the DatumStack class (follow a similar pattern if you start with the RPNCalc class):
+
+  1. Implement just the default constructor first. Add a single variable of type DatumStack to
+     your test main function; compile, link, and run.
+
+  2. Now you have some choices. You could add the destructor next, but certainly you should add
+     a print function for debugging soon. Make it private before submitting.
+
+You will add one function, then write code in your test file that performs one or more tests for
+that function. Write a function, test a function, write a function, test function. . . Follow the same
+testing approach for every class you write, and add functionality little by little.
+    For the RPNCalc class, the first version of the run() function should accept only the quit
+command. Then it should read any number of items, just printing them, until there’s a quit or
+until reaching end of file. Then start to add items bit by bit. Add numbers, and print the stack to
+make sure they get on the stack correctly. Then add the operators one at a time, comparing your
+results with the reference. Do the file command last.
+    You may want to refactor your program when you get to the file command; don’t duplicate
+the command logic in two places. If you pass file streams around, you should do so using C++
+reference parameters.
+    If you need help, TAs will ask about your testing plan and ask to see what tests you have
+written. They will likely ask you to comment out the most recent (failing) tests and ask you to
+demonstrate your previous tests.
+
+
+Makefile
+We have given you a Makefile that knows how to make .cylc files from .cyl files, but you must fill
+in the rest. Your CalcYouLater program must build when we run make CalcYouLater, and must
+produce an executable named
+“CalcYouLater” which can be run by typing ./CalcYouLater.
+
+
+README
+With your code files you will also submit a README file. You can format your README however you
+like. However it should have the following sections:
+
+  A The title of the homework and the author’s name (you)
+CONTENTS                                                                                       18
+
+
+  B The purpose of the program
+
+  C Acknowledgements for any help you received
+
+  D The files that you provided and a short description of what each file is and its purpose
+
+  E How to compile and run your program
+
+   F An “architectural overview” i.e., a description of how your various program modules relate.
+
+  G An outline of the data structures and algorithms that you used. Given that this is a data
+    structures class, you need to always discuss the ADT that you used and the data structure
+    that you used to implement it and justify why you used it. Please discuss the features of
+    the data structure and also include (with some justification/explanation) two other situa-
+    tions/circumstances/problems where you could utilize it. The algorithm overview is always
+    relevant. Please pick a couple interesting/complex algorithms to discuss in the README
+
+  H Details and an explanation of how you tested the various parts of assignment and the program
+    as a whole. You may reference the testing files that you submitted to aid in your explanation.
+
+   I Tell us how much time you spent, in total, on this assignment in hours.
+
+Each of the sections should be clearly delineated and begin with a section heading describing the
+content of the section. You should not only have the section letter used in the outline above.
+
+
+Submitting Your Work
+Be sure your files have header comments, and that those header comments include your name, the
+assignment, the date, and acknowledgements for any help you received (if not already credited in
+the README file).
+    For phase 0, submit your complete cyl design checkoff.txt file to the assignment “CalcY-
+ouLater Design Checkoff” on Gradescope.
+    For phase 1, you will need to submit at least the following files:
+    DatumStack.h, DatumStack.cpp
+    parser.h, parser.cpp
+    README
+    unit_tests.h
+    You should only include other C++ files if your solution to DatumStack or parseRString depend
+on them. Do not submit RPNCalc.cpp for example. You must submit them using Gradescope to the
+assignment proj_calcyoulater_phase1. Submit these files directly, do not try to submit them
+in a folder. Don’t forget to include your rstring parser code. The README doesn’t have to be
+the final README. Just document anything that you feel we should know about your DatumStack,
+parser, or the project in general.
+    For the final submission, you will need to submit at least the following files:
+    DatumStack.h, DatumStack.cpp
+    RPNCalc.h, RPNCalc.cpp
+    main.cpp
+    Makefile
+    README
+    unit_tests.h
+    ...
+   You must also submit:
+
+   • Any unit tests you write for your program. This may be done in a file called unit_tests.h,
+     using the unit_test framework that we have used on past assignments. Alternatively, you can
+     create your own testing main functions, e.g., submit a file called CalcYouLater_tests.cpp
+     with a main function that calls out to tests. Whatever testing files you use, you must submit
+     them!
+
+   • Any command files (excluding the command files provided).
+
+    You must submit them using Gradescope to the assignment proj_calcyoulater. “. . . ” means
+any other files necessary to build your program as well as any test code (e. g., .cyl files) you would
+like us to see. For example, if you have another class, you should provide the .h and .cpp files
+for that class. You do not need to submit any provided files (Datum.h, Datum.o). You also do not
+need to submit any output files from your testing (e.g. stdout or stderr files). Just the input
+command files is fine. You do not need to submit both the .cyl and .cylc variants of the same
+test cases.
+
+    Before submitting your work, please make sure your code and documentation (including sec-
+tions of the README) conform to the course style guide.
+
+CalcYouLater!
+

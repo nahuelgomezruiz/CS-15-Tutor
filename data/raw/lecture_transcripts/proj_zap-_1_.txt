@@ -1,0 +1,360 @@
+             CS 15 Project 3: zap
+
+Overview
+
+Introduction
+Compression is the process of reducing the number of bits needed to represent some data. We rely on
+it all the time: when we stream music and movies, talk to someone on Zoom, or even access a web
+page. It’s likely that you’ve compressed data before into a .zip file — maybe to send that data to
+someone via email, or maybe just to save some space on your hard drive.
+    For this assignment, you will be writing your own compression program called zap! Your pro-
+gram will specifically be used for compressing and decompressing text files using the Huffman coding
+algorithm.
+
+
+Running zap
+zap can be run in just two ways: you can zap (compress) a file, or unzap (decompress) a file. To zap,
+from the command line run:
+./zap zap inputFile outputFile
+
+    This will take the ASCII text file named inputFile, compress it using the Huffman coding algo-
+rithm, and store the result in a file named outputFile. It will also print to cout a message that looks
+as follows:
+    Success! Encoded given text using N bits.
+where N is the size in bits of the encoded text.
+    To unzap, simply run:
+./zap unzap inputFile outputFile
+
+   This will take the previously zapped file inputFile, decompress it, and store the resulting ASCII
+text in outputFile. It will not print anything to cout.
+   And that’s it! There are no other ways to run zap, and unlike previous assignments, there is no
+command loop for this program.
+   An unzapped file’s contents should be identical to the originally zapped file, e.g., if you run
+./zap zap shakespeare.txt shake.zap
+./zap unzap shake.zap new_shakespeare.txt
+
+then the files shakespeare.txt and new_shakespeare.txt should be identical — you can use diff
+to confirm this.
+    If you run zap incorrectly, either by using the wrong number of command line arguments or by
+providing a first argument other than “zap” or “unzap”, then zap will print the following usage message
+to cerr:
+    Usage: ./zap [zap | unzap] inputFile outputFile
+then return EXIT_FAILURE.
+   If you provide the name of an input file that cannot be opened, then your encoder function, or
+one of its helpers, should throw a runtime_error with the error message:
+Unable to open file FILENAME
+where FILENAME is the invalid input file name, and the error message does not end with a newline.
+The encoder function is described in detail below. If a user specifies an incorrect file in an invalid
+command, the invalid command error takes precedence.
+
+
+Program structure
+Your program should include at least the following files:
+
+   • HuffmanCoder.h and HuffmanCoder.cpp. These files respectively define the interface and im-
+     plementation of the HuffmanCoder class, which comprises the main logic of the Huffman coding
+     algorithm. The class should have the following two public functions:
+     void encoder(const std::string &input_file, const std::string &output_file)
+
+
+     encoder takes a text file named input_file, compresses its text, and stores the result in a file
+     named output_file.
+     void decoder(const std::string &input_file, const std::string &output_file)
+
+
+     decoder takes a zapped file named input_file, decompresses it, and stores the resulting text
+     in a file named output_file.
+     You can optionally add a public constructor and destructor to the HuffmanCoder class, but you
+     are not required to do so. Any other functions that you add to this class must be private.
+
+   • main.cpp. This file includes your main function. It should process the command line arguments
+     (ensuring they are valid), and appropriately call either the encoder or decoder function of the
+     HuffmanCoder class.
+
+   • HuffmanTreeNode.h, ZapUtil.h, and their corresponding .o files: these files are provided by
+     us, and will be discussed in greater detail later in the spec.
+
+   You can choose to add any other classes/files to your program as you see fit.
+
+
+Starter Files
+To copy the starter files, run the following command on the server:
+/comp/15/files/proj_zap/setup
+
+Note that you should not run cp.
+    In addition to the files mentioned above, a few more files are part of the starter code: ZapUtil.h,
+ZapUtil.o, ZapUtilExample.cpp, and bad_zap_file. These files will not be part of your final
+program. Rather, we give them to you because they will be useful when testing your code. We
+describe them in detail in the Testing section on page 10 below.
+    Sometimes strange things happen with the provided object (.o) files. For example, students may
+accidentally try to re-compile the files or add incorrect (and unnecessary) Makefile rules for them. If
+you see something weird going on with any of the provided .o files, copy the original files back into
+your directory with:
+
+cp /comp/15/files/proj_zap/*.o ./
+
+This is generally the first thing a TA would try.
+Encoder
+
+    There are two primary components of zap: the encoder, which encodes a given ASCII text file into
+compressed binary code, and the decoder, which takes the compressed binary code and turns it back
+into text.
+    We begin by discussing the encoder, the more involved of these components. The encoder comprises
+the following stages:
+  (1) Counting character frequencies in the given text.
+
+ (2) Building the Huffman tree.
+
+ (3) Using the tree to generate character encodings.
+
+ (4) Using the generated encodings to encode the given text in binary.
+
+ (5) Serializing the Huffman tree.
+
+ (6) Saving the serialized tree and encoded text in a file.
+
+    Each of these stages is discussed in greater detail below. How you implement this functionality is
+up to you. At a minimum, each stage should be placed in its own function—those functions may in
+turn be broken down into smaller functions. They may also be placed in or make use of other classes
+if you so choose.
+    Note that it is impossible to compress an empty file any further. In the case that the user asks
+you to compress an empty file, your program should just print to stdout:
+FILENAME is empty and cannot be compressed.
+Counting Character Frequencies
+Recall that the Huffman algorithm compresses data by encoding more frequently occurring characters
+using fewer bits. Thus, the first thing you must do is count the number of occurrences of each character
+in the given text. This count should include whitespace and punctuation characters, and it should
+separately count different casings of a letter. For example, given the following two-line text:
+Apple apple.
+Banana?
+
+The counts you come up with should be as follows:
+CONTENTS                                                                                            5
+
+
+                                                ‘A’    1
+                                                ‘p’    4
+                                                 ‘l’   2
+                                                 ‘e’   2
+                                                 ‘’    1
+                                               ‘\n’    1
+                                                ‘a’    4
+                                                ‘B’    1
+                                                ‘n’    2
+                                                 ‘?’   1
+                                                 ‘.’   1
+
+   Notice that the counts include whitespace characters.
+   How you store/represent these counts is up to you. You are welcome to use C++’s std::map or
+std::unordered_map libraries. Alternatively, given that there are just 256 possible values of a char,
+you may find it easy to represent counts using a more familiar data structure.
+
+
+Building the Huffman Tree
+Once you have character counts, you can build your Huffman code tree. Recall that this is a binary
+tree where:
+
+   • Leaves correspond to characters.
+
+   • On the path from the root to a leaf, each left turn denotes a ‘0’ in a character’s code, and each
+     right turn denotes a ‘1’.
+
+   • Characters that occur less frequently should be further from the root, and characters that occur
+     more frequently should be closer to the root.
+
+   Review the lecture on Huffman coding for a refresher.
+
+   You should build the tree using the HuffmanTreeNode class which we define for you in the pro-
+vided files HuffmanTreeNode.h and HuffmanTreeNode.o. Take a look around the .h file. The
+HuffmanTreeNode class includes the following:
+
+   • A char member variable named val, which contains the character stored in the node. Because
+     internal nodes in a Huffman tree do not store characters, you can assign this field to the null
+     character ‘\0’ for internal nodes.
+
+   • An int member variable named freq, which stores the character’s frequency for leaf nodes, or
+     the sum of the children frequencies for internal nodes.
+
+   • Two HuffmanTreeNode pointer fields left and right, for pointing to the children nodes.
+
+   • Two constructors which assign the corresponding member variables.
+
+   • A helper function isLeaf().
+
+   • Some getter and setter functions for the member variables.
+
+   You’ll also notice that HuffmanTreeNode.h includes the declaration for a second class named
+NodeComparator. This class defines a comparator function for comparing HuffmanTreeNode in-
+stances, given pointers to two nodes. This will allow you to store pointers-to-HuffmanTreeNodes
+    (HuffmanTreeNode *) in C++’s std::priority_queue data structure. It simply compares the freq
+    fields of the two provided HuffmanTreeNodes.
+        You are highly encouraged to use a std::priority_queue of pointers-to-HuffmanTreeNodes to
+    build your Huffman tree. You can initialize a min-heap priority queue as follows:
+1   priority_queue<HuffmanTreeNode *, vector<HuffmanTreeNode *>, NodeComparator> my_pq;
+
+        This creates a priority queue of HuffmanTreeNode pointers, which will be represented under the
+    hood using a vector, and which uses the comparator function we defined. Using the priority queue
+    is easy — you can review the std::priority_queue documentation here: https://cplusplus.com/
+    reference/queue/priority_queue/.
+        You should also look over the provided starter file minpq_example.cpp for an example of a C++
+    program that uses a min priority queue of HuffmanTreeNode*s.
+        Finally, recall the algorithm for building a Huffman tree:
+      1. Create one HuffmanTreeNode for each character in the text, which stores the character and its
+         frequency.
+
+      2. Until a single tree remains:
+
+            • Pick the two minimum frequency nodes.
+            • Join them together with a parent node that stores the sum of the frequencies of the children.
+
+
+    Generate Character Codes
+    With your Huffman tree built, you can now use it to generate the binary codes for each character.
+    These codes can be represented simply as strings of 0s and 1s. Recall: the code for a character is
+    represented by the path from the root to that character, where each left turn denotes a ‘0’ and each
+    right turn denotes a ‘1’. For example, given the following tree:
+
+
+
+
+                                        Figure 1: Huffman tree example.
+
+
+       You should generate the following codes:
+                                                    a   000
+                                                    b   001
+                                                    e   010
+                                                    f   011
+                                                    c    10
+                                                    d    11
+
+    Once again, how you store character codes is up to you—you will likely want to use the same
+method that you used to store character frequencies.
+    Note that in the above strategy, character codes are derived from edges in the tree. In order for
+there to be edges, there must be at least 2 nodes in the tree. In the event that the input file has only
+a single unique character, by the tree building process described earlier, the tree will only contain a
+single (leaf) node. You can choose either 0 or 1 to be that character’s character code.
+
+
+Encoding the Text
+With the character codes, you are now ready to encode the given text into binary. All you need to
+do is iterate over the original text, look up each character’s code, and append that code to the final
+encoded binary string. For example, given the character codes above, the encoding for the text “cafe”
+would be the binary string “10000011010”.
+
+
+Serialize the Tree
+Whoever wants to later decode the Huffman encoded text will need access to the original Huffman
+tree. That means that we need a way to save the tree in a file such that it can later be reconstructed.
+This process of storing a program object for later reconstruction is known as serialization.
+     In our case, we will store the Huffman tree as a string. We can take advantage of the fact that a
+Huffman tree is a full binary tree: a binary tree in which every node has either 0 or 2 children (you
+can think about why this is the case—if a Huffman tree were not full, we could come up with a more
+efficient encoding).
+     A convenient property of full binary trees is that they can be uniquely represented using a variation
+of a preorder traversal of the tree: first store the current node, then recursively store the left subtree,
+then recursively store the right subtree. We must also distinguish between internal nodes and leaf
+nodes. Use the following approach for serializing your tree nodes:
+
+   • Internal nodes: these nodes do not store a character. Serialize an internal node as just the
+     character ‘I’, followed by the serialized left subtree, then the serialized right subtree.
+
+   • Leaf nodes: these nodes do store a character. You should represent them using the character
+     ‘L’ followed by the character stored within that node.
+
+   For example, given the Huffman tree in Figure 1, the serialized version of the tree would be:
+"IIILaLbILeLfILcLd"
+Make sure you understand how the above serialization was carried out before implementing this step.
+With this serialized tree, we will later be able to reconstruct the tree when it is read from a file. Note
+that we did not store character frequencies in the serialized tree. That is because the frequencies are
+not needed during decoding, they are only needed when first building the tree—so we can safely throw
+them away.
+
+
+Saving to File
+We now have the encoded text and the serialized Huffman tree which can be used for decoding. All
+that we need to do now is save these to a file. However, we don’t want to just save the binary string to
+a file. Each ‘0’ and ‘1’ in the binary string is an ASCII character, so it takes up 8 bits of memory—8
+times as large as a single 0 or 1 bit!
+    Writing actual bits to memory is a more involved process. Luckily, we have taken care of the
+details for you. With your starter files, you should have received ZapUtil.h and ZapUtil.o, which
+respectively contain the interface and compiled implementation of the class. Take a look at the two
+public functions, readZapFile and writeZapFile, in ZapUtil.h. For this stage, all you need to do
+is provide the target filename, encoded binary string, and serialized tree to writeZapFile, and it will
+create the binary file for you.
+    You are now down with the encoding process! Print a message to the user that says:
+Success! Encoded given text using N bits.
+where N is the size of encoded text. Note: the printed N does not include the size of the serialized
+tree—it is just the size of the encoded text.
+    Make sure to recycle any heap memory before your program terminates.
+    If you are curious to compare the size of your compressed data to the original data, in terminal
+you can use ls -l to view the size in bytes of all files in your current working directory. Alternatively,
+you can use ls -lh to view the sizes rounded to the nearest Kilobyte, Megabyte, etc.
+
+
+
+
+Decoder
+
+    Decoding is the more straightforward component of Huffman coding. It involves decompressing
+a previously zapped file, and saving the resulting ASCII text to an output file. More precisely, it
+comprises:
+   1. Reading a zap file to get the serialized tree and encoded binary string.
+
+  2. Deserializing the tree.
+
+  3. Using the tree to decode the binary string into ASCII text
+
+  4. Saving the ASCII text to an output file.
+
+
+Reading the zap file
+You should once again use the provided ZapUtil files, this time to read from a previously saved binary
+file. Simply call the readZapFile function, providing the filename to read from. This function will
+return a pair<string, string>, containing both the serialized tree and the binary string encoding.
+A pair is a special C++ data structure from the <utility> library that stores just two elements.
+You will need to include <utility> if you declare any pair variables. To access the elements of a
+pair, use the member variables .first and .second. Take a look at the C++ documentation for
+pair for more information: https://cplusplus.com/reference/utility/pair/pair/.
+
+
+Deserializing the tree
+You must now deserialize the tree: convert it from its serialized string format back into a tree data
+structure composed of HuffmanTreeNodes. Use your knowledge of preorder traversals to do this: First
+create a HuffmanTreeNode for the current node you are reading in from the serialized string. Then,
+
+if this is a non-leaf node, you should next recursively deserialize the node’s left subtree, then its right
+subtree. Remember the properties of the serialized tree: ‘I’s denote internal nodes (which do not
+contain characters), and ‘L’s denote a leaf, and are followed by the character contained within that
+leaf.
+    After deserializing, you should once again have the root HuffmanTreeNode of a valid Huffman tree.
+
+
+Decoding
+Using this Huffman tree, you can now decode the encoded binary string. Recall the algorithm for
+doing this: starting at the root of the tree, read in bits one at a time. For each 0, go to the left child,
+and for each 1, go to the right child. Once you reach a leaf node, append the character in that leaf
+node to the overall decoded message. Then, go back to the root and repeat this process until all bits
+from the encoding have been processed.
+    For example, given the tree in Figure 1, and the encoded message 01100010010, you should get
+the decoded message “face”. Try it by hand and make sure that this is what you get!
+    The last bit you read from the binary encoding should lead you to a leaf—that is, you should never
+finish reading bits while in the middle of the tree. For example, given the tree in Figure 1, if you were
+given the encoded message ‘00101’, something must be wrong!
+    Should this happen, your decoder function, or one of its helpers, should throw a runtime_error
+with the error message:
+Encoding did not match Huffman tree.
+This error message should not terminate with a newline.
+    Recall from the character code generation component of the encoding process, the character code
+in a single unique character case does not correspond to an edge in the tree (as a single node tree
+has no edges). Therefore, you should identify when a compressed file corresponds to a single unique
+character original file and decompress accordingly. Hint: For a single unique character file, your bit
+string will look something like 0000...0 or 1111...1 for B bits. How can you derive the original file
+using the character value in the (leaf) root of the deserialized tree and B?
+
+
+Saving to file
+You should now have the decoded text. Save this text to the output file named on the command line,
+and you’re done! Make sure to recycle any heap memory before your program terminates.
+
+

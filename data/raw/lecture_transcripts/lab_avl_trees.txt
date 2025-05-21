@@ -1,0 +1,113 @@
+CS 15 AVL Trees Lab
+
+Introduction
+In this lab, we will be working with AVL trees. As we saw in lecture, AVL
+trees are just a kind of binary search tree (BST), but, in addition to the
+BST invariants, they have an additional invariant: the tree must be AVL-
+balanced at every node; that is, the heights of the left and right subtrees of
+every node differ by at most 1. This property ensures the height of the tree
+is at most 2 log n (where n is the number of nodes in the tree) and, thus,
+both the worst and average time complexity of insert, search, and delete are
+O(log n).
+    The key task of an AVL tree implementation is to maintain the balance
+after each modification of a tree.
+
+
+Getting Started
+To start,
+
+   • Create a directory for this lab and move into it.
+
+   • Copy the lab starter files over from the usual place.
+
+   • Remember: write a little, compile, link, test, repeat.
+
+   • Use the provided Makefile (do not modify it).
+
+   Compile the code provided (type make in the console) and execute it
+(with ./avl_trees). You will see that the result is a BST containing the
+numbers inserted, but it is not balanced to AVL standards. Your task is to
+make sure that the resulting tree is balanced.
+
+
+
+
+                                      1
+                                                                                 2
+
+
+     Inserting into an AVL Tree
+     The function Node *insert(Node *node, int value) from the file
+     AVLTree.cpp is in charge of insertion. The code is given below and has
+     been implemented for you. You will notice it is quite similar to a simple
+     BST insertion but with some additional lines after the insertion to make
+     sure it remains balanced. You do not need to make any changes in this
+     function.
+ 1   Node *AVLTree::insert(Node *node, int value)
+ 2   {
+ 3          /* node is an empty position, a child of a leaf node: insert here!
+                 */
+ 4          if (node == nullptr) {
+ 5                  return newNode(value);
+ 6          }
+ 7          /* if value already exists in the AVL Tree, do not insert */
+ 8          else if (value == node->data) {
+ 9              return node;
+10          }
+11          /* traverse to and insert value somewhere in node’s left subtree */
+12          else if (value < node->data) {
+13                  node->left = insert(node->left, value);
+14          }
+15          /* traverse to and insert value somewhere in node’s right subtree */
+16          else if (value > node->data) {
+17                  node->right = insert(node->right, value);
+18          }
+19
+20          /* AVL Tree rebalancing starts */
+21          node->height = 1 + max(nodeHeight(node->left),
+22                                nodeHeight(node->right));
+23
+24          Node *newNode = balance(node);
+25          /* AVL Tree rebalancing ends */
+26
+27          return newNode;
+28   }
+
+     Your task for this lab is to implement the following functions:
+ 1   Node *AVLTree::balance (Node *node)
+ 2   Node *AVLTree::rightRotate(Node *node)
+ 3   Node *AVLTree::leftRotate (Node *node)
+
+     Functions rightRotate and leftRotate implement the right and left rota-
+     tions we saw in lecture: given a pointer to a node of the tree, they perform
+     a left or right rotation, update the heights of all nodes accordingly, and re-
+                                                                            3
+
+
+turn a pointer to the new root of the subtree. Function balance is similar.
+You are given a pointer to a subtree that may have just become unbalanced
+after an insertion. The first task of this function is to check if the tree is
+indeed unbalanced. If so, make sure that you do whatever rotations are
+needed to make sure it is balanced (those rotations are handled by invoking
+rightRotate and leftRotate). Once finished, you return the new root of
+the tree.
+    Make sure to update pointers of the nodes in these operations correctly.
+As usual with handling pointers, you must also check for possible null point-
+ers to prevent segmentation faults.
+    Once you are done, look into main.cpp. You will see that the driver
+only inserts 5 nodes into the tree. Go ahead and change it so that you can
+insert 17, 2, or even other numbers. Make sure that your tree is balanced
+no matter what you insert (other than repeated numbers!).
+
+
+Submitting Your Work
+You will need to submit the following files:
+    main.cpp
+    AVLTree.cpp
+    AVLTree.h
+    pretty_print.cpp
+    README
+    Makefile
+   You must submit them using Gradescope to the assignment lab_avl_trees.
+Submit these files directly, do not try to submit them in a folder.
+
