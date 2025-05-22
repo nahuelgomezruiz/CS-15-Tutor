@@ -135,7 +135,7 @@ export default function ChatApp() {
   }, [messages]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen w-full bg-cs-mint">
       <div className="flex flex-col h-[90vh] w-full max-w-6xl p-4 bg-white rounded-lg shadow-xl">
         <div className="mb-4">
           <h1 className="text-xl font-bold text-cyan-700">CS 15 Tutor</h1>
@@ -147,8 +147,8 @@ export default function ChatApp() {
               key={index}
               className={`p-4 my-1 max-w-2xl ${
                 msg.sender === "user"
-                  ? "bg-cyan-50 border-cyan-500 text-black self-end border-r-4 rounded-l-lg shadow-sm"
-                  : "bg-white border-cyan-100 text-black self-start border-l-4 rounded-r-lg shadow-sm"
+                  ? "bg-white border-cs-accent text-cs-navy self-end border-r-4 rounded-l-lg shadow-sm"
+                  : "bg-white border-cs-mint text-cs-navy self-start border-l-4 rounded-r-lg shadow-sm"
               }`}
             >
               {msg.sender === "bot" ? (
@@ -180,7 +180,7 @@ export default function ChatApp() {
           />
           <Button 
             onClick={sendMessage} 
-            className="bg-cyan-500 hover:bg-cyan-600 text-white transition-colors"
+            className="bg-cs-accent hover:bg-cs-navy text-white transition-colors"
             disabled={isTyping}
           >
             <LuSendHorizontal size="24px" />

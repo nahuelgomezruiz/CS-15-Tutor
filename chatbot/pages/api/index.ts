@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { message, conversationId = 'default' } = req.body;
-    let augmentedMessage = message;
+    let contextMessage: string | null = null;
 
     console.log("📝 Processing message:", message);
     console.log("💬 Conversation ID:", conversationId);
@@ -128,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         const retrievedContext = await retrieveContent(message);
         console.log("📄 Retrieved context length:", retrievedContext.length);
-        augmentedMessage = `Context:\n${retrievedContext}\n\nQuestion:\n${message}`;
+        contextMessage = `The following course reference may be useful:\n${retrievedContext}`;
       } catch (error) {
         console.error("❌ Error retrieving context:", error);
         // Continue with original message if context retrieval fails
@@ -137,9 +137,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log("📭 Message is not course-related, skipping retrieval");
     }
 
-    // Add the new user message to conversation history
+    // Build conversation history and inject context if available
     const conversationHistory = conversations.get(conversationId)!;
-    conversationHistory.push({ role: "user", content: augmentedMessage });
+    if (contextMessage) {
+      conversationHistory.push({ role: "system", content: contextMessage });
+    }
+    conversationHistory.push({ role: "user", content: message });
 
     // Create a streaming response
     const stream = await openai.chat.completions.create({
