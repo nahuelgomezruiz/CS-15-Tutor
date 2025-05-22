@@ -12,6 +12,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Store conversations in memory (key is conversationId)
+const conversations = new Map<string, ChatCompletionMessageParam[]>();
+
 // Define an array with your initial keywords
 let courseKeywords = ["metrosim", "zap", "gerp", "calcyoulater"];
 
@@ -74,7 +77,7 @@ async function retrieveContent(query: string): Promise<string> {
   const response = await fetch("http://localhost:5050/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ embedding: queryEmbedding, k: 2 }) // Reduced from 3 to 2 results
+    body: JSON.stringify({ embedding: queryEmbedding, k: 1 }) // Reduced from 3 to 1 result bc of token limits
   });
   
   if (!response.ok) {
@@ -104,10 +107,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Connection', 'keep-alive');
 
   try {
-    const { message } = req.body;
+    const { message, conversationId = 'default' } = req.body;
     let augmentedMessage = message;
 
     console.log("📝 Processing message:", message);
+    console.log("💬 Conversation ID:", conversationId);
+
+    // Get or initialize conversation history
+    if (!conversations.has(conversationId)) {
+      const systemPrompt = loadSystemPrompt();
+      conversations.set(conversationId, [
+        { role: "system", content: systemPrompt }
+      ]);
+      console.log("🆕 Initialized new conversation:", conversationId);
+    }
 
     // Only retrieve context if the query is course-related
     if (isCourseRelated(message)) {
@@ -124,12 +137,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log("📭 Message is not course-related, skipping retrieval");
     }
 
-    // Load fresh system prompt and initialize conversation history
-    const systemPrompt = loadSystemPrompt();
-    const conversationHistory: ChatCompletionMessageParam[] = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: augmentedMessage }
-    ];
+    // Add the new user message to conversation history
+    const conversationHistory = conversations.get(conversationId)!;
+    conversationHistory.push({ role: "user", content: augmentedMessage });
 
     // Create a streaming response
     const stream = await openai.chat.completions.create({
@@ -144,14 +154,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
       if (content) {
-        // Send each chunk to the client
         res.write(content);
+        // Flush the chunk immediately if possible to avoid buffering
+        const anyRes = res as any;
+        if (typeof anyRes.flush === 'function') {
+          anyRes.flush();
+        } else if (anyRes.socket && typeof anyRes.socket.flush === 'function') {
+          anyRes.socket.flush();
+        }
         fullResponse += content;
-        
-        // Add a small delay to make streaming more visible
-        await new Promise(resolve => setTimeout(resolve, 20));
       }
     }
+    
+    // Add the assistant's response to the conversation history
+    conversationHistory.push({ role: "assistant", content: fullResponse });
+    
+    // Limit conversation history to avoid token limits (keep last 10 messages plus system prompt)
+    if (conversationHistory.length > 11) {
+      // Keep system prompt (first message) and last 10 messages
+      conversations.set(
+        conversationId, 
+        [conversationHistory[0], ...conversationHistory.slice(-10)]
+      );
+    }
+    
+    console.log(`🔄 Updated conversation (${conversationHistory.length - 1} messages)`);
     
     // End the response
     res.end();
