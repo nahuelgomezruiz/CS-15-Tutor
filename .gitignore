@@ -1,39 +1,27 @@
-# System files
-.DS_Store
-node_modules/
-
-# Generated files
-faiss_index.index
-embeddings.npy
-next-env.d.ts
-
-# IDE files
-.vscode/
-.idea/
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-chatbot/.next/
-chatbot/.env.local
 .env
+node_modules
+
+# Next.js build output
+chatbot/.next/
+
+# Dependencies
+chatbot/node_modules/
+
+# Environment files
+chatbot/.env
+chatbot/.env.local
+chatbot/.env.development.local
+chatbot/.env.test.local
+chatbot/.env.production.local
+
+# Debug logs
+chatbot/npm-debug.log*
+chatbot/yarn-debug.log*
+chatbot/yarn-error.log*
+
+# Local data files
+chatbot/pages/retrieval_service/data/
+
+# TypeScript
+chatbot/*.tsbuildinfo
+chatbot/next-env.d.ts

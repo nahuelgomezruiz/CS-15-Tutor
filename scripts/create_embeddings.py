@@ -18,9 +18,11 @@ def get_embedding(text):
     return response.data[0].embedding
 
 # folder with transcripts (stored as a {filename: filedata} dictionary):
-folder_path = "data/raw/lecture_transcripts"  # Updated path to correct location
+folder_path = "data/text files"  # Updated path to use the correct text files directory
 
+print(f"Looking for files in: {folder_path}")
 files = sorted(Path(folder_path).glob("*.txt"))  # sort files in docs directory
+print(f"Found {len(files)} files")
 
 embedding_list = []
 documents = []
@@ -28,14 +30,24 @@ filenames = []
 
 # Loop through files in sorted order
 for file in files:
+    print(f"Processing file: {file}")
     with open(file, "r", encoding="utf-8") as f:
         content = f.read()
-        embedding = get_embedding(content)
-        embedding_list.append(embedding)
-        documents.append(content)
-        filenames.append(file.name)
+        try:
+            embedding = get_embedding(content)
+            embedding_list.append(embedding)
+            documents.append(content)
+            filenames.append(file.name)
+            print(f"Successfully processed {file.name}")
+        except Exception as e:
+            print(f"Error processing {file.name}: {str(e)}")
+
+print(f"Total embeddings created: {len(embedding_list)}")
 
 # Convert to FAISS index
+if not embedding_list:
+    raise ValueError("No embeddings were created. Check if files exist and API calls succeeded.")
+
 embedding_array = np.array(embedding_list, dtype=np.float32)
 d = embedding_array.shape[1]
 
