@@ -9,11 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@next/env": "^14.1.0",
+    "@next/env": "^14.2.29",
     "@tailwindcss/typography": "^0.5.10",
     "@types/uuid": "^10.0.0",
     "dotenv": "^16.4.7",
-    "next": "14.1.0",
+    "next": "14.2.29",
     "openai": "^4.28.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -28,7 +28,7 @@
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.56.0",
-    "eslint-config-next": "14.1.0",
+    "eslint-config-next": "14.2.29",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3"

@@ -4,11 +4,7 @@ node_modules
 # Next.js build output
 chatbot/.next/
 
-# Dependencies
-chatbot/node_modules/
-
 # Environment files
-chatbot/.env
 chatbot/.env.local
 chatbot/.env.development.local
 chatbot/.env.test.local
@@ -25,3 +21,48 @@ chatbot/pages/retrieval_service/data/
 # TypeScript
 chatbot/*.tsbuildinfo
 chatbot/next-env.d.ts
+
+# Configuration files with API keys/secrets
+config.json
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+Desktop.ini
+
+# Python egg files
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# pytest cache
+.pytest_cache/
+.coverage
