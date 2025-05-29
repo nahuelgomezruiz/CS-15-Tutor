@@ -82,27 +82,29 @@ def chat_handler():
                 rag_k=3
             )
             
-            # Format the RAG context and combine with original query
+            # Format the RAG context and add it to the system prompt
             if rag_context:
                 rag_context_formatted = rag_context_string_simple(rag_context)
-                query_with_rag = f"{message}\n{rag_context_formatted}"
+                enhanced_system_prompt = f"{system_prompt}\n\n{rag_context_formatted}"
                 print(f"📄 Retrieved RAG context from GenericSession")
                 print(f"📄 RAG context length: {len(rag_context_formatted)}")
             else:
-                query_with_rag = message
+                enhanced_system_prompt = system_prompt
+                rag_context_formatted = ''
                 print(f"📭 No RAG context found")
                 
         except Exception as e:
             print(f"⚠️ Error retrieving RAG context: {e}")
-            query_with_rag = message
+            enhanced_system_prompt = system_prompt
+            rag_context_formatted = ''
         
         # Use llmproxy's generate
         # - we use lastk for context management
-        # - rag_usage=False since we manually provide RAG context
+        # - rag_usage=False since we manually provide RAG context in system prompt
         response = generate(
             model='4o-mini',
-            system=system_prompt,
-            query=query_with_rag,
+            system=enhanced_system_prompt,
+            query=message,
             temperature=0.7,
             lastk=num_previous_pairs, 
             session_id=conversation_id,
@@ -113,14 +115,12 @@ def chat_handler():
             assistant_response = response['response']
             
             print(f"📄 Generated response length: {len(assistant_response)}")
-            if rag_context:
-                print(f"📄 RAG context length: {len(str(rag_context))}")
-                print(f"📄 RAG context: {str(rag_context)}")
+            if 'rag_context_formatted' in locals() and rag_context_formatted:
+                print(f"📄 RAG context length: {len(str(rag_context_formatted))}")
                 
         else:
             # Handle string response (when rag_usage=False)
             assistant_response = str(response)
-            rag_context_used = rag_context_formatted if 'rag_context_formatted' in locals() else ''
         
         # Add messages to conversation history
         conversation_history.append({"role": "user", "content": message})
@@ -131,7 +131,7 @@ def chat_handler():
         # return the response 
         return jsonify({
             "response": assistant_response,
-            "rag_context": rag_context,
+            "rag_context": rag_context_formatted if 'rag_context_formatted' in locals() else '',
             "conversation_id": conversation_id
         })
         
