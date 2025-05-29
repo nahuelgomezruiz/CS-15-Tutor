@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import json
 import re
-from llmproxy import generate
+from llmproxy import generate, retrieve
 from typing import Dict, List
 
 app = Flask(__name__)
@@ -73,23 +73,44 @@ def chat_handler():
         # Get the system prompt (always the first message)
         system_prompt = conversation_history[0]["content"]
         
+        # Use retrieve() to get RAG context from GenericSession
+        try:
+            rag_context = retrieve(
+                query=message,
+                session_id='GenericSession',
+                rag_threshold=0.5,
+                rag_k=3
+            )
+            
+            # Format the RAG context and combine with original query
+            if rag_context:
+                rag_context_formatted = rag_context_string_simple(rag_context)
+                query_with_rag = f"{message}\n{rag_context_formatted}"
+                print(f"📄 Retrieved RAG context from GenericSession")
+                print(f"📄 RAG context length: {len(rag_context_formatted)}")
+            else:
+                query_with_rag = message
+                print(f"📭 No RAG context found")
+                
+        except Exception as e:
+            print(f"⚠️ Error retrieving RAG context: {e}")
+            query_with_rag = message
+        
         # Use llmproxy's generate
         # - we use lastk for context management
+        # - rag_usage=False since we manually provide RAG context
         response = generate(
             model='4o-mini',
             system=system_prompt,
-            query=message,
+            query=query_with_rag,
             temperature=0.7,
             lastk=num_previous_pairs, 
             session_id=conversation_id,
-            rag_usage=True,
-            rag_threshold=0.5,
-            rag_k=3
+            rag_usage=False, 
         )
         
         if isinstance(response, dict) and 'response' in response:
             assistant_response = response['response']
-            rag_context = response.get('rag_context', '')
             
             print(f"📄 Generated response length: {len(assistant_response)}")
             if rag_context:
@@ -97,13 +118,15 @@ def chat_handler():
                 print(f"📄 RAG context: {str(rag_context)}")
                 
         else:
-            # Handle error response
+            # Handle string response (when rag_usage=False)
             assistant_response = str(response)
-            rag_context = ''
+            rag_context_used = rag_context_formatted if 'rag_context_formatted' in locals() else ''
         
         # Add messages to conversation history
         conversation_history.append({"role": "user", "content": message})
         conversation_history.append({"role": "assistant", "content": assistant_response})
+        
+        print(f"📄 Generated response length: {len(assistant_response)}")
         
         # return the response 
         return jsonify({
@@ -116,6 +139,31 @@ def chat_handler():
         print(f"❌ Error processing request: {error}")
         return jsonify({"error": "Sorry, an error occurred while processing your request."}), 500
 
+"""
+name:        rag_context_string_simple
+description: create a context string from retrieve's return value
+parameters:  rag_context - the return value from retrieve()
+returns:     str - formatted context string
+"""
+def rag_context_string_simple(rag_context):
+    context_string = ""
+    
+    i = 1
+    for collection in rag_context:
+        if not context_string:
+            context_string = """The following is additional context that may be helpful in answering the user's query."""
+        
+        context_string += """
+        #{} {}
+        """.format(i, collection['doc_summary'])
+        j = 1
+        for chunk in collection['chunks']:
+            context_string += """
+            #{}.{} {}
+            """.format(i, j, chunk)
+            j += 1
+        i += 1
+    return context_string
 
 if __name__ == '__main__':
     print("🚀 Starting Python Flask API server...")
