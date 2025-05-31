@@ -19,11 +19,18 @@ export const useChat = () => {
     setIsTyping(true);
     
     // Add an empty bot message that will be updated with the response
-    const botMessage: Message = { text: "", sender: "bot", isStreaming: true };
+    const botMessage: Message = { text: "Looking at course content...", sender: "bot", isStreaming: true };
     addMessage(botMessage);
 
     try {
-      const data = await chatApiService.sendMessage(messageText, conversationId);
+      const data = await chatApiService.sendMessage(
+        messageText, 
+        conversationId,
+        (status: string) => {
+          // Update the bot message with the current status
+          updateLastMessage(status, true);
+        }
+      );
       
       if (data.response) {
         updateLastMessage(data.response, false);

@@ -7,8 +7,14 @@ interface Message {
   isStreaming?: boolean;
 }
 
+const WELCOME_MESSAGE: Message = {
+  text: "Hi! This is an experimental AI tutor for CS 15. Responses are logged. Email alfredo.gomez_ruiz@tufts.edu for any errors.",
+  sender: "bot",
+  isStreaming: false
+};
+
 export const useConversation = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [conversationId, setConversationId] = useState<string>("");
   const [isTyping, setIsTyping] = useState(false);
 

@@ -5,6 +5,7 @@ import json
 import re
 from llmproxy import generate, retrieve
 from typing import Dict, List
+import time
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -140,6 +141,110 @@ def chat_handler():
         return jsonify({"error": "Sorry, an error occurred while processing your request."}), 500
 
 """
+name:        chat_handler_stream
+description: endpoint to handle chat requests with streaming status updates
+parameters:  a json object with a message key and a conversationId key
+returns:     Server-Sent Events stream with status updates and final response
+"""
+@app.route('/api/stream', methods=['POST'])
+def chat_handler_stream():
+    data = request.get_json()
+    message = data.get('message', '')
+    conversation_id = data.get('conversationId', 'default')
+    
+    def generate_events():
+        try:
+            print(f"📝 Processing message: {message}")
+            print(f"💬 Conversation ID: {conversation_id}")
+            
+            if not message.strip():
+                yield f'data: {json.dumps({"error": "Message is required"})}\n\n'
+                return
+            
+            # Initialize conversation if it doesn't exist
+            if conversation_id not in conversations:
+                system_prompt = load_system_prompt()
+                conversations[conversation_id] = [
+                    {"role": "system", "content": system_prompt}
+                ]
+                print(f"🆕 Initialized new conversation: {conversation_id}")
+            
+            # Send status: loading (RAG retrieval)
+            yield f'data: {json.dumps({"status": "loading", "message": "Looking at course content..."})}\n\n'
+            
+            # Calculate the number of previous user-assistant pairs for lastk
+            conversation_history = conversations[conversation_id]
+            num_previous_pairs = (len(conversation_history) - 1) // 2
+            
+            # Get the system prompt (always the first message)
+            system_prompt = conversation_history[0]["content"]
+            
+            # Use retrieve() to get RAG context from GenericSession
+            rag_context_formatted = ''
+            try:
+                rag_context = retrieve(
+                    query=message,
+                    session_id='GenericSession',
+                    rag_threshold=0.5,
+                    rag_k=3
+                )
+                
+                # Format the RAG context and add it to the system prompt
+                if rag_context:
+                    rag_context_formatted = rag_context_string_simple(rag_context)
+                    enhanced_system_prompt = f"{system_prompt}\n\n{rag_context_formatted}"
+                    print(f"📄 Retrieved RAG context from GenericSession")
+                    print(f"📄 RAG context length: {len(rag_context_formatted)}")
+                else:
+                    enhanced_system_prompt = system_prompt
+                    print(f"📭 No RAG context found")
+                    
+            except Exception as e:
+                print(f"⚠️ Error retrieving RAG context: {e}")
+                enhanced_system_prompt = system_prompt
+            
+            # Send status: thinking (response generation)
+            yield f'data: {json.dumps({"status": "thinking", "message": "Thinking..."})}\n\n'
+            
+            # Use llmproxy's generate
+            response = generate(
+                model='4o-mini',
+                system=enhanced_system_prompt,
+                query=message,
+                temperature=0.7,
+                lastk=num_previous_pairs, 
+                session_id=conversation_id,
+                rag_usage=False, 
+            )
+            
+            if isinstance(response, dict) and 'response' in response:
+                assistant_response = response['response']
+            else:
+                assistant_response = str(response)
+            
+            # Add messages to conversation history
+            conversation_history.append({"role": "user", "content": message})
+            conversation_history.append({"role": "assistant", "content": assistant_response})
+            
+            print(f"📄 Generated response length: {len(assistant_response)}")
+            
+            # Send final response
+            yield f'data: {json.dumps({"status": "complete", "response": assistant_response, "rag_context": rag_context_formatted, "conversation_id": conversation_id})}\n\n'
+            
+        except Exception as error:
+            print(f"❌ Error processing request: {error}")
+            yield f'data: {json.dumps({"status": "error", "error": "Sorry, an error occurred while processing your request."})}\n\n'
+    
+    return Response(
+        stream_with_context(generate_events()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no'
+        }
+    )
+
+"""
 name:        rag_context_string_simple
 description: create a context string from retrieve's return value
 parameters:  rag_context - the return value from retrieve()
@@ -169,6 +274,7 @@ if __name__ == '__main__':
     print("🚀 Starting Python Flask API server...")
     print("📍 Available endpoints:")
     print("   POST /api - Main chat endpoint")
+    print("   POST /api/stream - Streaming chat endpoint with status updates")
     print("   GET /health - Health check")
     
     # Run the Flask app

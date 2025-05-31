@@ -5,12 +5,25 @@ interface ChatResponse {
   conversation_id?: string;
 }
 
+interface StreamEvent {
+  status: 'loading' | 'thinking' | 'complete' | 'error';
+  message?: string;
+  response?: string;
+  error?: string;
+  rag_context?: string;
+  conversation_id?: string;
+}
+
 class ChatApiService {
   private baseUrl = "http://127.0.0.1:5000";
 
-  async sendMessage(message: string, conversationId: string): Promise<ChatResponse> {
+  async sendMessage(
+    message: string, 
+    conversationId: string,
+    onStatusUpdate?: (status: string) => void
+  ): Promise<ChatResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/api`, {
+      const response = await fetch(`${this.baseUrl}/api/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -23,10 +36,55 @@ class ChatApiService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.slice(6);
+            if (jsonStr.trim()) {
+              try {
+                const event: StreamEvent = JSON.parse(jsonStr);
+                
+                // Handle status updates
+                if (event.status === 'loading' && onStatusUpdate) {
+                  onStatusUpdate('Looking at course content...');
+                } else if (event.status === 'thinking' && onStatusUpdate) {
+                  onStatusUpdate('Thinking...');
+                } else if (event.status === 'complete') {
+                  return {
+                    response: event.response,
+                    rag_context: event.rag_context,
+                    conversation_id: event.conversation_id
+                  };
+                } else if (event.status === 'error') {
+                  throw new Error(event.error || 'Unknown error');
+                }
+              } catch (e) {
+                console.error('Error parsing SSE data:', e);
+              }
+            }
+          }
+        }
+      }
+
+      throw new Error("Stream ended without complete status");
     } catch (error) {
       console.error("Error sending message:", error);
-      throw new Error("Could not connect to the Python API server. Make sure it's running on port 5000.");
+      throw new Error("Error generating answer.");
     }
   }
 
@@ -42,4 +100,4 @@ class ChatApiService {
 }
 
 export const chatApiService = new ChatApiService();
-export type { ChatResponse }; 
+export type { ChatResponse, StreamEvent }; 

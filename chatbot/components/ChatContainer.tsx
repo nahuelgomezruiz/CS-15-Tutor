@@ -9,26 +9,19 @@ export const ChatContainer: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen w-full bg-cs-mint">
-      <div className="flex flex-col h-[90vh] w-full max-w-6xl p-4 bg-white rounded-lg shadow-xl">
-        <div className="mb-4">
-          <h1 className="text-xl font-bold text-cyan-700">CS 15 Tutor (Python API)</h1>
-          <p className="text-sm text-gray-600">Connected to Python Flask API on port 5000</p>
+      <div className="flex flex-col h-[90vh] w-full max-w-4xl p-4 bg-white rounded-lg shadow-xl">
+        <div className="mb-4 pb-4 border-b border-gray-200">
+          <h1 className="text-xl font-bold text-cyan-700">CS 15 Tutor</h1>
         </div>
         
         <div 
           ref={chatRef} 
           onScroll={handleScroll} 
-          className="flex-1 overflow-y-auto p-4 flex flex-col space-y-4"
+          className="flex-1 overflow-y-auto px-2 flex flex-col"
         >
           {messages.map((message, index) => (
             <ChatMessage key={index} message={message} />
           ))}
-          
-          {isTyping && messages.length > 0 && messages[messages.length - 1].sender === "user" && (
-            <div className="p-4 my-1 max-w-lg text-gray-500 italic self-start bg-gray-50 rounded-lg shadow-sm">
-              Thinking...
-            </div>
-          )}
         </div>
 
         <ChatInput onSendMessage={sendMessage} isDisabled={isTyping} />
