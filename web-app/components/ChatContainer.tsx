@@ -11,7 +11,7 @@ export const ChatContainer: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen w-full bg-cs-mint">
       <div className="flex flex-col h-[90vh] w-full max-w-4xl p-4 bg-white rounded-lg shadow-xl">
         <div className="mb-4 pb-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-cyan-700">CS 15 Tutor</h1>
+          <h1 className="text-xl font-sans font-medium text-black">CS 15 Tutor</h1>
         </div>
         
         <div 

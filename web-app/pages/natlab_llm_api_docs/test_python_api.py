@@ -87,7 +87,7 @@ def test_health_check():
 
 if __name__ == "__main__":
     print("🚀 Testing Python Flask API...")
-    print("📍 Make sure the Flask server is running with: python index_python.py")
+    print("📍 Make sure the Flask server is running")
     print("-" * 50)
     
     # Test health check first

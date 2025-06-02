@@ -21,7 +21,16 @@ export default {
         sans: ["Lato", "sans-serif"],
         heading: ["Merriweather", "serif"],
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: '100%',
+          },
+        },
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 } satisfies Config;
