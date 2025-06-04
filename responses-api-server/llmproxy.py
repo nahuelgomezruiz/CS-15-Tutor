@@ -1,17 +1,16 @@
 import json
 import requests
+from dotenv import load_dotenv
 import os
 
-# Get the directory where this script is located
-script_dir = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(script_dir, 'config.json')
+# Load environment variables from .env file
+load_dotenv()
 
-# Read proxy config from config.json
-with open(config_path, 'r') as file:
-    config = json.load(file)
+end_point = os.getenv("ENDPOINT")
+api_key = os.getenv("API_KEY")
 
-end_point = config['endPoint']
-api_key = config['apiKey']
+print(f"Using ENDPOINT: {end_point}")
+print(f"Using API_KEY: {api_key}")
 
 def retrieve(
     query: str,

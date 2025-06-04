@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "@types/react-router": "^5.1.20",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "i": "^0.3.7",
+    "react-markdown": "^10.1.0"
   }
 }
