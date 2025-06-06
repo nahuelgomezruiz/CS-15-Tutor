@@ -19,7 +19,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       <div
         className={`px-4 py-3 rounded-2xl max-w-[80%] shadow-sm ${
           isUser
-            ? 'bg-blue-500 text-white rounded-br-md'
+            ? 'bg-cyan-700 text-white rounded-br-md'
             : isLoadingState
             ? 'bg-gray-100 text-gray-500 italic rounded-bl-md'
             : 'bg-gray-100 text-gray-800 rounded-bl-md'

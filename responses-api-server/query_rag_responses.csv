@@ -1,0 +1,1197 @@
+message, rag_context_formatted, assistant_response, rag_threshold, rag_k
+hello,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about an introductory lab assignment for a computer science course, teaching students the basics of using Linux systems, command line operations, and remote server access.
+        
+            #1.1 The following is about the files that need to be submitted for the introductory lab assignment in a computer science course.:
+<begin>
+ following files:
+
+welcome . cpp
+
+<end>
+            ",Hello! How can I assist you today with CS 15?, 0.3, 7
+what is zap?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about a project assignment for creating a text compression and decompression program using the Huffman coding algorithm.
+        
+            #1.1 The following is about the introduction to the compression process, explaining its significance in data representation and the purpose of the zap program.:
+<begin>
+Introduction
+
+Compression is the process of reducing the number of bits needed to represent some data. We rely on
+it all the time: when we stream music and movies, talk to someone on Zoom, or even access a web
+page. It’s likely that you’ve compressed data before into a .zip file — maybe to send that data to
+someone via email, or maybe just to save some space on your hard drive.
+
+For this assignment, you will be writing your own compression program called zap! Your pro-
+gram will specifically be used for compressing and decompressing text files using the Huffman coding
+algorithm.
+
+<end>
+            
+            #1.2 The following is about how to run the zap program, detailing the commands for compressing and decompressing files using the Huffman coding algorithm.:
+<begin>
+Running zap
+
+zap can be run in just two ways: you can zap (compress) a file, or unzap (decompress) a file. To zap,
+from the command line run:
+
+./zap zap inputFile outputFile
+
+This will take the ASCII text file named inputFile, compress it using the Huffman coding algo-
+rithm, and store the result in a file named outputFile. It will also print to cout a message that looks
+as follows:
+
+Success! Encoded given text using N bits.
+
+where N is the size in bits of the encoded text.
+
+To unzap, simply run:
+
+./zap unzap inputFile outputFile
+
+This will take the previously zapped file inputFile, decompress it, and store the resulting ASCII
+
+text in outputFile. It will not print anything to cout.
+
+And that’s it! There are no other ways to run zap, and unlike previous assignments, there is no
+
+command loop for this program.
+
+An unzapped file’s contents should be identical to the originally zapped file, e.g., if you run
+
+./zap zap shakespeare.txt shake.zap
+./zap unzap shake.zap new_shakespeare.txt
+
+then the files shakespeare.txt and new_shakespeare.txt should be identical — you can use diff
+to confirm this.
+
+<end>
+            
+            #1.3 The following is about reading a zap file, explaining how to retrieve the serialized tree and encoded binary string using the readZapFile function.:
+<begin>
+Reading the zap file
+
+You should once again use the provided ZapUtil files, this time to read from a previously saved binary
+file. Simply call the readZapFile function, providing the filename to read from. This function will
+return a pair<string, string>, containing both the serialized tree and the binary string encoding.
+A pair is a special C++ data structure from the <utility> library that stores just two elements.
+You will need to include <utility> if you declare any pair variables. To access the elements of a
+pair, use the member variables .first and .second. Take a look at the C++ documentation for
+pair for more information: https://cplusplus.com/reference/utility/pair/pair/.
+
+<end>
+            
+            #1.4 The following is about the reference implementation provided to assist in implementing and testing the Huffman coding program.:
+<begin>
+Reference Implementation and Testing
+
+To assist you with implementing and testing your program, we have provided you with the_zap, a
+compiled reference implementation. You should play around with this implementation to get a feel
+for how it works, and use it to test your own implementation once it is built.
+
+<end>
+            
+            #1.5 The following is about the usage instructions for the command line arguments for the zap program, which is part of the text compression and decompression project.:
+<begin>
+of command line arguments or by
+providing a first argument other than “zap” or “unzap”, then zap will print the following usage message
+to cerr:
+
+Usage: ./zap [zap | unzap] inputFile outputFile
+
+then return EXIT_FAILURE.
+
+2
+
+If you provide the name of an input file that cannot be opened, then your encoder function, or
+
+one of its helpers, should throw a runtime_error with the error message:
+Unable to open file FILENAME
+where FILENAME is the invalid input file name, and the error message does not end with a newline.
+The encoder function is described in detail below. If a user specifies an incorrect file in an invalid
+command, the invalid command error takes precedence.
+
+<end>
+            
+            #1.6 The following is about testing the implementation by ensuring that zap files created by the program can be unzipped correctly by the reference implementation.:
+<begin>
+There are other ways to test your program as well. For example, any zap file created by your
+implementation should be unzap-able by the reference implementation, and vice versa. Try it out:
+zap a file with your implementation, and unzap with the reference. Is the resulting text the same as
+the original? If not, something has gone wrong.
+
+You can also test your own implementation’s encoder against its decoder, for example:
+
+./zap zap A.txt B.zap
+./zap unzap B.zap C.txt
+diff A.txt C.txt
+
+Calling diff above should result in no output—A.txt and C.txt should contain identical contents.
+
+If they don’t, you have some debugging to do.
+
+<end>
+            
+            #1.7 The following is about the project assignment titled ""zap"" for creating a text compression and decompression program using the Huffman coding algorithm.:
+<begin>
+CS 15 Project 3: zap
+
+“The entire universe is within you; stop acting so small.”
+- Rumi
+
+Contents
+
+<end>
+            ",Zap is a project in CS 15 where you will create a text compression and decompression program using the Huffman coding algorithm. It allows you to compress ASCII text files and decompress them back to their original form.,0.3,7
+what should i do for phase one of the project?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the implementation and planning of a Reverse Polish Notation (RPN) calculator for a computer science project.
+        
+            #1.1 The following is about the initial introduction to the RPN calculator project, emphasizing its complexity and the importance of starting early.:
+<begin>
+ject! It’s a calculator, but it’s even more. It’s almost a real programming
+language! This is a more involved project, for which you have been given ample time, if you start
+right away.
+
+Do not try to do it in one sitting
+
+Read it right away. Jot down and draw ideas. It’s better to work on it in 90 minute or 2 hour
+chunks of time. If you do that, and you’re organized, it will go smoothly. The stack implementation
+itself should be doable in a single sitting. Be sure to note the multiple phases of the project. Come
+in to talk to one of us about your plan as early as you can.
+
+<end>
+            
+            #1.2 The following is about the submission process for phase 0 of the project, detailing the specific file to be submitted on Gradescope:
+<begin>
+Submitting Your Work
+
+Be sure your ﬁles have header comments, and that those header comments include your name, the
+assignment, the date, and acknowledgements for any help you received (if not already credited in
+the README ﬁle).
+
+For phase 0, submit your complete cyl design checkoff.txt ﬁle to the assignment “CalcY-
+
+ouLater Design Checkoﬀ” on Gradescope.
+
+<end>
+            
+        #2 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #2.1 The following is about the primary tasks for the assignment, including creating an interactive simulation and designing an object-oriented approach.:
+<begin>
+The primary, high-level tasks for this assignment are as follows:
+
+• Create an interactive front-end simulation that works with both files and the command line
+
+• Design and develop an object-oriented approach to solving the back-end logic for the simulation
+
+• Seamlessly connect the front-end and back-end systems
+
+A few words of caution: The training wheels are off! There are some requirements (see below)
+for your implementation, but we have given you considerably more freedom to architect your solution
+to this problem than in previous assignments. This is a double-edged sword! To succeed, it would
+be wise to read the following spec thoroughly and to start designing a solution as early as possible.
+This will give you time to go to office hours to discuss your plan with the course staff before you start
+coding. This program can be done with less code than the previous assignment if you have designed
+your program well.
+
+<end>
+            
+        #3 The following document is about a project assignment for a computer science course that involves designing and implementing a program similar to the Unix grep tool for searching and indexing files.
+        
+            #3.1 The following is about the submission process for the project, detailing the design checkoff requirements.:
+<begin>
+Submitting Your Work
+
+You will be submitting your work in 2 parts:
+
+Part 1: Design, FSTree, and String Manipulation
+
+Design
+
+As part of your design checkoff, you must do two things:
+
+1. Provide answers to the questions in the file gerp_design_checkoff.txt, included in the
+starter files. When you’re done, submit your answers to the assignment titled “gerp Design
+Checkoff” on Gradescope. You must submit this file prior to your design checkoff
+meeting (described below).
+
+2. Sign up for an in-person design checkoff meeting with a TA. Both you and your partner must
+attend the meeting. You can find the design checkoff form linked here. At that meeting,
+<end>
+            
+            #3.2 The following is about the requirements for addressing design checkoff questions and bringing design drawings for the project.:
+<begin>
+ be required to address the answers that you submitted with
+your design checkoff questions. You should also bring drawings that capture your design.
+
+<end>
+            
+        #4 The following document is about a lab assignment focused on implementing and evaluating different sorting algorithms, including in-place insertion sort and Quicksort, and comparing their performance.
+        
+            #4.1 The following is about the initial steps to get started with the lab assignment, including copying starter materials and observing results.:
+<begin>
+Getting Started
+
+1. Copy over the starter materials from the usual place.
+
+2. Look at the table in the RESULTS file. You will fill this out as you
+
+work.
+
+3. To get started, run, observe, and learn:
+
+• make
+• ./sort
+• ./sort -h
+• ./sort -r 10 selectionPlace -debug
+• ./sort -r 10 selectionPlace
+• ./ntimes 2 5
+• ./count 2 10
+• ./count 10 2
+• ./count 10 0 | ./sort -f - selectionPlace -debug
+• ./sort -r 1000 selectionPlace
+• ./sort -r 10000 selectionPlace
+• Pause. Explain the last two runs.
+
+1
+
+2
+
+• Predict the result of sorting 100,000 random elements using in-
+
+place selection sort. Write down your estimate.
+
+• ./sort -r 100000 selectionPlace
+• How close was your estimate?
+• ./sort2 -r 100000 selectionPlace
+• sort2 is an optimized executable based on our solution (equivalent
+
+of make faster)
+
+4. Read the file comments at the top of sorting.cpp.
+
+<end>
+            
+        #5 The following document is about creating a Makefile for compiling and linking a C++ program and using the diff tool to compare program outputs.
+        
+            #5.1 The following is about the phases of program translation, explaining the necessity of translating C++ source code into binary form for execution.:
+<begin>
+Part I: make
+
+Introduction
+
+Professor Evil is hijacking a class and wants your help to fail all the students!
+That way, their class will look much better in comparison. They are so
+enthusiastic that they have done all the coding already. You only need to
+make a Makefile for the evil plan to succeed!
+
+Review: Phases of Program Translation
+
+You learned in CS 11 that C++ programs cannot run in their text form. You
+need to translate the C++ source code, written in plain text, into the binary
+representation of the particular computer’s instructions.
+
+This translation takes place in a series of stages. Once you start to
+write programs that have multiple modules (components/classes, stored in
+different files in C++) you must be aware of two phases: compilation and
+linking.
+
+<end>
+            ","For phase one of the Zap project, focus on understanding the requirements and the Huffman coding algorithm. Begin by planning your design, including how you'll represent the data structures needed for the algorithm, such as trees and priority queues. Make sure to break down tasks and start early to allow for iteration and feedback. Have you looked at the project specifications in detail yet?",0.3,7
+"not yet, do you know which functions i have to implement for phase one?","The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about a project assignment for a computer science course that involves designing and implementing a program similar to the Unix grep tool for searching and indexing files.
+        
+            #1.1 The following is about the requirement for students to implement various files and functions without specific instructions, emphasizing the importance of design evaluation.:
+<begin>
+Files to Implement
+
+We will not specify most of the files or functions you will need to write. Instead, your program
+is required to function as described in this specification. You may accomplish this task using any
+combination of files, functions, and classes you wish. We will, of course, evaluate your design.
+
+<end>
+            
+        #2 The following document is about debugging and implementing a circular buffer, as well as reviewing stacks and queues in a computer science lab.
+        
+            #2.1 The following is about the specific tasks to be completed in the lab, including debugging and implementing functions.:
+<begin>
+To-Do Items
+
+Your tasks are:
+
+1. Find and fix the bugs in our implementation:
+
+(a) Start with the compilation errors, then run our code to debug
+
+the runtime errors
+
+(b) main.cpp calls and tests each of the circular buffer functions. If
+you need hints on what could be creating issues, that’s a great
+first place to look!
+
+2. Implement each of the unimplemented functions in Stack.cpp
+
+3. Implement each of the unimplemented functions in Queue.cpp
+
+Running Our Code
+
+To compile our code, use the command make pokedex. To execute, run
+./pokedex in terminal. Happy debugging!
+
+<end>
+            
+        #3 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #3.1 The following is about the primary tasks for the assignment, including creating an interactive simulation and designing an object-oriented approach.:
+<begin>
+The primary, high-level tasks for this assignment are as follows:
+
+• Create an interactive front-end simulation that works with both files and the command line
+
+• Design and develop an object-oriented approach to solving the back-end logic for the simulation
+
+• Seamlessly connect the front-end and back-end systems
+
+A few words of caution: The training wheels are off! There are some requirements (see below)
+for your implementation, but we have given you considerably more freedom to architect your solution
+to this problem than in previous assignments. This is a double-edged sword! To succeed, it would
+be wise to read the following spec thoroughly and to start designing a solution as early as possible.
+This will give you time to go to office hours to discuss your plan with the course staff before you start
+coding. This program can be done with less code than the previous assignment if you have designed
+your program well.
+
+<end>
+            
+        #4 The following document is about an introductory lab for a computer science course that focuses on unit testing and creating a simplified ArrayList class, including guidelines on writing effective tests and handling edge cases.
+        
+            #4.1 The following is about the initial focus for the lab, which is to write short test functions targeting specific aspects of the code, acknowledging that not all cases can be tested.:
+<begin>
+For this lab, you may not be able to test all of the cases mentioned above
+and that is fine. For now, focus on writing short test functions that target
+specific aspects of your code.
+
+<end>
+            
+            #4.2 The following is about familiarizing with the ArrayList class and its implementation details.:
+<begin>
+Introduction
+
+Start by familiarizing yourself with the ArrayList.h file. You will see a very
+simple interface for an ArrayList class with a few functions defined for you.
+Notice also that the data type that the ArrayList holds is an integer.
+
+Next, open the ArrayList.cpp file. Inside you will find an incomplete
+implementation. The functions have been left blank intentionally, except for
+the toString() function, which is only partially implemented. It is your
+task to complete and test these functions using the given unit_tests.h file.
+Now, open the unit_tests.h file. Here you will find a few tests imple-
+mented for you. However, the ArrayList.cpp code is not implemented, so
+at least one of the tests will fail at first!
+
+<end>
+            
+        #5 The following document is about implementing and testing functions for stacks, queues, and circular buffers in a computer science lab.
+        
+            #5.1 The following is about the lab tasks, encouraging students to write functions and tests, and suggesting a focus on either stack or queue implementations first.:
+<begin>
+The Lab
+
+There are bunch of functions for you to write! Work through as many as
+you can in lab. You might want to skip CircularBuffer::expand() at first
+- we suggest getting either the stack or queue working, and then come back
+to expand.
+
+Also, it would to your advantage to write tests as you’re writing your
+
+functions! Lab is a good opportunity to begin developing this habit!
+
+<end>
+            
+        #6 The following document is about implementing hash tables with different collision resolution techniques and hash functions for a lab assignment.
+        
+            #6.1 The following is about the functions that need to be implemented for the lab assignment, detailing the insertion methods for both chaining and linear probing.:
+<begin>
+Functions to Write
+
+Your job will be to write the functions described below (along with any
+helper functions you’d like to write). The functions you will write for this
+lab are:
+
+<end>
+            ",The specific functions for phase one should be detailed in the project specifications. I recommend carefully reviewing those requirements to identify what needs to be implemented. Have you considered how you might structure your program or the data it will handle?,0.3,7
+what is zap?,,"I'm here to help with CS 15 topics. If you have questions about data structures or algorithms, feel free to ask!",0.5,3
+what is metrosim?,,"I can't provide information on that topic, but if you have questions related to CS 15, like data structures or algorithms, I'm here to help!",0.5,3
+what is cs15?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the course structure, policies, and information for CS 15 in Summer 2025
+        
+            #1.1 The following is about the course title and introductory welcome for CS 15 in Summer 2025.:
+<begin>
+CS 15 - Summer 2025 
+
+Welcome to CS 15! 
+
+<end>
+            
+            #1.2 The following is about the lecture schedule and location for CS 15, including the final exam details.:
+<begin>
+Lecture Section 1: (Mon/Wed) 1:30 – 2:45PM 
+Location: JCC 402 
+Final exam: TBD 
+
+ 
+ 
+ 
+ 
+<end>
+            
+        #2 The following document is about an introductory lab assignment for a computer science course, teaching students the basics of using Linux systems, command line operations, and remote server access.
+        
+            #2.1 The following is about the introductory lab for CS 15, providing context for the course and its structure.:
+<begin>
+Introductory Lab
+
+CS 15
+Spring 2025
+
+<end>
+            ","CS 15 is a course at Tufts University focused on Data Structures. It covers a variety of topics including C++ fundamentals, different data structures, algorithms, and development tools. If you have specific questions about the course content, feel free to ask!",0.5,3
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about controlling the simulation in the MetroSim program, detailing how it accepts input and processes commands.:
+<begin>
+Controlling the Simulation
+
+MetroSim will accept input from either a commandsFile that contains a list of commands, or from
+std::cin if no commandsFile was given.
+
+<end>
+            
+            #1.2 The following is about the introduction to the metro simulator project, detailing the simulation of the Green Line and the management of Passengers.:
+<begin>
+Introduction
+
+The Green Line has come to Tufts! In this assignment, you will create a program that simulates action
+on the Green Line. Your program will monitor a train as it travels a simplified course of the Green
+Line Extension, and will manage Passengers as they board and depart at specified stops along the
+way.
+
+<end>
+            
+            #1.3 The following is about the Makefile structure and its initial setup for the metro simulator program.:
+<begin>
+Makefile
+
+<end>
+            
+            #1.4 The following is about the command prompt in the MetroSim program, explaining how commands are read and processed.:
+<begin>
+Your program will prompt on std::cout for a command by printing the text ""Command? ""), and
+
+then will read a command in and process it. Your code will handle the following commands:
+
+<end>
+            
+            #1.5 The following is about the title and purpose of the document, which is a project for creating a metro simulator.:
+<begin>
+CS 15 Project 1: A Metro Simulator
+
+1
+
+Contents
+
+<end>
+            ",MetroSim is a project in CS 15 where you create a program to simulate the Green Line train system. It involves monitoring train movements and managing passengers as they board and depart at various stops. It allows you to apply data structures and algorithms learned in the course.,0.3,5
+which classes should my program include?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about a project assignment for creating a text compression and decompression program using the Huffman coding algorithm.
+        
+            #1.1 The following is about the program structure required for the Huffman coding algorithm implementation, detailing the necessary files and their purposes.:
+<begin>
+Program structure
+
+Your program should include at least the following files:
+
+• HuffmanCoder.h and HuffmanCoder.cpp. These files respectively define the interface and im-
+plementation of the HuffmanCoder class, which comprises the main logic of the Huffman coding
+algorithm. The class should have the following two public functions:
+
+void encoder(const std::string &input_file, const std::string &output_file)
+
+encoder takes a text file named input_file, compresses its text, and stores the result in a file
+named output_file.
+
+void decoder(const std::string &input_file, const std::string &output_file)
+
+decoder takes a zapped file named input_file, decompresses it, and stores the resulting text
+in a file named output_file.
+
+You can optionally add a public constructor and destructor to the HuffmanCoder class, but you
+are not required to do so. Any other functions that you add to this class must be private.
+
+• main.cpp. This file includes your main function. It should process the command line arguments
+(ensuring they are valid), and appropriately call either the encoder or decoder function of the
+HuffmanCoder class.
+
+• HuffmanTreeNode.h, ZapUtil.h, and their corresponding .o files: these files are provided by
+
+us, and will be discussed in greater detail later in the spec.
+
+You can choose to add any other classes/files to your program as you see fit.
+
+<end>
+            
+        #2 The following document is about a lab exercise for a computer science course focused on implementing and working with linked lists and using the Valgrind tool for debugging.
+        
+            #2.1 The following is about describing the purpose of the program in the README, highlighting the importance of clarity.:
+<begin>
+2. The purpose of the program.
+
+3. Acknowledgements of any one who helped you, including TAs, profes-
+sors, friends, web sites, etc.. This is consistent with the Tufts rules
+on academic integrity and is also standard practice in academic and
+many professional settings.
+
+4. A list of files provided with a short description of each including its
+
+purpose.
+
+5. Instructions for how to compile, link, and run your program.
+
+Sections 1, 3, and 5 are self-explanatory, we hope. You can always ask
+
+if you are unsure of anything.
+
+Section 2 should be a short description of the overall goal of the program,
+which may not necessarily mention the data structure(s) used. For example,
+in a linked list assignment, the purpose should not say “The purpose of
+this program is to implement a linked list.” A better description would be
+The purpose of this program is to support the manipulation of
+characters within a list.
+
+The description of files in section 4 should be useful, not just a list
+It should be clear from the comment why the file is relevant to
+of files.
+the overarching problem and how it fits into the overall architecture. For
+example,
+
+CharLinkedList.cpp/h: class that implements linked lists of
+
+characters. Includes functions to manipulate the list e.g., addingandremovingitems.
+
+Each of the sections should be clearly delineated and begin with a sec-
+tion heading (not just a letter/number) describing the content of the sec-
+tion.
+
+For homeworks or projects, you will insert two additional sections and
+
+perhaps an optional section:
+
+<end>
+            
+        #3 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #3.1 The following is about the primary tasks for the assignment, including creating an interactive simulation and designing an object-oriented approach.:
+<begin>
+The primary, high-level tasks for this assignment are as follows:
+
+• Create an interactive front-end simulation that works with both files and the command line
+
+• Design and develop an object-oriented approach to solving the back-end logic for the simulation
+
+• Seamlessly connect the front-end and back-end systems
+
+A few words of caution: The training wheels are off! There are some requirements (see below)
+for your implementation, but we have given you considerably more freedom to architect your solution
+to this problem than in previous assignments. This is a double-edged sword! To succeed, it would
+be wise to read the following spec thoroughly and to start designing a solution as early as possible.
+This will give you time to go to office hours to discuss your plan with the course staff before you start
+coding. This program can be done with less code than the previous assignment if you have designed
+your program well.
+
+<end>
+            
+        #4 The following document is about a project assignment for a computer science course that involves designing and implementing a program similar to the Unix grep tool for searching and indexing files.
+        
+            #4.1 The following is about the encouragement to use unit testing for the program's classes and the requirement to submit a README file.:
+<begin>
+You will want to write code to test the various parts of your program separately so that you
+do not have to debug compound errors. To that end, you are encouraged to use the unit_test
+framework to unit test your classes; however, testing details will be up to you. As usual, you will
+also be required to submit a README. See the README section for details.
+
+<end>
+            
+        #5 The following document is about implementing a doubly linked character list in C++ with specific requirements and functions.
+        
+            #5.1 The following is about the introduction to the CS 15 LinkedLists Homework assignment, which involves implementing a doubly linked character list in C++.:
+<begin>
+CS 15 LinkedLists Homework
+
+Introduction
+
+In this assignment you will implement a linked list data structure. The list for this assignment will
+be a doubly linked character list. You will have to write both the public and private sections of the
+CharLinkedList class. The class definition will go in a file named CharLinkedList.h, and the class
+implementation will go in a file named CharLinkedList.cpp. We’ll describe the interface first, then
+give some implementation specifics, ask you some questions, and finally give submission instructions.
+Don’t forget to answer the questions in your README!
+
+1
+
+2
+
+<end>
+            ","While I can't specify which classes you should include for your MetroSim project, consider what objects and behaviors are essential for your simulation. Think about the main components of the metro system, such as trains, stations, and passengers. How might these interact with each other? This reflection can guide your design decisions.",0.3,5
+thank you. are there any required classes though?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the course structure, policies, and information for CS 15 in Summer 2025
+        
+            #1.1 The following is about the prerequisites required for enrolling in CS 15, specifically mentioning CS 11 or instructor consent.:
+<begin>
+Prerequisites: CS 11 or consent of instructor. 
+
+<end>
+            
+            #1.2 The following is about the course title and introductory welcome for CS 15 in Summer 2025.:
+<begin>
+CS 15 - Summer 2025 
+
+Welcome to CS 15! 
+
+<end>
+            
+            #1.3 The following is about the textbook information indicating no purchase is required and online readings will be provided.:
+<begin>
+Textbook: No purchase required. We will regularly post online readings from Data 
+Structures and Algorithm Analysis by Clifford A. Shaffer. 
+
+<end>
+            
+            #1.4 The following is about the course structure and acknowledgments to previous instructors of CS 15.:
+<begin>
+The structure and assignments of this course are based largely on prior versions of 
+the course taught by Marty Allen, Milod Kazerounian, Mark Sheldon, Mati Korman, 
+Chris Gregg, Ben Hescott, and Bruce Molay. Thank you! 
+
+<end>
+            
+        #2 The following document is about an introductory lab assignment for a computer science course, teaching students the basics of using Linux systems, command line operations, and remote server access.
+        
+            #2.1 The following is about the files that need to be submitted for the introductory lab assignment in a computer science course.:
+<begin>
+ following files:
+
+welcome . cpp
+
+<end>
+            ","There are no explicitly required classes for your project, but you may find it helpful to create classes that represent key elements of the simulation, like trains, stations, and passengers. Think about how these classes can encapsulate relevant attributes and behaviors to support the functionality of your MetroSim program.",0.3,5
+how about the PassengerQueue class? isn't that mandatory?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the method to enqueue a passenger into the PassengerQueue, detailing its functionality in the metro simulator program.:
+<begin>
+• void PassengerQueue::enqueue(const Passenger &passenger)
+
+Inserts a new passenger at the end of the queue.
+
+<end>
+            
+            #1.2 The following is about the method to retrieve the size of the PassengerQueue, providing essential information for managing passenger data in the metro simulator program.:
+<begin>
+• int PassengerQueue::size()
+
+Returns the number of elements in the queue.
+
+<end>
+            
+            #1.3 The following is about the introduction to the metro simulator project, detailing the simulation of the Green Line and the management of Passengers.:
+<begin>
+Introduction
+
+The Green Line has come to Tufts! In this assignment, you will create a program that simulates action
+on the Green Line. Your program will monitor a train as it travels a simplified course of the Green
+Line Extension, and will manage Passengers as they board and depart at specified stops along the
+way.
+
+<end>
+            
+            #1.4 The following is about the command structure in the MetroSim program, emphasizing case sensitivity and valid input assumptions.:
+<begin>
+Commands are case sensitive. You may assume input data is valid. (e.g., a Passenger will never
+want to go to a Station with a negative number, etc. . . ). Your program can do anything in such
+cases (segfault, quit, be angry, etc.).
+
+<end>
+            
+            #1.5 The following is about the contents of the document, outlining the sections such as Introduction, Simulation Overview, and Program Details.:
+<begin>
+Introduction
+
+Simulation Overview
+
+Data Abstraction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+User Interface . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+Program Details
+
+Program Design . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+The Passenger
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+The PassengerQueue . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+The Train and The Stations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+Program Flow
+
+Running From the Command Line . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Initialization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Controlling the Simulation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Printing the State of the Simulation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Ending the Simulation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Special Note: File Input vs. std::cin . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+std::cin Example . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+File Input Example . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+Getting Started
+
+The Reference Implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+Design Checkoff (Required)
+
+Phase One (Required)
+
+Testing
+
+Makefile
+
+README
+
+Submitting
+
+2
+
+3
+
+3
+3
+4
+
+5
+5
+5
+5
+6
+
+7
+7
+7
+8
+9
+9
+10
+10
+10
+
+10
+10
+
+11
+
+11
+
+11
+
+13
+
+13
+
+14
+
+<end>
+            ","Yes, the PassengerQueue class is essential for managing passengers in your MetroSim program. It handles operations like enqueueing passengers as they board and retrieving their count. Consider how this class will interact with the rest of your simulation and what methods you'll need to implement its functionality effectively.",0.3,5
+what is zap?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about a project assignment for creating a text compression and decompression program using the Huffman coding algorithm.
+        
+            #1.1 The following is about the introduction to the compression process, explaining its significance in data representation and the purpose of the zap program.:
+<begin>
+Introduction
+
+Compression is the process of reducing the number of bits needed to represent some data. We rely on
+it all the time: when we stream music and movies, talk to someone on Zoom, or even access a web
+page. It’s likely that you’ve compressed data before into a .zip file — maybe to send that data to
+someone via email, or maybe just to save some space on your hard drive.
+
+For this assignment, you will be writing your own compression program called zap! Your pro-
+gram will specifically be used for compressing and decompressing text files using the Huffman coding
+algorithm.
+
+<end>
+            
+            #1.2 The following is about how to run the zap program, detailing the commands for compressing and decompressing files using the Huffman coding algorithm.:
+<begin>
+Running zap
+
+zap can be run in just two ways: you can zap (compress) a file, or unzap (decompress) a file. To zap,
+from the command line run:
+
+./zap zap inputFile outputFile
+
+This will take the ASCII text file named inputFile, compress it using the Huffman coding algo-
+rithm, and store the result in a file named outputFile. It will also print to cout a message that looks
+as follows:
+
+Success! Encoded given text using N bits.
+
+where N is the size in bits of the encoded text.
+
+To unzap, simply run:
+
+./zap unzap inputFile outputFile
+
+This will take the previously zapped file inputFile, decompress it, and store the resulting ASCII
+
+text in outputFile. It will not print anything to cout.
+
+And that’s it! There are no other ways to run zap, and unlike previous assignments, there is no
+
+command loop for this program.
+
+An unzapped file’s contents should be identical to the originally zapped file, e.g., if you run
+
+./zap zap shakespeare.txt shake.zap
+./zap unzap shake.zap new_shakespeare.txt
+
+then the files shakespeare.txt and new_shakespeare.txt should be identical — you can use diff
+to confirm this.
+
+<end>
+            
+            #1.3 The following is about reading a zap file, explaining how to retrieve the serialized tree and encoded binary string using the readZapFile function.:
+<begin>
+Reading the zap file
+
+You should once again use the provided ZapUtil files, this time to read from a previously saved binary
+file. Simply call the readZapFile function, providing the filename to read from. This function will
+return a pair<string, string>, containing both the serialized tree and the binary string encoding.
+A pair is a special C++ data structure from the <utility> library that stores just two elements.
+You will need to include <utility> if you declare any pair variables. To access the elements of a
+pair, use the member variables .first and .second. Take a look at the C++ documentation for
+pair for more information: https://cplusplus.com/reference/utility/pair/pair/.
+
+<end>
+            
+            #1.4 The following is about the reference implementation provided to assist in implementing and testing the Huffman coding program.:
+<begin>
+Reference Implementation and Testing
+
+To assist you with implementing and testing your program, we have provided you with the_zap, a
+compiled reference implementation. You should play around with this implementation to get a feel
+for how it works, and use it to test your own implementation once it is built.
+
+<end>
+            
+            #1.5 The following is about the usage instructions for the command line arguments for the zap program, which is part of the text compression and decompression project.:
+<begin>
+of command line arguments or by
+providing a first argument other than “zap” or “unzap”, then zap will print the following usage message
+to cerr:
+
+Usage: ./zap [zap | unzap] inputFile outputFile
+
+then return EXIT_FAILURE.
+
+2
+
+If you provide the name of an input file that cannot be opened, then your encoder function, or
+
+one of its helpers, should throw a runtime_error with the error message:
+Unable to open file FILENAME
+where FILENAME is the invalid input file name, and the error message does not end with a newline.
+The encoder function is described in detail below. If a user specifies an incorrect file in an invalid
+command, the invalid command error takes precedence.
+
+<end>
+            ",Zap is a program you will create in CS 15 for compressing and decompressing text files using the Huffman coding algorithm. It allows you to reduce the size of text data and retrieve the original content accurately. The program can be run from the command line with specific commands for zapping (compressing) and unzapping (decompressing) files.,0.3,5
+which functions do i have to implement for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the primary tasks for the assignment, including creating an interactive simulation and designing an object-oriented approach.:
+<begin>
+The primary, high-level tasks for this assignment are as follows:
+
+• Create an interactive front-end simulation that works with both files and the command line
+
+• Design and develop an object-oriented approach to solving the back-end logic for the simulation
+
+• Seamlessly connect the front-end and back-end systems
+
+A few words of caution: The training wheels are off! There are some requirements (see below)
+for your implementation, but we have given you considerably more freedom to architect your solution
+to this problem than in previous assignments. This is a double-edged sword! To succeed, it would
+be wise to read the following spec thoroughly and to start designing a solution as early as possible.
+This will give you time to go to office hours to discuss your plan with the course staff before you start
+coding. This program can be done with less code than the previous assignment if you have designed
+your program well.
+
+<end>
+            
+        #2 The following document is about a project assignment for a computer science course that involves designing and implementing a program similar to the Unix grep tool for searching and indexing files.
+        
+            #2.1 The following is about the requirement for students to implement various files and functions without specific instructions, emphasizing the importance of design evaluation.:
+<begin>
+Files to Implement
+
+We will not specify most of the files or functions you will need to write. Instead, your program
+is required to function as described in this specification. You may accomplish this task using any
+combination of files, functions, and classes you wish. We will, of course, evaluate your design.
+
+<end>
+            
+        #3 The following document is about creating a Makefile for compiling and linking a C++ program and using the diff tool to compare program outputs.
+        
+            #3.1 The following is about the phases of program translation, explaining the necessity of translating C++ source code into binary form for execution.:
+<begin>
+Part I: make
+
+Introduction
+
+Professor Evil is hijacking a class and wants your help to fail all the students!
+That way, their class will look much better in comparison. They are so
+enthusiastic that they have done all the coding already. You only need to
+make a Makefile for the evil plan to succeed!
+
+Review: Phases of Program Translation
+
+You learned in CS 11 that C++ programs cannot run in their text form. You
+need to translate the C++ source code, written in plain text, into the binary
+representation of the particular computer’s instructions.
+
+This translation takes place in a series of stages. Once you start to
+write programs that have multiple modules (components/classes, stored in
+different files in C++) you must be aware of two phases: compilation and
+linking.
+
+<end>
+            
+        #4 The following document is about implementing and testing functions for stacks, queues, and circular buffers in a computer science lab.
+        
+            #4.1 The following is about the lab tasks, encouraging students to write functions and tests, and suggesting a focus on either stack or queue implementations first.:
+<begin>
+The Lab
+
+There are bunch of functions for you to write! Work through as many as
+you can in lab. You might want to skip CircularBuffer::expand() at first
+- we suggest getting either the stack or queue working, and then come back
+to expand.
+
+Also, it would to your advantage to write tests as you’re writing your
+
+functions! Lab is a good opportunity to begin developing this habit!
+
+<end>
+            
+            #4.2 The following is about tasks for implementing Stack and Queue methods, detailing the required push, pop, enqueue, and dequeue functions.:
+<begin>
+Tasks for Stack and Queue
+
+Once you have written the circular buffer methods, it should be easy to
+implement the following methods in the Stack and Queue classes.
+
+1. Write the
+
+void Stack::push(ElementType element) method and test it.
+
+2. Write the ElementType Stack::pop() method and test it.
+
+3. Write the
+
+void Queue::enqueue(ElementType element) method and test it.
+
+4. Write the ElementType Queue::dequeue() method and test it.
+
+Tips
+
+• front and back are integers. They are keeping track of the indices of
+
+the front and back of the list within the current array.
+
+• Keep careful track of where front and back are in the array. If front
+is 0, and then you add an element to the front of the circular array,
+what should front be next?
+
+• Make sure you test each function right after you write it!
+
+You are encouraged to discuss test strategies with other students and with
+the course staff. Recall the previous lab in which we went over incremental
+development and debugging output, and use these strategies as you write
+your functions.
+
+6
+
+<end>
+            ","In phase one of the Zap project, you typically need to implement functions for building the Huffman tree and encoding the input text. Focus on understanding the structure and behavior of your data, such as how to represent characters and their frequencies. Consider how these functions will work together to achieve the overall compression goal.",0.3,5
+thanks! but which specific functions am i expected to implement for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the primary tasks for the assignment, including creating an interactive simulation and designing an object-oriented approach.:
+<begin>
+The primary, high-level tasks for this assignment are as follows:
+
+• Create an interactive front-end simulation that works with both files and the command line
+
+• Design and develop an object-oriented approach to solving the back-end logic for the simulation
+
+• Seamlessly connect the front-end and back-end systems
+
+A few words of caution: The training wheels are off! There are some requirements (see below)
+for your implementation, but we have given you considerably more freedom to architect your solution
+to this problem than in previous assignments. This is a double-edged sword! To succeed, it would
+be wise to read the following spec thoroughly and to start designing a solution as early as possible.
+This will give you time to go to office hours to discuss your plan with the course staff before you start
+coding. This program can be done with less code than the previous assignment if you have designed
+your program well.
+
+<end>
+            
+        #2 The following document is about a project assignment for a computer science course that involves designing and implementing a program similar to the Unix grep tool for searching and indexing files.
+        
+            #2.1 The following is about the requirement for students to implement various files and functions without specific instructions, emphasizing the importance of design evaluation.:
+<begin>
+Files to Implement
+
+We will not specify most of the files or functions you will need to write. Instead, your program
+is required to function as described in this specification. You may accomplish this task using any
+combination of files, functions, and classes you wish. We will, of course, evaluate your design.
+
+<end>
+            
+        #3 The following document is about implementing and testing functions for stacks, queues, and circular buffers in a computer science lab.
+        
+            #3.1 The following is about the lab tasks, encouraging students to write functions and tests, and suggesting a focus on either stack or queue implementations first.:
+<begin>
+The Lab
+
+There are bunch of functions for you to write! Work through as many as
+you can in lab. You might want to skip CircularBuffer::expand() at first
+- we suggest getting either the stack or queue working, and then come back
+to expand.
+
+Also, it would to your advantage to write tests as you’re writing your
+
+functions! Lab is a good opportunity to begin developing this habit!
+
+<end>
+            
+        #4 The following document is about an introductory lab for a computer science course that focuses on unit testing and creating a simplified ArrayList class, including guidelines on writing effective tests and handling edge cases.
+        
+            #4.1 The following is about the initial focus for the lab, which is to write short test functions targeting specific aspects of the code, acknowledging that not all cases can be tested.:
+<begin>
+For this lab, you may not be able to test all of the cases mentioned above
+and that is fine. For now, focus on writing short test functions that target
+specific aspects of your code.
+
+<end>
+            
+        #5 The following document is about debugging and implementing a circular buffer, as well as reviewing stacks and queues in a computer science lab.
+        
+            #5.1 The following is about the specific tasks to be completed in the lab, including debugging and implementing functions.:
+<begin>
+To-Do Items
+
+Your tasks are:
+
+1. Find and fix the bugs in our implementation:
+
+(a) Start with the compilation errors, then run our code to debug
+
+the runtime errors
+
+(b) main.cpp calls and tests each of the circular buffer functions. If
+you need hints on what could be creating issues, that’s a great
+first place to look!
+
+2. Implement each of the unimplemented functions in Stack.cpp
+
+3. Implement each of the unimplemented functions in Queue.cpp
+
+Running Our Code
+
+To compile our code, use the command make pokedex. To execute, run
+./pokedex in terminal. Happy debugging!
+
+<end>
+            ","I can't provide the specific functions you need to implement for phase one, but I suggest you review the project guidelines closely. Look for sections that outline requirements or key components of the Huffman coding algorithm. Which parts of the algorithm do you think are critical to implement first? This reflection can help clarify your tasks.",0.3,5
+and which files am i expected to submit for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the implementation and planning of a Reverse Polish Notation (RPN) calculator for a computer science project.
+        
+            #1.1 The following is about the submission process for phase 0 of the project, detailing the specific file to be submitted on Gradescope:
+<begin>
+Submitting Your Work
+
+Be sure your ﬁles have header comments, and that those header comments include your name, the
+assignment, the date, and acknowledgements for any help you received (if not already credited in
+the README ﬁle).
+
+For phase 0, submit your complete cyl design checkoff.txt ﬁle to the assignment “CalcY-
+
+ouLater Design Checkoﬀ” on Gradescope.
+
+<end>
+            
+        #2 The following document is about a project assignment for creating a text compression and decompression program using the Huffman coding algorithm.
+        
+            #2.1 The following is about the requirement to submit all testing files created during the testing process along with a README description.:
+<begin>
+Finally, make sure to submit all testing files you create, whether for unit or diff testing. This
+includes any new input text files you create to pass to ./zap zap in addition to the provided text
+files. You should describe these files and how you used them in your testing in the README (e.g. did
+you check the stdout of ./zap zap? did you check just the output of ./zap zap or something else?).
+
+Testing Utilities
+
+With your starter code, you also received a few files that will be useful when testing your program
+(especially your phase one submission). These files are described below.
+
+• ZapUtil.h and its corresponding .o file: these files are provided by us. Three functions are
+<end>
+            
+        #3 The following document is about a project assignment for a computer science course that involves designing and implementing a program similar to the Unix grep tool for searching and indexing files.
+        
+            #3.1 The following is about the requirements for submitting testing input files for the project assignment, specifying that output files are not needed.:
+<begin>
+only need to include testing input files. For example, files you are searching or files
+with queries. You do not need to include output files of any kind (stdout, stderr, or output files
+where you store the file:line occurrences of words).
+
+<end>
+            
+        #4 The following document is about implementing and working with AVL trees in a computer science lab.
+        
+            #4.1 The following is about instructions for submitting files related to the AVL trees lab.:
+<begin>
+se files directly, do not try to submit them in a folder.
+
+<end>
+            
+        #5 The following document is about creating a Makefile for compiling and linking a C++ program and using the diff tool to compare program outputs.
+        
+            #5.1 The following is about the files that need to be submitted for the assignment, including the Makefile and source code files.:
+<begin>
+Submitting your code
+
+You will need to submit the following files:
+
+Makefile
+evil.cpp
+roster.cpp
+roster.h
+Student.h
+README
+
+You must submit them using Gradescope to the assignment lab_make.
+
+Submit these files directly, do not try to submit them in a folder.
+
+9
+
+<end>
+            ","For phase one, typically you'll need to submit your source code files, any required headers, a Makefile, and a README. Make sure to check your specific project requirements or guidelines for any additional files that might be necessary. Have you confirmed what those are for your project?",0.3,5

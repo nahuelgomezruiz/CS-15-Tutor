@@ -6,6 +6,7 @@ import re
 from llmproxy import generate, retrieve
 from typing import Dict, List
 import time
+import csv
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -178,15 +179,19 @@ def chat_handler_stream():
             
             # Get the system prompt (always the first message)
             system_prompt = conversation_history[0]["content"]
-            
+
+            threshold = 0.5  # RAG threshold
+            k = 3  # Number of RAG documents to retrieve
+            print(f"🔍 Using RAG threshold: {threshold}, k: {k}")
+
             # Use retrieve() to get RAG context from GenericSession
             rag_context_formatted = ''
             try:
                 rag_context = retrieve(
                     query=message,
                     session_id='GenericSession',
-                    rag_threshold=0.5,
-                    rag_k=3
+                    rag_threshold=threshold,
+                    rag_k=k
                 )
                 
                 # Format the RAG context and add it to the system prompt
@@ -227,6 +232,10 @@ def chat_handler_stream():
             conversation_history.append({"role": "assistant", "content": assistant_response})
             
             print(f"📄 Generated response length: {len(assistant_response)}")
+
+            with open('query_rag_responses.csv', 'a', newline='') as csvfile:
+                csv_writer = csv.writer(csvfile)
+                csv_writer.writerow([message, rag_context_formatted, assistant_response, threshold, k])
             
             # Send final response
             yield f'data: {json.dumps({"status": "complete", "response": assistant_response, "rag_context": rag_context_formatted, "conversation_id": conversation_id})}\n\n'
