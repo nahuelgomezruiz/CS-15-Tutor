@@ -35,26 +35,26 @@ class TutorLoggingService:
         """
         try:
             # Get or create anonymous user
-            user = self.db_manager.get_or_create_anonymous_user(utln)
+            user_data, user_conversation_count = self.db_manager.get_or_create_anonymous_user(utln)
             
             # Get or create conversation
-            conversation = self.db_manager.get_or_create_conversation(conversation_id, user, platform)
+            conversation_data = self.db_manager.get_or_create_conversation(conversation_id, user_data, platform)
             
             # Log the query
             self.db_manager.log_message(
-                conversation=conversation,
+                conversation_data=conversation_data,
                 message_type='query',
                 content=query
             )
             
-            logger.info(f"Logged query for user {user.anonymous_id} in conversation {conversation_id} on {platform}")
+            logger.info(f"Logged query for user {user_data['anonymous_id']} in conversation {conversation_id} on {platform}")
             
             return {
-                'anonymous_id': user.anonymous_id,
+                'anonymous_id': user_data['anonymous_id'],
                 'conversation_id': conversation_id,
                 'platform': platform,
-                'is_new_conversation': conversation.message_count == 1,
-                'user_total_conversations': len(user.conversations)
+                'is_new_conversation': conversation_data['message_count'] == 0,  # New conversation starts at 0
+                'user_total_conversations': user_conversation_count
             }
             
         except Exception as e:
@@ -84,15 +84,28 @@ class TutorLoggingService:
             conversation = db.query(Conversation).filter(
                 Conversation.conversation_id == conversation_id
             ).first()
-            db.close()
             
             if not conversation:
+                db.close()
                 logger.warning(f"Conversation {conversation_id} not found for response logging")
                 return False
             
+            # Convert to data dict
+            conversation_data = {
+                'id': conversation.id,
+                'conversation_id': conversation.conversation_id,
+                'user_id': conversation.user_id,
+                'platform': conversation.platform,
+                'created_at': conversation.created_at,
+                'last_message_at': conversation.last_message_at,
+                'message_count': conversation.message_count,
+                'is_active': conversation.is_active
+            }
+            db.close()
+            
             # Log the response
             self.db_manager.log_message(
-                conversation=conversation,
+                conversation_data=conversation_data,
                 message_type='response',
                 content=response,
                 rag_context=rag_context,
@@ -166,8 +179,17 @@ class TutorLoggingService:
             Dictionary with user statistics
         """
         try:
-            user = self.db_manager.get_or_create_anonymous_user(utln)
-            return self.db_manager.get_user_analytics(user)
+            user_data, conversation_count = self.db_manager.get_or_create_anonymous_user(utln)
+            # Create a mock user object with the needed data for analytics
+            class MockUser:
+                def __init__(self, data):
+                    self.id = data['id']
+                    self.anonymous_id = data['anonymous_id']
+                    self.created_at = data['created_at']
+                    self.last_active = data['last_active']
+                    
+            mock_user = MockUser(user_data)
+            return self.db_manager.get_user_analytics(mock_user)
         except Exception as e:
             logger.error(f"Error getting user statistics: {e}")
             return {}

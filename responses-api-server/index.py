@@ -18,6 +18,9 @@ CORS(app)  # Enable CORS for all routes
 # Store conversations in memory (key is conversationId)
 conversations: Dict[str, List[Dict[str, str]]] = {}
 
+# Store accumulated RAG context for each conversation (key is conversationId)
+conversation_rag_context: Dict[str, List[Dict]] = {}
+
 """
 name:        load_system_prompt
 description: load the system prompt from the text in system_prompt.txt
@@ -187,43 +190,57 @@ def chat_handler():
         )
         
         # Initialize conversation if it doesn't exist
+        base_system_prompt = load_system_prompt()
         if conversation_id not in conversations:
-            system_prompt = load_system_prompt()
             conversations[conversation_id] = [
-                {"role": "system", "content": system_prompt}
+                {"role": "system", "content": base_system_prompt}
             ]
+            conversation_rag_context[conversation_id] = []
             print(f"🆕 Initialized new conversation: {conversation_id}")
         
         # Calculate the number of previous user-assistant pairs for lastk
         conversation_history = conversations[conversation_id]
         num_previous_pairs = (len(conversation_history) - 1) // 2
         
-        # Get the system prompt (always the first message)
-        system_prompt = conversation_history[0]["content"]
-        
         # Use retrieve() to get RAG context from GenericSession
         rag_context_formatted = ''
+        new_rag_context_added = False
         try:
+            print(f"🔍 Attempting RAG retrieval for query: '{message}'")
             rag_context = retrieve(
                 query=message,
                 session_id='GenericSession',
-                rag_threshold=0.5,
-                rag_k=3
+                rag_threshold=0.4,
+                rag_k=5
             )
             
-            # Format the RAG context and add it to the system prompt
-            if rag_context:
+            print(f"🔍 RAG API response type: {type(rag_context)}")
+            print(f"🔍 RAG API response: {rag_context}")
+            
+            # Add new RAG context to accumulated context if any is retrieved
+            if rag_context and isinstance(rag_context, list) and len(rag_context) > 0:
+                # Add to accumulated context for this conversation
+                conversation_rag_context[conversation_id].extend(rag_context)
+                new_rag_context_added = True
+                
+                # Update the system prompt in conversation history with all accumulated context
+                update_conversation_system_prompt(conversation_id, base_system_prompt)
+                
+                # Format the new RAG context for logging
                 rag_context_formatted = rag_context_string_simple(rag_context)
-                enhanced_system_prompt = f"{system_prompt}\n\n{rag_context_formatted}"
-                print(f"📄 Retrieved RAG context from GenericSession")
-                print(f"📄 RAG context length: {len(rag_context_formatted)}")
+                print(f"📄 Retrieved and added RAG context from GenericSession")
+                print(f"📄 New RAG context length: {len(rag_context_formatted)}")
+                print(f"📄 Total accumulated contexts: {len(conversation_rag_context[conversation_id])}")
             else:
-                enhanced_system_prompt = system_prompt
-                print(f"📭 No RAG context found")
+                print(f"📭 No new RAG context found. Response was: {rag_context}")
                 
         except Exception as e:
             print(f"⚠️ Error retrieving RAG context: {e}")
-            enhanced_system_prompt = system_prompt
+            import traceback
+            print(f"⚠️ Full traceback: {traceback.format_exc()}")
+        
+        # Get the current system prompt (which now includes all accumulated context)
+        enhanced_system_prompt = conversations[conversation_id][0]["content"]
         
         # Use llmproxy's generate
         response = generate(
@@ -248,11 +265,16 @@ def chat_handler():
         # Calculate response time
         response_time_ms = int((time.time() - request_start_time) * 1000)
         
+        # Get accumulated RAG context for logging
+        accumulated_rag_context = ''
+        if conversation_id in conversation_rag_context and conversation_rag_context[conversation_id]:
+            accumulated_rag_context = rag_context_string_simple(conversation_rag_context[conversation_id])
+        
         # Log the assistant response
         logging_service.log_assistant_response(
             conversation_id=conversation_id,
             response=assistant_response,
-            rag_context=rag_context_formatted,
+            rag_context=accumulated_rag_context,
             model_used='4o-mini',
             temperature=0.7,
             response_time_ms=response_time_ms
@@ -265,7 +287,7 @@ def chat_handler():
         # return the response 
         return jsonify({
             "response": assistant_response,
-            "rag_context": rag_context_formatted,
+            "rag_context": accumulated_rag_context,
             "conversation_id": conversation_id,
             "user_info": {
                 "anonymous_id": query_log_result.get('anonymous_id'),
@@ -323,11 +345,12 @@ def chat_handler_stream():
             )
             
             # Initialize conversation if it doesn't exist
+            base_system_prompt = load_system_prompt()
             if conversation_id not in conversations:
-                system_prompt = load_system_prompt()
                 conversations[conversation_id] = [
-                    {"role": "system", "content": system_prompt}
+                    {"role": "system", "content": base_system_prompt}
                 ]
+                conversation_rag_context[conversation_id] = []
                 print(f"🆕 Initialized new conversation: {conversation_id}")
             
             # Send status: loading (RAG retrieval)
@@ -337,32 +360,45 @@ def chat_handler_stream():
             conversation_history = conversations[conversation_id]
             num_previous_pairs = (len(conversation_history) - 1) // 2
             
-            # Get the system prompt (always the first message)
-            system_prompt = conversation_history[0]["content"]
-            
             # Use retrieve() to get RAG context from GenericSession
             rag_context_formatted = ''
+            new_rag_context_added = False
             try:
+                print(f"🔍 Attempting RAG retrieval for query: '{message}'")
                 rag_context = retrieve(
                     query=message,
                     session_id='GenericSession',
-                    rag_threshold=0.5,
-                    rag_k=3
+                    rag_threshold=0.4,
+                    rag_k=5
                 )
                 
-                # Format the RAG context and add it to the system prompt
-                if rag_context:
+                print(f"🔍 RAG API response type: {type(rag_context)}")
+                print(f"🔍 RAG API response: {rag_context}")
+                
+                # Add new RAG context to accumulated context if any is retrieved
+                if rag_context and isinstance(rag_context, list) and len(rag_context) > 0:
+                    # Add to accumulated context for this conversation
+                    conversation_rag_context[conversation_id].extend(rag_context)
+                    new_rag_context_added = True
+                    
+                    # Update the system prompt in conversation history with all accumulated context
+                    update_conversation_system_prompt(conversation_id, base_system_prompt)
+                    
+                    # Format the new RAG context for logging
                     rag_context_formatted = rag_context_string_simple(rag_context)
-                    enhanced_system_prompt = f"{system_prompt}\n\n{rag_context_formatted}"
-                    print(f"📄 Retrieved RAG context from GenericSession")
-                    print(f"📄 RAG context length: {len(rag_context_formatted)}")
+                    print(f"📄 Retrieved and added RAG context from GenericSession")
+                    print(f"📄 New RAG context length: {len(rag_context_formatted)}")
+                    print(f"📄 Total accumulated contexts: {len(conversation_rag_context[conversation_id])}")
                 else:
-                    enhanced_system_prompt = system_prompt
-                    print(f"📭 No RAG context found")
+                    print(f"📭 No new RAG context found. Response was: {rag_context}")
                     
             except Exception as e:
                 print(f"⚠️ Error retrieving RAG context: {e}")
-                enhanced_system_prompt = system_prompt
+                import traceback
+                print(f"⚠️ Full traceback: {traceback.format_exc()}")
+            
+            # Get the current system prompt (which now includes all accumulated context)
+            enhanced_system_prompt = conversations[conversation_id][0]["content"]
             
             # Send status: thinking (response generation)
             yield f'data: {json.dumps({"status": "thinking", "message": "Thinking..."})}\n\n'
@@ -390,11 +426,16 @@ def chat_handler_stream():
             # Calculate response time
             response_time_ms = int((time.time() - request_start_time) * 1000)
             
+            # Get accumulated RAG context for logging
+            accumulated_rag_context = ''
+            if conversation_id in conversation_rag_context and conversation_rag_context[conversation_id]:
+                accumulated_rag_context = rag_context_string_simple(conversation_rag_context[conversation_id])
+            
             # Log the assistant response
             logging_service.log_assistant_response(
                 conversation_id=conversation_id,
                 response=assistant_response,
-                rag_context=rag_context_formatted,
+                rag_context=accumulated_rag_context,
                 model_used='4o-mini',
                 temperature=0.7,
                 response_time_ms=response_time_ms
@@ -408,7 +449,7 @@ def chat_handler_stream():
             response_data = {
                 "status": "complete", 
                 "response": assistant_response, 
-                "rag_context": rag_context_formatted, 
+                "rag_context": accumulated_rag_context, 
                 "conversation_id": conversation_id,
                 "user_info": {
                     "anonymous_id": query_log_result.get('anonymous_id'),
@@ -454,8 +495,28 @@ def rag_context_string_simple(rag_context):
             #{}.{} {}
             """.format(i, j, chunk)
             j += 1
-        i += 1
+        i += 1 
     return context_string
+
+"""
+name:        update_conversation_system_prompt
+description: update the system prompt in conversation history with accumulated RAG context
+parameters:  conversation_id - the conversation ID
+             base_system_prompt - the original system prompt
+returns:     none
+"""
+def update_conversation_system_prompt(conversation_id, base_system_prompt):
+    if conversation_id not in conversation_rag_context or not conversation_rag_context[conversation_id]:
+        # No RAG context accumulated yet, keep original system prompt
+        conversations[conversation_id][0]["content"] = base_system_prompt
+        return
+    
+    # Format all accumulated RAG context
+    accumulated_context = rag_context_string_simple(conversation_rag_context[conversation_id])
+    
+    # Update the system prompt with accumulated context
+    enhanced_system_prompt = f"{base_system_prompt}\n\n{accumulated_context}"
+    conversations[conversation_id][0]["content"] = enhanced_system_prompt
 
 if __name__ == '__main__':
     print("🚀 Starting Python Flask API server with authentication and logging...")
