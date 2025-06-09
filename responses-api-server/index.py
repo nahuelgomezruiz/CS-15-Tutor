@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import json
 import re
-from llmproxy import generate, retrieve
+from llmproxy import generate, retrieve, model_info
 from typing import Dict, List
 import time
 import csv
@@ -80,7 +80,7 @@ def chat_handler():
             rag_context = retrieve(
                 query=message,
                 session_id='GenericSession',
-                rag_threshold=0.5,
+                rag_threshold=0.3,
                 rag_k=3
             )
             
@@ -180,8 +180,9 @@ def chat_handler_stream():
             # Get the system prompt (always the first message)
             system_prompt = conversation_history[0]["content"]
 
-            threshold = 0.5  # RAG threshold
-            k = 3  # Number of RAG documents to retrieve
+            threshold = 0.4  # RAG threshold
+            k = 7  # Number of RAG documents to retrieve
+            session = 'MetrosimTestSession'  # Session ID for RAG retrieval
             print(f"🔍 Using RAG threshold: {threshold}, k: {k}")
 
             # Use retrieve() to get RAG context from GenericSession
@@ -189,7 +190,7 @@ def chat_handler_stream():
             try:
                 rag_context = retrieve(
                     query=message,
-                    session_id='GenericSession',
+                    session_id=session,
                     rag_threshold=threshold,
                     rag_k=k
                 )
@@ -232,10 +233,13 @@ def chat_handler_stream():
             conversation_history.append({"role": "assistant", "content": assistant_response})
             
             print(f"📄 Generated response length: {len(assistant_response)}")
+            csv_path = os.path.abspath("query_rag_responses.csv")
+            print(f"📁 Writing to: {csv_path}")
 
-            with open('query_rag_responses.csv', 'a', newline='') as csvfile:
+            with open('responses-api-server/query_rag_responses.csv', 'a', newline='') as csvfile:
                 csv_writer = csv.writer(csvfile)
-                csv_writer.writerow([message, rag_context_formatted, assistant_response, threshold, k])
+                csv_writer.writerow([message, rag_context_formatted, assistant_response, threshold, k, session])
+
             
             # Send final response
             yield f'data: {json.dumps({"status": "complete", "response": assistant_response, "rag_context": rag_context_formatted, "conversation_id": conversation_id})}\n\n'

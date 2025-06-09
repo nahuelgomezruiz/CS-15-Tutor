@@ -1,4 +1,4 @@
-message, rag_context_formatted, assistant_response, rag_threshold, rag_k
+message, rag_context_formatted, assistant_response, rag_threshold, rag_k, session_id
 hello,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about an introductory lab assignment for a computer science course, teaching students the basics of using Linux systems, command line operations, and remote server access.
         
@@ -9,7 +9,7 @@ hello,"The following is additional context that may be helpful in answering the 
 welcome . cpp
 
 <end>
-            ",Hello! How can I assist you today with CS 15?, 0.3, 7
+            ",Hello! How can I assist you today with CS 15?,0.3,7,GenericSession
 what is zap?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about a project assignment for creating a text compression and decompression program using the Huffman coding algorithm.
         
@@ -142,7 +142,7 @@ CS 15 Project 3: zap
 Contents
 
 <end>
-            ",Zap is a project in CS 15 where you will create a text compression and decompression program using the Huffman coding algorithm. It allows you to compress ASCII text files and decompress them back to their original form.,0.3,7
+            ",Zap is a project in CS 15 where you will create a text compression and decompression program using the Huffman coding algorithm. It allows you to compress ASCII text files and decompress them back to their original form.,0.3,7,GenericSession
 what should i do for phase one of the project?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about the implementation and planning of a Reverse Polish Notation (RPN) calculator for a computer science project.
         
@@ -298,7 +298,7 @@ different files in C++) you must be aware of two phases: compilation and
 linking.
 
 <end>
-            ","For phase one of the Zap project, focus on understanding the requirements and the Huffman coding algorithm. Begin by planning your design, including how you'll represent the data structures needed for the algorithm, such as trees and priority queues. Make sure to break down tasks and start early to allow for iteration and feedback. Have you looked at the project specifications in detail yet?",0.3,7
+            ","For phase one of the Zap project, focus on understanding the requirements and the Huffman coding algorithm. Begin by planning your design, including how you'll represent the data structures needed for the algorithm, such as trees and priority queues. Make sure to break down tasks and start early to allow for iteration and feedback. Have you looked at the project specifications in detail yet?",0.3,7,GenericSession
 "not yet, do you know which functions i have to implement for phase one?","The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about a project assignment for a computer science course that involves designing and implementing a program similar to the Unix grep tool for searching and indexing files.
         
@@ -419,9 +419,9 @@ helper functions you’d like to write). The functions you will write for this
 lab are:
 
 <end>
-            ",The specific functions for phase one should be detailed in the project specifications. I recommend carefully reviewing those requirements to identify what needs to be implemented. Have you considered how you might structure your program or the data it will handle?,0.3,7
-what is zap?,,"I'm here to help with CS 15 topics. If you have questions about data structures or algorithms, feel free to ask!",0.5,3
-what is metrosim?,,"I can't provide information on that topic, but if you have questions related to CS 15, like data structures or algorithms, I'm here to help!",0.5,3
+            ",The specific functions for phase one should be detailed in the project specifications. I recommend carefully reviewing those requirements to identify what needs to be implemented. Have you considered how you might structure your program or the data it will handle?,0.3,7,GenericSession
+what is zap?,,"I'm here to help with CS 15 topics. If you have questions about data structures or algorithms, feel free to ask!",0.5,3,GenericSession
+what is metrosim?,,"I can't provide information on that topic, but if you have questions related to CS 15, like data structures or algorithms, I'm here to help!",0.5,3,GenericSession
 what is cs15?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about the course structure, policies, and information for CS 15 in Summer 2025
         
@@ -455,7 +455,7 @@ CS 15
 Spring 2025
 
 <end>
-            ","CS 15 is a course at Tufts University focused on Data Structures. It covers a variety of topics including C++ fundamentals, different data structures, algorithms, and development tools. If you have specific questions about the course content, feel free to ask!",0.5,3
+            ","CS 15 is a course at Tufts University focused on Data Structures. It covers a variety of topics including C++ fundamentals, different data structures, algorithms, and development tools. If you have specific questions about the course content, feel free to ask!",0.5,3,GenericSession
 what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
         
@@ -502,7 +502,7 @@ CS 15 Project 1: A Metro Simulator
 Contents
 
 <end>
-            ",MetroSim is a project in CS 15 where you create a program to simulate the Green Line train system. It involves monitoring train movements and managing passengers as they board and depart at various stops. It allows you to apply data structures and algorithms learned in the course.,0.3,5
+            ",MetroSim is a project in CS 15 where you create a program to simulate the Green Line train system. It involves monitoring train movements and managing passengers as they board and depart at various stops. It allows you to apply data structures and algorithms learned in the course.,0.3,5,GenericSession
 which classes should my program include?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about a project assignment for creating a text compression and decompression program using the Huffman coding algorithm.
         
@@ -642,7 +642,7 @@ Don’t forget to answer the questions in your README!
 2
 
 <end>
-            ","While I can't specify which classes you should include for your MetroSim project, consider what objects and behaviors are essential for your simulation. Think about the main components of the metro system, such as trains, stations, and passengers. How might these interact with each other? This reflection can guide your design decisions.",0.3,5
+            ","While I can't specify which classes you should include for your MetroSim project, consider what objects and behaviors are essential for your simulation. Think about the main components of the metro system, such as trains, stations, and passengers. How might these interact with each other? This reflection can guide your design decisions.",0.3,5,GenericSession
 thank you. are there any required classes though?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about the course structure, policies, and information for CS 15 in Summer 2025
         
@@ -684,7 +684,7 @@ Chris Gregg, Ben Hescott, and Bruce Molay. Thank you!
 welcome . cpp
 
 <end>
-            ","There are no explicitly required classes for your project, but you may find it helpful to create classes that represent key elements of the simulation, like trains, stations, and passengers. Think about how these classes can encapsulate relevant attributes and behaviors to support the functionality of your MetroSim program.",0.3,5
+            ","There are no explicitly required classes for your project, but you may find it helpful to create classes that represent key elements of the simulation, like trains, stations, and passengers. Think about how these classes can encapsulate relevant attributes and behaviors to support the functionality of your MetroSim program.",0.3,5,GenericSession
 how about the PassengerQueue class? isn't that mandatory?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
         
@@ -807,7 +807,7 @@ Submitting
 14
 
 <end>
-            ","Yes, the PassengerQueue class is essential for managing passengers in your MetroSim program. It handles operations like enqueueing passengers as they board and retrieving their count. Consider how this class will interact with the rest of your simulation and what methods you'll need to implement its functionality effectively.",0.3,5
+            ","Yes, the PassengerQueue class is essential for managing passengers in your MetroSim program. It handles operations like enqueueing passengers as they board and retrieving their count. Consider how this class will interact with the rest of your simulation and what methods you'll need to implement its functionality effectively.",0.3,5,GenericSession
 what is zap?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about a project assignment for creating a text compression and decompression program using the Huffman coding algorithm.
         
@@ -910,7 +910,7 @@ The encoder function is described in detail below. If a user specifies an incorr
 command, the invalid command error takes precedence.
 
 <end>
-            ",Zap is a program you will create in CS 15 for compressing and decompressing text files using the Huffman coding algorithm. It allows you to reduce the size of text data and retrieve the original content accurately. The program can be run from the command line with specific commands for zapping (compressing) and unzapping (decompressing) files.,0.3,5
+            ",Zap is a program you will create in CS 15 for compressing and decompressing text files using the Huffman coding algorithm. It allows you to reduce the size of text data and retrieve the original content accurately. The program can be run from the command line with specific commands for zapping (compressing) and unzapping (decompressing) files.,0.3,5,GenericSession
 which functions do i have to implement for phase one?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
         
@@ -1028,7 +1028,7 @@ your functions.
 6
 
 <end>
-            ","In phase one of the Zap project, you typically need to implement functions for building the Huffman tree and encoding the input text. Focus on understanding the structure and behavior of your data, such as how to represent characters and their frequencies. Consider how these functions will work together to achieve the overall compression goal.",0.3,5
+            ","In phase one of the Zap project, you typically need to implement functions for building the Huffman tree and encoding the input text. Focus on understanding the structure and behavior of your data, such as how to represent characters and their frequencies. Consider how these functions will work together to achieve the overall compression goal.",0.3,5,GenericSession
 thanks! but which specific functions am i expected to implement for phase one?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
         
@@ -1119,7 +1119,7 @@ To compile our code, use the command make pokedex. To execute, run
 ./pokedex in terminal. Happy debugging!
 
 <end>
-            ","I can't provide the specific functions you need to implement for phase one, but I suggest you review the project guidelines closely. Look for sections that outline requirements or key components of the Huffman coding algorithm. Which parts of the algorithm do you think are critical to implement first? This reflection can help clarify your tasks.",0.3,5
+            ","I can't provide the specific functions you need to implement for phase one, but I suggest you review the project guidelines closely. Look for sections that outline requirements or key components of the Huffman coding algorithm. Which parts of the algorithm do you think are critical to implement first? This reflection can help clarify your tasks.",0.3,5,GenericSession
 and which files am i expected to submit for phase one?,"The following is additional context that may be helpful in answering the user's query.
         #1 The following document is about the implementation and planning of a Reverse Polish Notation (RPN) calculator for a computer science project.
         
@@ -1194,4 +1194,2073 @@ Submit these files directly, do not try to submit them in a folder.
 9
 
 <end>
-            ","For phase one, typically you'll need to submit your source code files, any required headers, a Makefile, and a README. Make sure to check your specific project requirements or guidelines for any additional files that might be necessary. Have you confirmed what those are for your project?",0.3,5
+            ","For phase one, typically you'll need to submit your source code files, any required headers, a Makefile, and a README. Make sure to check your specific project requirements or guidelines for any additional files that might be necessary. Have you confirmed what those are for your project?",0.3,5,GenericSession
+            
+hi,,Hello again! Do you have any questions about CS 15?,0.4,5,GenericSession
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the process of obtaining starter files for the metro simulator program.:
+<begin>
+Getting Started
+
+You can get the starter files by running the following command:
+
+/comp/15/files/proj_metrosim/setup
+
+Note that you should not manually run cp, but rather run the above program. The files will be copied
+for you.
+The Reference Implementation
+
+After running the above command, you will have access to a reference implementation of the program
+named the_MetroSim. We strongly encourage you to play around with it both to learn what is
+expected of your program and to test your your program. We will be comparing your program’s
+output to the reference, so be sure that you are adhering to the output format. If the diff command
+reports any differences between the output of your implementation and the reference implementation,
+then you will lose points on the functional correctness portion of your implementation assessment.
+Refer to the Testing section in this document for more information.
+
+The setup script makes a link to the reference implementation rather than your own copy. You
+use it exactly the same as you would use any other program, but this will guarantee you always use
+
+10
+
+the most recent version.
+
+<end>
+            
+            #1.2 The following is about the list of source files and components required for the metro simulator program, including essential files like Passenger.h and MetroSim.cpp.:
+<begin>
+engerQueue.cpp
+Passenger.h, Passenger.cpp
+MetroSim.h, MetroSim.cpp
+main.cpp
+(... any other C++ source files)
+(... any testing files)
+unit_tests.h
+Makefile
+README
+
+<end>
+            
+            #1.3 The following is about controlling the simulation in the metro simulator program, detailing how input can be received from a commands file or standard input.:
+<begin>
+Controlling the Simulation
+
+MetroSim will accept input from either a commandsFile that contains a list of commands, or from
+std::cin if no commandsFile was given.
+
+<end>
+            
+            #1.4 The following is about the command to terminate the simulation in the metro simulator program, referencing the Ending the Simulation section.:
+<begin>
+• m f (metro finish)
+
+◦ The command m f should terminate the simulation, as described in the Ending the Sim-
+
+ulation section.
+
+<end>
+            
+            #1.5 The following is about the introduction to the metro simulator project, detailing the simulation of the Green Line and the management of Passengers.:
+<begin>
+Introduction
+
+The Green Line has come to Tufts! In this assignment, you will create a program that simulates action
+on the Green Line. Your program will monitor a train as it travels a simplified course of the Green
+Line Extension, and will manage Passengers as they board and depart at specified stops along the
+way.
+
+<end>
+            ","MetroSim is a project in CS 15 where you create a program to simulate the Green Line of the metro system. Your program will monitor a train's travel and manage passengers boarding and departing at various stops. It's a great opportunity to apply your knowledge of data structures and algorithms! If you have specific questions about the project, feel free to ask.",0.3,5,MetrosimTestSession
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the process of obtaining starter files for the metro simulator program.:
+<begin>
+Getting Started
+
+You can get the starter files by running the following command:
+
+/comp/15/files/proj_metrosim/setup
+
+Note that you should not manually run cp, but rather run the above program. The files will be copied
+for you.
+The Reference Implementation
+
+After running the above command, you will have access to a reference implementation of the program
+named the_MetroSim. We strongly encourage you to play around with it both to learn what is
+expected of your program and to test your your program. We will be comparing your program’s
+output to the reference, so be sure that you are adhering to the output format. If the diff command
+reports any differences between the output of your implementation and the reference implementation,
+then you will lose points on the functional correctness portion of your implementation assessment.
+Refer to the Testing section in this document for more information.
+
+The setup script makes a link to the reference implementation rather than your own copy. You
+use it exactly the same as you would use any other program, but this will guarantee you always use
+
+10
+
+the most recent version.
+
+<end>
+            
+            #1.2 The following is about the list of source files and components required for the metro simulator program, including essential files like Passenger.h and MetroSim.cpp.:
+<begin>
+engerQueue.cpp
+Passenger.h, Passenger.cpp
+MetroSim.h, MetroSim.cpp
+main.cpp
+(... any other C++ source files)
+(... any testing files)
+unit_tests.h
+Makefile
+README
+
+<end>
+            
+            #1.3 The following is about controlling the simulation in the metro simulator program, detailing how input can be received from a commands file or standard input.:
+<begin>
+Controlling the Simulation
+
+MetroSim will accept input from either a commandsFile that contains a list of commands, or from
+std::cin if no commandsFile was given.
+
+<end>
+            
+            #1.4 The following is about the command to terminate the simulation in the metro simulator program, referencing the Ending the Simulation section.:
+<begin>
+• m f (metro finish)
+
+◦ The command m f should terminate the simulation, as described in the Ending the Sim-
+
+ulation section.
+
+<end>
+            
+            #1.5 The following is about the introduction to the metro simulator project, detailing the simulation of the Green Line and the management of Passengers.:
+<begin>
+Introduction
+
+The Green Line has come to Tufts! In this assignment, you will create a program that simulates action
+on the Green Line. Your program will monitor a train as it travels a simplified course of the Green
+Line Extension, and will manage Passengers as they board and depart at specified stops along the
+way.
+
+<end>
+            ","MetroSim is a simulation program for the Green Line in CS 15. It involves tracking a train as it travels along a route and managing passenger activities, such as boarding and departing at stops. This project helps you apply data structures and algorithms in a practical context. If you have more specific questions about it, let me know!",0.3,5,MetrosimTestSession
+which classes should my program include?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the primary tasks for the assignment, emphasizing the creation of an interactive simulation and the design of an object-oriented approach.:
+<begin>
+The primary, high-level tasks for this assignment are as follows:
+
+• Create an interactive front-end simulation that works with both files and the command line
+
+• Design and develop an object-oriented approach to solving the back-end logic for the simulation
+
+• Seamlessly connect the front-end and back-end systems
+
+A few words of caution: The training wheels are off! There are some requirements (see below)
+for your implementation, but we have given you considerably more freedom to architect your solution
+to this problem than in previous assignments. This is a double-edged sword! To succeed, it would
+be wise to read the following spec thoroughly and to start designing a solution as early as possible.
+This will give you time to go to office hours to discuss your plan with the course staff before you start
+coding. This program can be done with less code than the previous assignment if you have designed
+your program well.
+
+<end>
+            
+            #1.2 The following is about the program design and the importance of reviewing the design and implementation plan before coding, emphasizing the need for office hours consultation.:
+<begin>
+Program Details
+
+Program Design
+
+Note: you should carefully consider your design and implementation plan before writing any code.
+In fact, we require you to come to office hours to review your design and implementation plan before
+writing any code (continue reading for details).
+
+<end>
+            
+            #1.3 The following is about the initial requirements for modeling components in the metro simulator, specifically the representation of the Train as a list of PassengerQueue objects for each station.:
+<begin>
+item in the list to be its own class, so it will be up to you to decide how each component is to be
+modeled. However, we do require that you represent the Train as a list of PassengerQueue
+objects, where each PassengerQueue represents a train station. But more on that later.
+
+Note: You may find yourself confused. This is okay! You might want to refresh your memory
+about abstraction, classes in C++, etc. We strongly suggest that you head over to the reference page,
+where there is a lot of great material on these topics. Also, there is a lot of information in the
+upcoming sections which should help clarify the points above. Head back here after reading through
+the document to begin designing your solution.
+
+<end>
+            
+            #1.4 The following is about the README file requirements that accompany the code files for the metro simulator program.:
+<begin>
+README
+
+With your code files you will also submit a README file. You can format your README however you
+
+like. However it should have the following sections:
+
+A The title of the homework and the author’s name (you)
+
+13
+
+B The purpose of the program
+
+C Acknowledgements for any help you received
+
+D The files that you provided and a short description of what each file is and its purpose
+
+E How to compile and run your program
+
+F An “architectural overview” i.e., a description of how your various program modules relate. For
+example, how you represent various structures in your implementation (e.g stations, trains).
+
+G An outline of the data structures and algorithms that you used. Given that this is a data struc-
+tures class, you need to always discuss the ADT that you used and the data structure that
+you used to implement it and justify why you used it. Please discuss the features of the data
+structure and also include (with some justification/explanation) two other situations/circum-
+stances/problems where you could utilize it. The algorithm overview is always relevant. Please
+pick a couple interesting/complex algorithms to discuss in the README.
+
+H Details and an explanation of how you tested the various parts of assignment and the program
+as a whole. You may reference the testing files that you submitted to aid in your explanation.
+
+I Tell us how much time you spent, in total, on this assignment in hours.
+
+Each of the sections should be clearly delineated and begin with a section heading describing the
+content of the section. You should not only have the section letter used in the outline above.
+
+<end>
+            
+            #1.5 The following is about the list of source files and components required for the metro simulator program, including essential files like Passenger.h and MetroSim.cpp.:
+<begin>
+engerQueue.cpp
+Passenger.h, Passenger.cpp
+MetroSim.h, MetroSim.cpp
+main.cpp
+(... any other C++ source files)
+(... any testing files)
+unit_tests.h
+Makefile
+README
+
+<end>
+            ","Think about the elements involved in your metro simulation. What key components do you need to represent? For instance, you might need classes for the Train, Passenger, PassengerQueue, and possibly Stations. How do these components interact with each other? Consider the relationships and responsibilities of each class in your design.",0.3,5,MetrosimTestSession
+thank you. are there any required classes though?,,"While there are no strict requirements, common classes often include Train, Passenger, and Station. Additionally, you might want to include a PassengerQueue to manage boarding and alighting. What do you think these classes should be responsible for in your simulation?",0.3,5,MetrosimTestSession
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the process of obtaining starter files for the metro simulator program.:
+<begin>
+Getting Started
+
+You can get the starter files by running the following command:
+
+/comp/15/files/proj_metrosim/setup
+
+Note that you should not manually run cp, but rather run the above program. The files will be copied
+for you.
+The Reference Implementation
+
+After running the above command, you will have access to a reference implementation of the program
+named the_MetroSim. We strongly encourage you to play around with it both to learn what is
+expected of your program and to test your your program. We will be comparing your program’s
+output to the reference, so be sure that you are adhering to the output format. If the diff command
+reports any differences between the output of your implementation and the reference implementation,
+then you will lose points on the functional correctness portion of your implementation assessment.
+Refer to the Testing section in this document for more information.
+
+The setup script makes a link to the reference implementation rather than your own copy. You
+use it exactly the same as you would use any other program, but this will guarantee you always use
+
+10
+
+the most recent version.
+
+<end>
+            
+            #1.2 The following is about the list of source files and components required for the metro simulator program, including essential files like Passenger.h and MetroSim.cpp.:
+<begin>
+engerQueue.cpp
+Passenger.h, Passenger.cpp
+MetroSim.h, MetroSim.cpp
+main.cpp
+(... any other C++ source files)
+(... any testing files)
+unit_tests.h
+Makefile
+README
+
+<end>
+            
+            #1.3 The following is about controlling the simulation in the metro simulator program, detailing how input can be received from a commands file or standard input.:
+<begin>
+Controlling the Simulation
+
+MetroSim will accept input from either a commandsFile that contains a list of commands, or from
+std::cin if no commandsFile was given.
+
+<end>
+            
+            #1.4 The following is about the command to terminate the simulation in the metro simulator program, referencing the Ending the Simulation section.:
+<begin>
+• m f (metro finish)
+
+◦ The command m f should terminate the simulation, as described in the Ending the Sim-
+
+ulation section.
+
+<end>
+            
+            #1.5 The following is about the introduction to the metro simulator project, detailing the simulation of the Green Line and the management of Passengers.:
+<begin>
+Introduction
+
+The Green Line has come to Tufts! In this assignment, you will create a program that simulates action
+on the Green Line. Your program will monitor a train as it travels a simplified course of the Green
+Line Extension, and will manage Passengers as they board and depart at specified stops along the
+way.
+
+<end>
+            
+            #1.6 The following is about running the MetroSim program from the command line, outlining the required command-line arguments for proper execution.:
+<begin>
+Running From the Command Line
+
+You will write a program called MetroSim that accepts either 2 or 3 command-line arguments (in
+addition to the program name), like this:
+
+./MetroSim stationsFile outputFile [commandsFile]
+
+where:
+
+• stationsFile is an input file containing names of the Stations, one per line
+
+• outputFile is the file to send simulator output to
+
+• commandsFile (optional) is a second input file containing commands to execute. If this parameter
+it’s a common convention to
+
+is not given, then you should read input from std::cin. Note:
+denote optional parameters by putting them in square brackets.
+
+If the program is invoked with a different number of parameters you should quit execution by
+
+returning EXIT_FAILURE after printing the following message to std::cerr:
+
+Usage: ./MetroSim stationsFile outputFile [commandsFile]
+
+<end>
+            
+            #1.7 The following is about the title and purpose of the document, which is a project for creating a metro simulator.:
+<begin>
+CS 15 Project 1: A Metro Simulator
+
+1
+
+Contents
+
+<end>
+            ","MetroSim is a project for CS 15 that involves creating a program to simulate the Green Line metro system. The program manages train operations, including monitoring the train's journey and managing passengers as they board and depart at various stations. It requires handling input from files and executing commands to control the simulation.",0.4,7,MetrosimTestSession
+are there any required classes?,,"Yes, in CS 15, you will typically need to implement several classes to model the components of the MetroSim project. Think about classes for trains, stations, and possibly the metro system itself. What attributes and methods do you think would be important for each of these classes?",0.4,7,MetrosimTestSession
+what do i have to do for phase one of metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about Phase One of the metro simulator project, detailing the required implementations of the Passenger and PassengerQueue classes and the importance of thorough testing.:
+<begin>
+Phase One (Required)
+
+For phase one of this project, you must complete the implementations of Passenger and PassengerQueue,
+
+and you must thoroughly test these classes. See the course calendar for the due date.
+
+<end>
+            
+            #1.2 The following is about the deliverables for the assignment, specifying the phases and requirements for submission.:
+<begin>
+Deliverables There are multiple phases of deliverables for this assignment:
+
+• Week one:
+
+- Design checkoff.
+- The code for your Passenger and PassengerQueue classes.
+
+• Week two: Your final MetroSim program.
+
+Continue reading to learn more about these deliverables!
+
+Simulation Overview
+
+Data Abstraction
+
+Your design choices will be of chief importance in this project. It is your responsibility to plan out
+how you will build and utilize various components of the simulation. These components include:
+
+3
+
+• Passengers, which must contain:
+
+◦ an id
+
+◦ a starting station
+
+◦ an ending station
+
+• PassengerQueues, which contain Passengers who are waiting to board or depart from trains.
+
+• A list of Stations.
+
+• the Train, which carries Passengers between Stations.
+
+While it may not be obvious at first how to model these components, we will give you some
+guidelines to help you establish the architecture of your MetroSim program. We don’t require every
+<end>
+            
+            #1.3 The following is about the process of obtaining starter files for the metro simulator program.:
+<begin>
+Getting Started
+
+You can get the starter files by running the following command:
+
+/comp/15/files/proj_metrosim/setup
+
+Note that you should not manually run cp, but rather run the above program. The files will be copied
+for you.
+The Reference Implementation
+
+After running the above command, you will have access to a reference implementation of the program
+named the_MetroSim. We strongly encourage you to play around with it both to learn what is
+expected of your program and to test your your program. We will be comparing your program’s
+output to the reference, so be sure that you are adhering to the output format. If the diff command
+reports any differences between the output of your implementation and the reference implementation,
+then you will lose points on the functional correctness portion of your implementation assessment.
+Refer to the Testing section in this document for more information.
+
+The setup script makes a link to the reference implementation rather than your own copy. You
+use it exactly the same as you would use any other program, but this will guarantee you always use
+
+10
+
+the most recent version.
+
+<end>
+            
+            #1.4 The following is about the submission guidelines for different phases of the metro simulator project, detailing what files to submit and how to format them.:
+<begin>
+Submitting
+
+Be sure your files have header comments, and that those header comments include your name, the
+assignment, the date, and acknowledgements for any help you received (if not already credited in the
+README file).
+
+For phase 0, submit your complete metro design checkoff.txt file to the assignment “MetroSim
+
+Design Checkoff” on Gradescope.
+
+For phase 1, you will need to submit the following files:
+
+Passenger.h, Passenger.cpp
+PassengerQueue.h, PassengerQueue.cpp
+unit_tests.h
+README
+
+You should only include other C++ files if your solution to PassengerQueue depends on them. Do
+not submit MetroSim.cpp for example. You must submit them using Gradescope to the assignment
+proj_metrosim_phase1. Submit these files directly, do not try to submit them in a folder. The
+README doesn’t have to be the final README. Just document anything that you feel we should know
+about your Passenger, PassengerQueue, or the submission in general.
+
+For the final submission, we don’t know exactly what files your final program will comprise. You
+
+will need to submit at least the following files:
+
+14
+
+CONTENTS
+
+15
+
+<end>
+            
+            #1.5 The following is about the required design checkoff process for the metro simulator project, including submission and discussion with TAs.:
+<begin>
+Design Checkoff (Required)
+
+First, complete the required design checkoff questions given in the starter file metro design checkoff.txt,
+
+and submit your answers on Gradescope under the assignment “MetroSim Design Checkoff.”
+
+You must submit this file prior to meeting with a TA.
+Then, go to office hours and talk to a TA about your plan. You should be prepared to discuss the
+answers you submitted. You are welcome to bring other materials as well, though you are not required
+to: drawings, pseudocode, etc.
+
+The design checkoff helps twofold: you plan out your project and get your brain working on it in the
+background, and you also get design feedback before it’s too late. TAs will check off your design, but
+reserve the right to not check off your design if they believe your design was not thoroughly mapped
+out enough.
+
+Please sign up for a design check off on the form linked here.
+Note: it is completely okay to deviate from this initial plan. In fact, we encourage you to continue
+to evaluate the structure of your solution and fine-tune it as you go – that’s what programmers do in
+<end>
+            
+            #1.6 The following is about the initialization phase of the MetroSim program, detailing how to process the stations file and handle station names for the metro simulator.:
+<begin>
+Initialization
+
+In the initialization phase you will open the stationsFile and process any Stations you find. The
+stationsFile is in plain text, with one Station name per line. You may assume the stationsFile
+has at least two Stations, and each Station’s name is a string of at least one character. Station
+names may be more than one word, e. g., “South Station”.
+
+Note: do not worry about malformed files. We will not test your program with empty Station
+files or files with duplicate Station names, etc. Just program assuming any input files are correctly
+formatted. You do, however, have to handle cases in which a file cannot be opened (see below for the
+specific message and behavior).
+
+After you have finished processing the stationsFile, print the Stations you have just read
+(output specifications are below). Remember to place the Train at the first Station. Initially, there
+are no Passengers in the Train or at any Station.
+
+If your program cannot open any of the provided file(s), you should quit by returning EXIT_FAILURE
+
+and print the following error message to std::cerr
+
+Error: could not open file FILENAME
+
+7
+
+CONTENTS
+
+8
+
+where FILENAME is the name of the file that could not be opened.
+
+We have given you sample Station and command files (stations.txt and test_commands.txt,
+<end>
+            
+            #1.7 The following is about the introduction to the metro simulator project, detailing the simulation of the Green Line and the management of Passengers.:
+<begin>
+Introduction
+
+The Green Line has come to Tufts! In this assignment, you will create a program that simulates action
+on the Green Line. Your program will monitor a train as it travels a simplified course of the Green
+Line Extension, and will manage Passengers as they board and depart at specified stops along the
+way.
+
+<end>
+            ","For Phase One of the MetroSim project, you need to complete the implementations of the `Passenger` and `PassengerQueue` classes, and thoroughly test these classes. Be sure to check the course calendar for the due date and follow the submission guidelines for the required files.",0.4,7,MetrosimTestSession
+which functions do i need to implement for these classes?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the requirements for creating a PassengerQueue class, detailing the necessary interface and functions that must be implemented for queue operations.:
+<begin>
+The PassengerQueue
+
+You’re required to write a PassengerQueue class from scratch that implements exactly the following
+interface:
+
+• Passenger PassengerQueue::front()
+
+Returns, but does not remove, the element at the front of the queue. You may throw an error if
+this function is called on an empty queue, but you are not required to do so.
+
+• void PassengerQueue::dequeue()
+
+Removes the element at the front of the queue. You may throw an error if this function is called
+<end>
+            
+            #1.2 The following is about the primary tasks for the assignment, emphasizing the creation of an interactive simulation and the design of an object-oriented approach.:
+<begin>
+The primary, high-level tasks for this assignment are as follows:
+
+• Create an interactive front-end simulation that works with both files and the command line
+
+• Design and develop an object-oriented approach to solving the back-end logic for the simulation
+
+• Seamlessly connect the front-end and back-end systems
+
+A few words of caution: The training wheels are off! There are some requirements (see below)
+for your implementation, but we have given you considerably more freedom to architect your solution
+to this problem than in previous assignments. This is a double-edged sword! To succeed, it would
+be wise to read the following spec thoroughly and to start designing a solution as early as possible.
+This will give you time to go to office hours to discuss your plan with the course staff before you start
+coding. This program can be done with less code than the previous assignment if you have designed
+your program well.
+
+<end>
+            ","For the `PassengerQueue` class, you need to implement at least the following functions:
+
+1. `Passenger PassengerQueue::front()`: Returns the element at the front without removing it.
+2. `void PassengerQueue::dequeue()`: Removes the element at the front.
+
+Make sure to consider any additional functions or member variables that might be necessary for your design and functionality. What other operations do you think a queue might need?",0.4,7,MetrosimTestSession
+what do i have to do for phase one of metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the introduction to the metro simulator project, detailing the simulation of the Green Line and the management of Passengers.:
+<begin>
+Introduction
+
+The Green Line has come to Tufts! In this assignment, you will create a program that simulates action
+on the Green Line. Your program will monitor a train as it travels a simplified course of the Green
+Line Extension, and will manage Passengers as they board and depart at specified stops along the
+way.
+
+<end>
+            
+            #1.2 The following is about testing the metro simulator program by creating additional files for various scenarios.:
+<begin>
+ctively). We will test your code with others, and you should make other similar files for your
+own testing, e.g., on a shorter list of Stations or with a sequence of commands that causes particular
+code in your program to run for test purposes.
+
+<end>
+            
+            #1.3 The following is about the Makefile structure and its initial setup for the metro simulator program.:
+<begin>
+Makefile
+
+<end>
+            
+            #1.4 The following is about the title and purpose of the document, which is a project for creating a metro simulator.:
+<begin>
+CS 15 Project 1: A Metro Simulator
+
+1
+
+Contents
+
+<end>
+            
+            #1.5 The following is about the command structure in the MetroSim program, emphasizing case sensitivity and valid input assumptions.:
+<begin>
+Commands are case sensitive. You may assume input data is valid. (e.g., a Passenger will never
+want to go to a Station with a negative number, etc. . . ). Your program can do anything in such
+cases (segfault, quit, be angry, etc.).
+
+<end>
+            
+            #1.6 The following is about controlling the simulation in the MetroSim program, detailing how it accepts input and processes commands.:
+<begin>
+Controlling the Simulation
+
+MetroSim will accept input from either a commandsFile that contains a list of commands, or from
+std::cin if no commandsFile was given.
+
+<end>
+            
+            #1.7 The following is about the command prompt in the MetroSim program, explaining how commands are read and processed.:
+<begin>
+Your program will prompt on std::cout for a command by printing the text ""Command? ""), and
+
+then will read a command in and process it. Your code will handle the following commands:
+
+<end>
+            ","Phase One of the MetroSim project typically involves designing and implementing the basic structure of your program. This usually includes setting up the classes for the Metro system, such as the Train, Station, and Passenger classes, and defining their interactions. 
+
+Have you thought about how you will represent the train's route and manage the passengers at the stations? Consider the relationships between these classes and what methods you'll need to implement.",0.4,7,GenericSession
+which functions do i need to implement for these classes?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about practicing binary tree traversal techniques using C++ with a focus on in-order, pre-order, and level-order traversals, and implementing these using both recursive and iterative methods with the C++ Standard Template Library.
+        
+            #1.1 The following is about the functions to implement for binary tree traversals, specifying the required traversal methods.:
+<begin>
+Functions to Implement
+
+You will write three functions, each implementing one of the traversals.
+
+1. void BTree::inOrder(BTNode *curr, std::ostream &out) const
+
+You must use recursion for this function, following the rules for print-
+ing the nodes in the In-Order Algorithm section of this document.
+(Make sure you use spaces appropriately when you print — you want
+your solution to be the same as the solution that we provide).
+
+2. void BTree::preOrder(BTNode *curr, std::ostream &out) const
+
+Do a preorder traversal of the tree using an std::stack, following the
+rules for printing the nodes in the Pre-Order Algorithm section of
+this document, using the std::stack interface above.
+
+3. void BTree::levelOrder(BTNode *curr, std::ostream &out) const
+
+Do a level-order traversal of the tree using an std::queue, follow-
+ing the rules for printing the nodes in the Level-Order Algorithm
+section of this document, using the std::queue interface above.
+
+4. Just For Fun Exercise (JFFE): void BTree::postOrderDelete(BTNode *curr)
+
+Called by the destructor and should delete all nodes in a postorder
+fashion. Exam-type question: Can we delete in another order, say by
+doing a pre-order traversal?
+
+Things to Notice
+
+There are a few unusual things worth noticing in the code.
+
+• Although the three functions above are private, there are also three
+
+public functions that are defined as:
+
+◦ void BTree::inOrder(std::ostream &out);
+◦ void BTree::preOrder(std::ostream &out);
+◦ void BTree::levelOrder(std::ostream &out);
+◦ void BTree::postOrderDelete(std::ostream &out);
+
+These functions are the ones called in the testing functions in main.cpp.
+They will then call their corresponding private version. These are
+called wrapper functions. Outside the BTree class, e. g., in main(),
+<end>
+            
+        #2 The following document is about a project assignment for a computer science course that involves designing and implementing a program similar to the Unix grep tool for searching and indexing files.
+        
+            #2.1 The following is about the requirement for students to implement various files and functions without specific instructions, emphasizing the importance of design evaluation.:
+<begin>
+Files to Implement
+
+We will not specify most of the files or functions you will need to write. Instead, your program
+is required to function as described in this specification. You may accomplish this task using any
+combination of files, functions, and classes you wish. We will, of course, evaluate your design.
+
+<end>
+            
+        #3 The following document is about implementing hash tables with different collision resolution techniques and hash functions for a lab assignment.
+        
+            #3.1 The following is about the functions that need to be implemented for the lab assignment, detailing the insertion methods for both chaining and linear probing.:
+<begin>
+Functions to Write
+
+Your job will be to write the functions described below (along with any
+helper functions you’d like to write). The functions you will write for this
+lab are:
+
+<end>
+            
+        #4 The following document is about an introductory lab for a computer science course that focuses on unit testing and creating a simplified ArrayList class, including guidelines on writing effective tests and handling edge cases.
+        
+            #4.1 The following is about familiarizing with the ArrayList class and its implementation details.:
+<begin>
+Introduction
+
+Start by familiarizing yourself with the ArrayList.h file. You will see a very
+simple interface for an ArrayList class with a few functions defined for you.
+Notice also that the data type that the ArrayList holds is an integer.
+
+Next, open the ArrayList.cpp file. Inside you will find an incomplete
+implementation. The functions have been left blank intentionally, except for
+the toString() function, which is only partially implemented. It is your
+task to complete and test these functions using the given unit_tests.h file.
+Now, open the unit_tests.h file. Here you will find a few tests imple-
+mented for you. However, the ArrayList.cpp code is not implemented, so
+at least one of the tests will fail at first!
+
+<end>
+            
+            #4.2 The following is about the specific tasks to be completed for the lab, including modifications to ArrayList.h and ArrayList.cpp.:
+<begin>
+To-Do Items
+
+Your tasks are:
+
+1. Add any necessary elements to ArrayList.h (see the TODO in the
+
+private section there).
+
+2. Implement each of the unimplemented functions in ArrayList.cpp
+
+3. After you write each function in ArrayList.cpp, think of and write
+
+at least one test function for it in unit_tests.h.
+
+4. Whenever you’re ready to run a test, just run the command unit_test
+in your terminal. Your code will be compiled, tests will run, and the
+output will show you the results.
+
+9
+
+5. Fill in the missing sections of the README provided for you.
+
+<end>
+            
+        #5 The following document is about the implementation and planning of a Reverse Polish Notation (RPN) calculator for a computer science project.
+        
+            #5.1 The following is about the implementation details for the DatumStack and RPNCalc classes, emphasizing the need to adhere to specific function signatures and data encapsulation for the RPN calculator project.:
+<begin>
+Implementation Notes and Advice
+
+You will write both the DatumStack and RPNCalc classes from scratch. They will each have two
+ﬁles associated with them - a .h ﬁle and a .cpp ﬁle. In addition to the public interfaces for the
+class deﬁned above, you are free to add any private member functions / variables that you wish.
+
+14
+
+CONTENTS
+
+15
+
+• The names of your functions / methods as well as the order
+and types of parameters and return types of the interface of
+the DatumStack and RPNCalc classes and the parseRString
+functions deﬁned above must be exactly as speciﬁed. This is
+important because we will be compiling and linking the code
+you wrote with our own client code!
+
+• Any print statements or exception messages should likewise
+
+print exactly as speciﬁed and use the given error type.
+
+• For the two classes, you may not have any other public func-
+
+tions.
+
+• All data members must be private.
+
+• You may not use std::stack or any other built-in facility that
+
+would render the assignment trivial.
+
+Notes Regarding the Starter Code
+
+<end>
+            
+        #6 The following document is about implementing and testing functions for stacks, queues, and circular buffers in a computer science lab.
+        
+            #6.1 The following is about tasks for implementing the Circular Buffer, including writing helper functions and methods for adding and removing elements.:
+<begin>
+Tasks for Cicular Buffer
+
+1. Write the int CircularBuffer::nextIndex helper function that,
+
+given an index in the buffer, returns the next index. Remember to
+wrap around to the start of the array when you get to the end! (Why
+do we have this function?) Hint: You may find it useful to implement a
+similar private helper function that returns the previous index. Think
+about which functions below might benefit from a prevIndex function.
+
+2. Write the void CircularBuffer::expand() method and test it. This
+should correctly expand the circular array. Pay special attention to
+wrapping. This function will be different than other expands you have
+written!
+
+3. Write the void CircularBuffer::addAtFront(ElementType elem)
+method and test it. This should add the given elem to the “front” of
+the sequence. Note: This should not shift elements!
+
+4. Write the
+
+ElementType CircularBuffer::removeFromBack() method and test
+it. This should remove the last element in the sequence.
+
+5
+
+5. Write ElementType CircularBuffer::removeFromFront() method
+and test it. This should remove the first element in the sequence.
+
+You are welcome to add additional private methods to the
+
+CircularBuffer class, if you wish.
+
+Note!
+
+A function to add an element to the back of the array has already been
+given to you. Be sure you understand it. You may use this function as
+a template for the other functions you need to write.
+
+<end>
+            ","The specific functions you'll need to implement for the MetroSim classes should be outlined in your project specifications. Generally, you might need methods for:
+
+- **Train Class**: Methods to move between stations, check current status, and manage capacity.
+- **Station Class**: Methods to add or remove trains, manage passengers, and provide status updates.
+- **Passenger Class**: Methods for boarding and alighting from trains.
+
+What are the key behaviors you want to capture for each of these classes? Think about their responsibilities and interactions.",0.4,7,GenericSession
+what is metrosim?,,"I'm not familiar with ""metrosim"" as it relates to CS 15. If you have questions about data structures or algorithms, feel free to ask!",0.4,7,MetrosimTextUploadFixed
+what is metrosim?,,"I can't provide information on ""metrosim."" If you have any questions related to CS 15 topics, like data structures or algorithms, I'm here to help!",0.4,7,MetrosimTextUploadFixed
+what do i have to do for phase one?,,"I can't provide specific details on assignments. However, you can check the course syllabus or assignment guidelines for Phase One. What concepts or skills do you feel you need help with for that phase?",0.4,7,MetrosimTextUploadFixed
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the user interface and operation of the MetroSim simulation program.
+        
+            #1.1 which MetroSim will process.
+            
+            #1.2 user will start MetroSim and provide list of stations. List will be in a file which MetroSim will
+            
+        #2 The following document is about setting up and getting started with a project called metrosim.
+        
+            #2.1 /comp/15/files/proj_metrosim/setup
+            
+        #3 The following document is about setting up and using a reference implementation for a program named the_MetroSim.
+        
+            #3.1 of the program named the_MetroSim. We strongly encourage you to play around with it to learn what
+            
+        #4 The following document is about testing the implementation of the PassengerQueue class and MetroSim by comparing outputs with a reference implementation.
+        
+            #4.1 and you have an implementation of MetroSim that you think works as expected, the best way to test
+            
+        #5 The following document is about the required files and submission guidelines for a C++ programming assignment on MetroSim.
+        
+            #5.1 a file called MetroSim_tests.cpp with a main function that calls out to tests.
+            
+        #6 The following document is about instructions for updating and using a Makefile to build a specific program with various rules and dependencies.
+        
+            #6.1 • A MetroSim rule, with some listed dependencies, and no recipe (yet!)
+            ","MetroSim is a simulation program related to public transportation systems, specifically simulating metro or subway operations. In CS 15, you will likely work on implementing and testing components of this program, focusing on data structures and algorithms. If you have specific questions about your project or its components, feel free to ask!",0.4,7,MetrosimTextUpload
+what do i have to do for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the requirements and tasks for phase one of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #1.1 Phase One (Required)
+            
+            #1.2 For phase one of this project, you must complete the implementations of Passenger and
+            
+        #2 The following document is about the submission requirements and guidelines for phase 1 of a project involving C++ files related to Passenger and PassengerQueue.
+        
+            #2.1 For phase 1, you will need to submit the following files:
+Passenger.h, Passenger.cpp
+            
+        #3 The following document is about submitting a metro design checkoff file for a MetroSim Design Checkoff assignment on Gradescope.
+        
+            #3.1 For phase 0, submit your complete metro design checkoff.txt file to the assignment “MetroSim Design
+            
+        #4 The following document is about the deliverables and deadlines for a programming assignment involving the development of a MetroSim program.
+        
+            #4.1 Deliverables
+There are multiple phases of deliverables for this assignment:
+            
+        #5 The following document is about the due dates and requirements for a coding assignment involving Passenger and PassengerQueue classes.
+        
+            #5.1 of week one, along with your design checkoff.
+            ","For phase one, you need to complete the implementations of the Passenger and PassengerQueue classes. Be sure to follow the specific requirements and guidelines provided in your project documentation. If you have questions about the concepts or need clarification on certain parts, just let me know!",0.4,7,MetrosimTextUpload
+which functions do i have to implement for the PassesngerQueue class?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about implementing a PassengerQueue class with specific methods for managing a queue of passengers.
+        
+            #1.1 You’re required to write a PassengerQueue class from scratch that implements exactly the following
+            
+            #1.2 The PassengerQueue
+            
+        #2 The following document is about the required functions and implementation details for a PassengerQueue class using either std::vector or std::list.
+        
+            #2.1 Make sure your PassengerQueue interface matches the interface listed above exactly. You MAY NOT add
+            
+            #2.2 PassengerQueue Required Functions:
+Passenger PassengerQueue::front()
+void PassengerQueue::dequeue()
+            
+        #3 The following document is about the requirements and tasks for phase one of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #3.1 of Passenger and PassengerQueue, and you must thoroughly test these classes. See the course
+            
+            #3.2 For phase one of this project, you must complete the implementations of Passenger and
+            
+        #4 The following document is about implementing a print function for a Passenger object in C++ that formats and outputs specific passenger information.
+        
+            #4.1 Passenger.h besides the header comment. You must implement the print function for the Passenger
+            ","You need to implement at least the following functions for the PassengerQueue class:
+
+1. `Passenger PassengerQueue::front()`
+2. `void PassengerQueue::dequeue()`
+
+Make sure your interface matches exactly what is specified in the project requirements. If you have questions about how to approach these functions, feel free to ask!",0.4,7,MetrosimTextUpload
+which files do i have to turn in for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the required files and submission guidelines for a C++ programming assignment on MetroSim.
+        
+            #1.1 For the final submission you will need to submit at least the following files:
+            
+        #2 The following document is about submitting a metro design checkoff file for a MetroSim Design Checkoff assignment on Gradescope.
+        
+            #2.1 For phase 0, submit your complete metro design checkoff.txt file to the assignment “MetroSim Design
+            
+        #3 The following document is about the submission requirements and guidelines for phase 1 of a project involving C++ files related to Passenger and PassengerQueue.
+        
+            #3.1 For phase 1, you will need to submit the following files:
+Passenger.h, Passenger.cpp
+            
+            #3.2 Gradescope to the assignment proj_metrosim_phase1. Submit these files directly, do not try to
+            
+        #4 The following document is about the deliverables and deadlines for a programming assignment involving the development of a MetroSim program.
+        
+            #4.1 Deliverables
+There are multiple phases of deliverables for this assignment:
+            
+        #5 The following document is about the requirements and tasks for phase one of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #5.1 Phase One (Required)
+            
+        #6 The following document is about the steps required to complete a design checkoff for a project, including submitting answers and discussing the plan with a TA.
+        
+            #6.1 Checkoff.” You must submit this file prior to meeting with a TA. Then, go to office hours and talk
+            ","For phase one, you need to submit the following files:
+
+- `Passenger.h`
+- `Passenger.cpp`
+
+Make sure to submit these files directly to the assignment on Gradescope as specified in your project guidelines. If you have any other questions, just let me know!",0.4,7,MetrosimTextUpload
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about redirecting the contents of a file into the standard input stream using the `<` symbol on the command line.
+        
+            #1.1 MetroSim program. `./MetroSim stations.txt output.txt < commands.txt`
+            
+            #1.2 using the `<` symbol on the command line. In the following example, we run MetroSim with
+            
+        #2 The following document is about setting up and using a reference implementation for a program named the_MetroSim.
+        
+            #2.1 will have access to a reference implementation of the program named the_MetroSim. We strongly
+            
+        #3 The following document is about updating a Makefile with specific rules and dependencies for compiling .cpp files.
+        
+            #3.1 the MetroSim rule, which links all of the necessary .o files together
+            
+        #4 The following document is about how to use the MetroSim program to simulate a metro system with commands for adding passengers, moving trains, and ending the simulation.
+        
+            #4.1 the simulation, MetroSim will process a series of commands, which will be fed to the program in one
+            
+        #5 The following document is about testing the implementation of the PassengerQueue class and MetroSim by comparing outputs with a reference implementation.
+        
+            #5.1 and you have an implementation of MetroSim that you think works as expected, the best way to test
+            
+        #6 The following document is about how to write and run a program called MetroSim from the command line with specific input and output file parameters.
+        
+            #6.1 Program Flow Running From the Command Line You will write a program called MetroSim that accepts
+            ","MetroSim is a program used to simulate a metro system, allowing users to issue commands for managing passengers, moving trains, and ending the simulation. It typically processes a series of commands from an input file. If you're working on a specific aspect of MetroSim, feel free to ask!",0.4,7,MetrosimTextUploadFixed2
+what do i have to do for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the requirements and tasks for the first phase of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #1.1 Phase One (Required) For phase one of this project, you must complete the implementations of
+            
+        #2 The following document is about the submission requirements and instructions for phase 1 of a project related to Passenger and PassengerQueue in C++.
+        
+            #2.1 For phase 1, you will need to submit the following files: Passenger.h, Passenger.cpp
+            
+        #3 The following document is about submitting a metro design checkoff file to an assignment on Gradescope.
+        
+            #3.1 For phase 0, submit your complete metro design checkoff.txt file to the assignment “MetroSim Design
+            
+        #4 The following document is about the deliverables and phases for a MetroSim programming assignment.
+        
+            #4.1 Deliverables There are multiple phases of deliverables for this assignment: Week one: Design
+            
+        #5 The following document is about the due dates and requirements for a coding assignment involving Passenger and PassengerQueue classes.
+        
+            #5.1 of week one, along with your design checkoff.
+            ","For phase one of your project, you need to complete the implementations of the `Passenger` and `PassengerQueue` classes. Be sure to check any specific requirements or details provided in your project documentation. If you have any particular questions about the implementation, let me know!",0.4,7,MetrosimTextUploadFixed2
+which functions do i have to implement for the PassesngerQueue class?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about implementing a PassengerQueue class with specific methods for managing a queue of passengers.
+        
+            #1.1 The PassengerQueue You’re required to write a PassengerQueue class from scratch that implements
+            
+            #1.2 that implements exactly the following interface: Passenger PassengerQueue::front() -Returns, but
+            
+        #2 The following document is about the requirements and tasks for the first phase of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #2.1 implementations of Passenger and PassengerQueue, and you must thoroughly test these classes. See
+            
+        #3 The following document is about the required functions and implementation details for a PassengerQueue class in C++.
+        
+            #3.1 PassengerQueue Required Functions: Passenger PassengerQueue::front() void PassengerQueue::dequeue()
+            
+        #4 The following document is about the required files and submission guidelines for a MetroSim project assignment.
+        
+            #4.1 For the final submission you will need to submit at least the following files: PassengerQueue.h,
+            
+        #5 The following document is about the due dates and requirements for a coding assignment involving Passenger and PassengerQueue classes.
+        
+            #5.1 The code for your Passenger and PassengerQueue classes will be due at the end of week one, along
+            
+        #6 The following document is about implementing a train system using PassengerQueue instances to organize passengers based on their destinations.
+        
+            #6.1 to implement your train as a list of PassengerQueue instances (each element of the list is a
+            ","You need to implement the following functions for the `PassengerQueue` class:
+
+1. `Passenger PassengerQueue::front()` - This should return the passenger at the front of the queue.
+2. `void PassengerQueue::dequeue()` - This should remove the passenger from the front of the queue.
+
+Make sure to review any additional requirements in your project documentation! If you need help thinking through the implementation, feel free to ask.",0.4,7,MetrosimTextUploadFixed2
+which files do i have to turn in for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about submitting a metro design checkoff file to an assignment on Gradescope.
+        
+            #1.1 For phase 0, submit your complete metro design checkoff.txt file to the assignment “MetroSim Design
+            
+        #2 The following document is about the submission requirements and instructions for phase 1 of a project related to Passenger and PassengerQueue in C++.
+        
+            #2.1 For phase 1, you will need to submit the following files: Passenger.h, Passenger.cpp
+            
+            #2.2 Gradescope to the assignment proj_metrosim_phase1. Submit these files directly, do not try to
+            
+        #3 The following document is about the requirements and tasks for the first phase of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #3.1 Phase One (Required) For phase one of this project, you must complete the implementations of
+            
+        #4 The following document is about the required files and submission guidelines for a MetroSim project assignment.
+        
+            #4.1 that calls out to tests. • Any command files (excluding the command file provided). You must submit
+            
+        #5 The following document is about the due dates and requirements for a coding assignment involving Passenger and PassengerQueue classes.
+        
+            #5.1 of week one, along with your design checkoff.
+            
+        #6 The following document is about the deliverables and phases for a MetroSim programming assignment.
+        
+            #6.1 Deliverables There are multiple phases of deliverables for this assignment: Week one: Design
+            ","For phase one, you need to submit the following files: `Passenger.h` and `Passenger.cpp`. Make sure to submit them directly to the assignment on Gradescope as specified in your project instructions. If you have any other questions, feel free to ask!",0.4,7,MetrosimTextUploadFixed2
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about setting up and getting started with a project called metrosim.
+        
+            #1.1 The following is about getting started with the metrosim project, including instructions on obtaining starter files:
+<begin>
+Getting Started
+<end>
+            
+        #2 The following document is about setting up and using a reference implementation for a program named the_MetroSim.
+        
+            #2.1 The following is about the setup script for the_MetroSim, explaining how it links to the reference implementation to ensure the use of the most recent version.:
+<begin>
+
+<end>
+            
+        #3 The following document is about the user interface and operation of the MetroSim simulation program.
+        
+            #3.1 The following is about the overview of the user interface for the MetroSim simulation program.:
+<begin>
+Overview of user interface
+<end>
+            
+            #3.2 The following is about the initialization process of the MetroSim simulation, including how to provide a list of stations.:
+<begin>
+user will start MetroSim and provide list of stations. List will be in a file which MetroSim will process.
+<end>
+            
+        #4 The following document is about the usage and command-line execution of a program called MetroSim.
+        
+            #4.1 The following is about the program flow and command-line execution of MetroSim.:
+<begin>
+Program Flow
+<end>
+            
+            #4.2 The following is about running the MetroSim program from the command line.:
+<begin>
+Running From the Command Line
+<end>
+            
+        #5 The following document is about tips for redirecting standard output to a file in a command-line environment.
+        
+            #5.1 The following is about the command used to run MetroSim with the specified files and redirecting output to a file.:
+<begin>
+
+<end>
+            ","I can't provide information on MetroSim as it is not directly related to the topics covered in CS 15. If you have questions about data structures or algorithms, feel free to ask!",0.4,7,MetrosimTextUploadSmart
+what do i have to do for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the requirements and tasks for phase one of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #1.1 The following is about the requirements for phase one of the project involving the implementation and testing of the Passenger and PassengerQueue classes.:
+<begin>
+Phase One (Required)
+<end>
+            
+        #2 The following document is about the submission requirements and guidelines for phase 1 of a project involving C++ files related to Passenger and PassengerQueue.
+        
+            #2.1 The following is about the required files for phase 1 submission, including Passenger and PassengerQueue related C++ files.:
+<begin>
+For phase 1, you will need to submit the following files:
+Passenger.h, Passenger.cpp
+PassengerQueue.h, PassengerQueue.cpp
+unit_tests.h
+README
+<end>
+            
+        #3 The following document is about the steps required to complete a design checkoff for a project, including submitting answers and discussing the plan with a TA.
+        
+            #3.1 The following is about the initial steps required to start the design checkoff process, including signing up and preparing necessary materials for discussion with a TA.:
+<begin>
+(Getting started): Design Checkoff(Required)
+<end>
+            
+        #4 The following document is about the deliverables and deadlines for a programming assignment involving the development of a MetroSim program.
+        
+            #4.1 The following is about the deliverables for the programming assignment involving the development of a MetroSim program.:
+<begin>
+Deliverables
+There are multiple phases of deliverables for this assignment:
+<end>
+            ","For phase one, you will need to implement and test the Passenger and PassengerQueue classes. Specifically, you should focus on creating the following files for submission:
+
+1. Passenger.h
+2. Passenger.cpp
+3. PassengerQueue.h
+4. PassengerQueue.cpp
+5. unit_tests.h
+6. README
+
+Make sure to follow the requirements outlined for the implementation and testing of these classes. If you have any specific questions about the tasks, feel free to ask!",0.4,7,MetrosimTextUploadSmart
+which functions do i have to implement for the PassesngerQueue class?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the required functions and implementation details for a PassengerQueue class using either std::vector or std::list.
+        
+            #1.1 The following is about the required functions for the PassengerQueue class, detailing the interface that must be adhered to.:
+<begin>
+PassengerQueue Required Functions:
+<end>
+            
+            #1.2 The following is about the implementation requirements for the PassengerQueue class, emphasizing the need to use std::vector or std::list and the restriction on adding public functions.:
+<begin>
+
+<end>
+            
+        #2 The following document is about implementing a PassengerQueue class with specific methods for managing a queue of passengers.
+        
+            #2.1 The following is about the specific interface that the PassengerQueue class must implement, detailing the methods required for managing the queue.:
+<begin>
+You’re required to write a PassengerQueue class from scratch that implements exactly the following interface:
+<end>
+            
+            #2.2 The following is about the introduction to the PassengerQueue class and the requirement to implement it from scratch.:
+<begin>
+The PassengerQueue
+<end>
+            
+        #3 The following document is about the due dates and requirements for the Passenger and PassengerQueue classes and design checkoff.
+        
+            #3.1 The following is about the due date and requirements for the Passenger and PassengerQueue classes and design checkoff.:
+<begin>
+
+<end>
+            
+        #4 The following document is about implementing a print function for a Passenger object in C++ that formats and outputs specific passenger information.
+        
+            #4.1 The following is about the Passenger object and its interface requirements for the programming assignment.:
+<begin>
+The Passenger
+<end>
+            
+        #5 The following document is about the requirements and tasks for phase one of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #5.1 The following is about the requirements for phase one of the project involving the implementation and testing of the Passenger and PassengerQueue classes.:
+<begin>
+Phase One (Required)
+<end>
+            ","You need to implement the functions specified in the interface for the PassengerQueue class. Typically, this includes methods for adding passengers, removing passengers, checking if the queue is empty, and possibly others like size or front passenger retrieval. 
+
+To clarify, what specific functionality do you think is essential for a queue? This could help you identify the necessary functions.",0.4,7,MetrosimTextUploadSmart
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about how to write and run a program called MetroSim from the command line with specific input and output file parameters.
+        
+            #1.1 The following is about the program flow for running MetroSim from the command line, detailing the required command-line arguments and their purposes.:
+<begin>
+
+<end>
+            
+        #2 The following document is about the initial steps to set up and obtain starter files for a project named 'metrosim'.
+        
+            #2.1 The following is about the initial steps to obtain starter files for the 'metrosim' project, including the command to run for setup.:
+<begin>
+
+<end>
+            
+        #3 The following document is about how to use MetroSim, a simulation program for managing train stations and passenger movements.
+        
+            #3.1 The following is about the overview of the user interface in MetroSim, detailing how users can start the program, provide a list of stations, and initialize the simulation.:
+<begin>
+
+<end>
+            
+            #3.2 The following is about the command processing in MetroSim, explaining how commands can be fed to the program and the operations they perform, including adding passengers, moving trains, and ending the simulation.:
+<begin>
+
+<end>
+            
+        #4 The following document is about how to control the MetroSim simulation using specific commands.
+        
+            #4.1 The following is about how to control the MetroSim simulation, including input methods and command handling.:
+<begin>
+
+<end>
+            
+        #5 The following document is about the deliverables and phases for a MetroSim programming assignment.
+        
+            #5.1 The following is about the deliverables for the MetroSim programming assignment, detailing the phases and specific requirements for each week.:
+<begin>
+
+<end>
+            
+        #6 The following document is about the termination procedure for a MetroSim program, including specific commands and memory management instructions.
+        
+            #6.1 The following is about the procedure for ending the MetroSim simulation, including the necessary commands and memory management instructions before termination.:
+<begin>
+
+<end>
+            ","MetroSim is a simulation program designed to manage train stations and passenger movements. It allows users to simulate various aspects of train operations, including commands for adding passengers, moving trains, and controlling the overall simulation. If you have specific questions about its functionality or usage, feel free to ask!",0.4,7,MetrosimTextUploadSmart2
+what do i have to do for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the submission requirements and instructions for phase 1 of a project related to Passenger and PassengerQueue in C++.
+        
+            #1.1 The following is about the submission requirements for phase 1 of the project related to Passenger and PassengerQueue in C++. It lists the specific files that need to be submitted and instructions on how to submit them.:
+<begin>
+
+<end>
+            
+        #2 The following document is about the requirements and tasks for the first phase of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #2.1 The following is about the requirements for phase one of the project, specifically focusing on the implementation and testing of the Passenger and PassengerQueue classes.:
+<begin>
+
+<end>
+            
+        #3 The following document is about the steps required to complete a design checkoff for a project, including submitting answers and discussing the plan with a TA.
+        
+            #3.1 The following is about the initial steps required to complete a design checkoff for a project, including signing up and submitting answers to design questions.:
+<begin>
+
+<end>
+            
+        #4 The following document is about the deliverables and phases for a MetroSim programming assignment.
+        
+            #4.1 The following is about the deliverables for the MetroSim programming assignment, detailing the phases and specific requirements for each week.:
+<begin>
+
+<end>
+            ","For phase one of the MetroSim project, focus on the implementation and testing of the Passenger and PassengerQueue classes. You'll typically need to define the structure and behavior of these classes and ensure they interact correctly. Make sure to check the specific requirements and tasks outlined in your project documentation for detailed expectations. If you need help understanding a specific concept, let me know!",0.4,7,MetrosimTextUploadSmart2
+which functions do i have to implement for the PassengerQueue class?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about implementing a PassengerQueue class with specific methods for managing a queue of passengers.
+        
+            #1.1 The following is about the implementation requirements for the PassengerQueue class, detailing the methods that need to be included for managing a queue of passengers.:
+<begin>
+
+<end>
+            
+        #2 The following document is about implementing a train system using PassengerQueue instances to organize passengers based on their destinations.
+        
+            #2.1 The following is about the implementation of a train system using PassengerQueue instances to organize passengers based on their destinations.:
+<begin>
+
+<end>
+            
+        #3 The following document is about the requirements and tasks for the first phase of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #3.1 The following is about the requirements for phase one of the project, specifically focusing on the implementation and testing of the Passenger and PassengerQueue classes.:
+<begin>
+
+<end>
+            
+        #4 The following document is about testing the implementation of the PassengerQueue class and MetroSim by comparing outputs with a reference implementation.
+        
+            #4.1 The following is about testing the implementation of the PassengerQueue class and MetroSim by comparing the outputs of your implementation with a reference implementation to ensure they match exactly.:
+<begin>
+
+<end>
+            
+        #5 The following document is about the due dates and requirements for a coding assignment involving Passenger and PassengerQueue classes.
+        
+            #5.1 The following is about the due date for the coding assignment involving the Passenger and PassengerQueue classes.:
+<begin>
+
+<end>
+            
+        #6 The following document is about implementing a print function for a Passenger object in C++ that formats and outputs specific passenger details.
+        
+            #6.1 The following is about the requirements for implementing a print function for a Passenger object in C++, detailing the use of the provided Passenger interface and the output format for passenger details.:
+<begin>
+
+<end>
+            
+        #7 The following document is about the submission requirements and instructions for phase 1 of a project related to Passenger and PassengerQueue in C++.
+        
+            #7.1 The following is about the submission requirements for phase 1 of the project related to Passenger and PassengerQueue in C++. It lists the specific files that need to be submitted and instructions on how to submit them.:
+<begin>
+
+<end>
+            ","While I can't provide the exact functions you need to implement, think about the core operations typically associated with a queue. What methods might you need to add, remove, or manage passengers in the queue? Consider functions for enqueueing, dequeueing, and possibly peeking at the front of the queue. Also, think about how you would handle checking if the queue is empty. If you need help refining your ideas, feel free to ask!",0.4,7,MetrosimTextUploadSmart2
+which files do i have to turn in for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about the submission requirements and instructions for phase 1 of a project related to Passenger and PassengerQueue in C++.
+        
+            #1.1 The following is about the submission requirements for phase 1 of the project related to Passenger and PassengerQueue in C++. It lists the specific files that need to be submitted and instructions on how to submit them.:
+<begin>
+
+<end>
+            
+        #2 The following document is about the required files and submission guidelines for a MetroSim project assignment.
+        
+            #2.1 The following is about the required files for the final submission of the MetroSim project assignment, including source files and testing files.:
+<begin>
+
+<end>
+            
+            #2.2 The following is about the submission guidelines for unit tests and command files related to the MetroSim project assignment, detailing how to submit them using Gradescope.:
+<begin>
+
+<end>
+            
+        #3 The following document is about submitting a metro design checkoff file to an assignment on Gradescope.
+        
+            #3.1 The following is about submitting the complete metro design checkoff file for phase 0 to the assignment “MetroSim Design Checkoff” on Gradescope.:
+<begin>
+
+<end>
+            
+        #4 The following document is about the deliverables and phases for a MetroSim programming assignment.
+        
+            #4.1 The following is about the deliverables for the MetroSim programming assignment, detailing the phases and specific requirements for each week.:
+<begin>
+
+<end>
+            
+        #5 The following document is about the requirements and tasks for the first phase of a project involving the implementation and testing of Passenger and PassengerQueue classes.
+        
+            #5.1 The following is about the requirements for phase one of the project, specifically focusing on the implementation and testing of the Passenger and PassengerQueue classes.:
+<begin>
+
+<end>
+            
+        #6 The following document is about guidelines for submitting code and documentation for a course project.
+        
+            #6.1 The following is about the guidelines for ensuring code and documentation meet the course style guide before submission, including the importance of using the make commands and including all necessary files.:
+<begin>
+
+<end>
+            ","I can't provide the exact files to turn in for phase one, but typically, you would need to submit your source code files for the Passenger and PassengerQueue classes, as well as any testing files you've created. Check your project guidelines for a full list of required documents. If you're unclear about any specific requirements, I can help clarify those!",0.4,7,MetrosimTextUploadSmart2
+what is metrosim?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the process of obtaining starter files for the metro simulator program.:
+<begin>
+Getting Started
+
+You can get the starter files by running the following command:
+
+/comp/15/files/proj_metrosim/setup
+
+Note that you should not manually run cp, but rather run the above program. The files will be copied
+for you.
+The Reference Implementation
+
+After running the above command, you will have access to a reference implementation of the program
+named the_MetroSim. We strongly encourage you to play around with it both to learn what is
+expected of your program and to test your your program. We will be comparing your program’s
+output to the reference, so be sure that you are adhering to the output format. If the diff command
+reports any differences between the output of your implementation and the reference implementation,
+then you will lose points on the functional correctness portion of your implementation assessment.
+Refer to the Testing section in this document for more information.
+
+The setup script makes a link to the reference implementation rather than your own copy. You
+use it exactly the same as you would use any other program, but this will guarantee you always use
+
+10
+
+the most recent version.
+
+<end>
+            
+            #1.2 The following is about the list of source files and components required for the metro simulator program, including essential files like Passenger.h and MetroSim.cpp.:
+<begin>
+engerQueue.cpp
+Passenger.h, Passenger.cpp
+MetroSim.h, MetroSim.cpp
+main.cpp
+(... any other C++ source files)
+(... any testing files)
+unit_tests.h
+Makefile
+README
+
+<end>
+            
+            #1.3 The following is about controlling the simulation in the metro simulator program, detailing how input can be received from a commands file or standard input.:
+<begin>
+Controlling the Simulation
+
+MetroSim will accept input from either a commandsFile that contains a list of commands, or from
+std::cin if no commandsFile was given.
+
+<end>
+            
+            #1.4 The following is about the command to terminate the simulation in the metro simulator program, referencing the Ending the Simulation section.:
+<begin>
+• m f (metro finish)
+
+◦ The command m f should terminate the simulation, as described in the Ending the Sim-
+
+ulation section.
+
+<end>
+            
+            #1.5 The following is about the introduction to the metro simulator project, detailing the simulation of the Green Line and the management of Passengers.:
+<begin>
+Introduction
+
+The Green Line has come to Tufts! In this assignment, you will create a program that simulates action
+on the Green Line. Your program will monitor a train as it travels a simplified course of the Green
+Line Extension, and will manage Passengers as they board and depart at specified stops along the
+way.
+
+<end>
+            
+            #1.6 The following is about running the MetroSim program from the command line, outlining the required command-line arguments for proper execution.:
+<begin>
+Running From the Command Line
+
+You will write a program called MetroSim that accepts either 2 or 3 command-line arguments (in
+addition to the program name), like this:
+
+./MetroSim stationsFile outputFile [commandsFile]
+
+where:
+
+• stationsFile is an input file containing names of the Stations, one per line
+
+• outputFile is the file to send simulator output to
+
+• commandsFile (optional) is a second input file containing commands to execute. If this parameter
+it’s a common convention to
+
+is not given, then you should read input from std::cin. Note:
+denote optional parameters by putting them in square brackets.
+
+If the program is invoked with a different number of parameters you should quit execution by
+
+returning EXIT_FAILURE after printing the following message to std::cerr:
+
+Usage: ./MetroSim stationsFile outputFile [commandsFile]
+
+<end>
+            
+            #1.7 The following is about the title and purpose of the document, which is a project for creating a metro simulator.:
+<begin>
+CS 15 Project 1: A Metro Simulator
+
+1
+
+Contents
+
+<end>
+            ","MetroSim is a project for CS 15 where you'll create a program to simulate the Green Line's operations. It involves managing a train as it travels, monitoring passenger boarding and departing at specified stations. The goal is to implement the simulation according to given specifications and handle various commands for interaction.",0.4,7,MetrosimTestSession
+what do i have to do for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about Phase One of the metro simulator project, detailing the required implementations of the Passenger and PassengerQueue classes and the importance of thorough testing.:
+<begin>
+Phase One (Required)
+
+For phase one of this project, you must complete the implementations of Passenger and PassengerQueue,
+
+and you must thoroughly test these classes. See the course calendar for the due date.
+
+<end>
+            
+            #1.2 The following is about the deliverables for the assignment, specifying the phases and requirements for submission.:
+<begin>
+Deliverables There are multiple phases of deliverables for this assignment:
+
+• Week one:
+
+- Design checkoff.
+- The code for your Passenger and PassengerQueue classes.
+
+• Week two: Your final MetroSim program.
+
+Continue reading to learn more about these deliverables!
+
+Simulation Overview
+
+Data Abstraction
+
+Your design choices will be of chief importance in this project. It is your responsibility to plan out
+how you will build and utilize various components of the simulation. These components include:
+
+3
+
+• Passengers, which must contain:
+
+◦ an id
+
+◦ a starting station
+
+◦ an ending station
+
+• PassengerQueues, which contain Passengers who are waiting to board or depart from trains.
+
+• A list of Stations.
+
+• the Train, which carries Passengers between Stations.
+
+While it may not be obvious at first how to model these components, we will give you some
+guidelines to help you establish the architecture of your MetroSim program. We don’t require every
+<end>
+            
+            #1.3 The following is about the submission guidelines for different phases of the metro simulator project, detailing what files to submit and how to format them.:
+<begin>
+Submitting
+
+Be sure your files have header comments, and that those header comments include your name, the
+assignment, the date, and acknowledgements for any help you received (if not already credited in the
+README file).
+
+For phase 0, submit your complete metro design checkoff.txt file to the assignment “MetroSim
+
+Design Checkoff” on Gradescope.
+
+For phase 1, you will need to submit the following files:
+
+Passenger.h, Passenger.cpp
+PassengerQueue.h, PassengerQueue.cpp
+unit_tests.h
+README
+
+You should only include other C++ files if your solution to PassengerQueue depends on them. Do
+not submit MetroSim.cpp for example. You must submit them using Gradescope to the assignment
+proj_metrosim_phase1. Submit these files directly, do not try to submit them in a folder. The
+README doesn’t have to be the final README. Just document anything that you feel we should know
+about your Passenger, PassengerQueue, or the submission in general.
+
+For the final submission, we don’t know exactly what files your final program will comprise. You
+
+will need to submit at least the following files:
+
+14
+
+CONTENTS
+
+15
+
+<end>
+            ","In Phase One of the MetroSim project, you need to complete the implementations of the `Passenger` and `PassengerQueue` classes. Additionally, thorough testing of these classes is required. Be sure to check the course calendar for the specific due date!",0.4,7,MetrosimTestSession
+what do i have to do for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about Phase One of the metro simulator project, detailing the required implementations of the Passenger and PassengerQueue classes and the importance of thorough testing.:
+<begin>
+Phase One (Required)
+
+For phase one of this project, you must complete the implementations of Passenger and PassengerQueue,
+
+and you must thoroughly test these classes. See the course calendar for the due date.
+
+<end>
+            
+            #1.2 The following is about the deliverables for the assignment, specifying the phases and requirements for submission.:
+<begin>
+Deliverables There are multiple phases of deliverables for this assignment:
+
+• Week one:
+
+- Design checkoff.
+- The code for your Passenger and PassengerQueue classes.
+
+• Week two: Your final MetroSim program.
+
+Continue reading to learn more about these deliverables!
+
+Simulation Overview
+
+Data Abstraction
+
+Your design choices will be of chief importance in this project. It is your responsibility to plan out
+how you will build and utilize various components of the simulation. These components include:
+
+3
+
+• Passengers, which must contain:
+
+◦ an id
+
+◦ a starting station
+
+◦ an ending station
+
+• PassengerQueues, which contain Passengers who are waiting to board or depart from trains.
+
+• A list of Stations.
+
+• the Train, which carries Passengers between Stations.
+
+While it may not be obvious at first how to model these components, we will give you some
+guidelines to help you establish the architecture of your MetroSim program. We don’t require every
+<end>
+            
+            #1.3 The following is about the submission guidelines for different phases of the metro simulator project, detailing what files to submit and how to format them.:
+<begin>
+Submitting
+
+Be sure your files have header comments, and that those header comments include your name, the
+assignment, the date, and acknowledgements for any help you received (if not already credited in the
+README file).
+
+For phase 0, submit your complete metro design checkoff.txt file to the assignment “MetroSim
+
+Design Checkoff” on Gradescope.
+
+For phase 1, you will need to submit the following files:
+
+Passenger.h, Passenger.cpp
+PassengerQueue.h, PassengerQueue.cpp
+unit_tests.h
+README
+
+You should only include other C++ files if your solution to PassengerQueue depends on them. Do
+not submit MetroSim.cpp for example. You must submit them using Gradescope to the assignment
+proj_metrosim_phase1. Submit these files directly, do not try to submit them in a folder. The
+README doesn’t have to be the final README. Just document anything that you feel we should know
+about your Passenger, PassengerQueue, or the submission in general.
+
+For the final submission, we don’t know exactly what files your final program will comprise. You
+
+will need to submit at least the following files:
+
+14
+
+CONTENTS
+
+15
+
+<end>
+            ","For Phase One, you need to implement the `Passenger` and `PassengerQueue` classes and thoroughly test them. Make sure to follow any specific guidelines provided in the project description. Check the course calendar for the due date!",0.4,7,MetrosimTestSession
+which functions do i have to implement for the PassengerQueue class?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the requirements for creating a PassengerQueue class, detailing the necessary interface and functions that must be implemented for queue operations.:
+<begin>
+The PassengerQueue
+
+You’re required to write a PassengerQueue class from scratch that implements exactly the following
+interface:
+
+• Passenger PassengerQueue::front()
+
+Returns, but does not remove, the element at the front of the queue. You may throw an error if
+this function is called on an empty queue, but you are not required to do so.
+
+• void PassengerQueue::dequeue()
+
+Removes the element at the front of the queue. You may throw an error if this function is called
+<end>
+            
+            #1.2 The following is about Phase One of the metro simulator project, detailing the required implementations of the Passenger and PassengerQueue classes and the importance of thorough testing.:
+<begin>
+Phase One (Required)
+
+For phase one of this project, you must complete the implementations of Passenger and PassengerQueue,
+
+and you must thoroughly test these classes. See the course calendar for the due date.
+
+<end>
+            
+            #1.3 The following is about the initial requirements for modeling components in the metro simulator, specifically the representation of the Train as a list of PassengerQueue objects for each station.:
+<begin>
+item in the list to be its own class, so it will be up to you to decide how each component is to be
+modeled. However, we do require that you represent the Train as a list of PassengerQueue
+objects, where each PassengerQueue represents a train station. But more on that later.
+
+Note: You may find yourself confused. This is okay! You might want to refresh your memory
+about abstraction, classes in C++, etc. We strongly suggest that you head over to the reference page,
+where there is a lot of great material on these topics. Also, there is a lot of information in the
+upcoming sections which should help clarify the points above. Head back here after reading through
+the document to begin designing your solution.
+
+<end>
+            
+            #1.4 The following is about the implementation of the Train and Stations in the metro simulator program, explaining how passengers are organized into queues based on their destinations.:
+<begin>
+The Train and The Stations
+
+As stated in the program overview, you are required to implement your train as a list of PassengerQueue
+instances (each element of the list is a PassengerQueue). Upon boarding the train, each passenger
+is organized into a PassengerQueue based on their destination. See the image below for a visual
+representation of the Train.
+
+You may find that you will need to represent “lists” of various data types. For this, we require
+that you use std::vector or std::list, since it will greatly reduce how much code you’ll need to
+write/rework, although you may need to do a little reading before you get started.
+
+The std::vector and std::list documentation on https://www.cplusplus.com is a great re-
+source. If you feel that this reference is too verbose for your taste, feel free to seek out additional
+resources. As always, any material that you use (including reused code from this class) should be
+noted in the Acknowledgements section of your README.
+
+Program Flow
+
+<end>
+            
+            #1.5 The following is about the Passenger object interface provided for the metro simulator, outlining the requirements for implementing the print function and the specific output format.:
+<begin>
+The Passenger
+
+We have provided you with the interface for a Passenger object (within Passenger.h). You must use
+this Passenger interface, and you may not modify the contents of Passenger.h besides the header
+comment.
+
+You must implement the print function for the Passenger interface within the provided imple-
+
+mentation file (Passenger.cpp). The Passenger print function should format output as follows:
+
+[PASSENGER_ID, ARRIVAL->DEPARTURE]
+
+where
+
+• PASSENGER_ID is the Passenger’s ID (each Passenger receives a unique consecutive id number,
+
+starting at 1).
+
+• ARRIVAL and DEPARTURE are the station numbers of the arrival and departure stations, respec-
+
+tively.
+
+Note: The format in which you print must match the above line exactly. Note that there is a space
+between ARRIVAL and the preceding comma, and that when each passenger is printed, there should
+be no additional whitespace outside the square brackets. Also note that any boxes surrounding output
+text in this document are not to be included in your output - they are just here to help highlight the
+text.
+
+<end>
+            
+            #1.6 The following is about the method to enqueue a passenger into the PassengerQueue, detailing its functionality in the metro simulator program.:
+<begin>
+• void PassengerQueue::enqueue(const Passenger &passenger)
+
+Inserts a new passenger at the end of the queue.
+
+<end>
+            
+            #1.7 The following is about the testing process for the metro simulator program, highlighting the need for thorough and incremental testing of the PassengerQueue before proceeding with the MetroSim implementation.:
+<begin>
+Testing
+
+Test thoroughly and incrementally. You should be sure that your PassengerQueue behaves as
+intended before you start implementing your MetroSim. Your program will have many components—
+it will be significantly easier to debug issues if you test components as you implement them, rather
+than implementing everything then testing at the end.
+
+11
+
+CONTENTS
+
+12
+
+<end>
+            ","For the `PassengerQueue` class, you need to implement at least the following functions based on the interface requirements:
+
+1. `Passenger PassengerQueue::front()` - Returns the front element without removing it.
+2. `void PassengerQueue::dequeue()` - Removes the front element from the queue.
+3. `void PassengerQueue::enqueue(const Passenger &passenger)` - Inserts a new passenger at the end of the queue.
+
+Make sure to check the project specifications for any additional functions that may be required.",0.4,7,MetrosimTestSession
+which files do i have to turn in for phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the submission guidelines for different phases of the metro simulator project, detailing what files to submit and how to format them.:
+<begin>
+Submitting
+
+Be sure your files have header comments, and that those header comments include your name, the
+assignment, the date, and acknowledgements for any help you received (if not already credited in the
+README file).
+
+For phase 0, submit your complete metro design checkoff.txt file to the assignment “MetroSim
+
+Design Checkoff” on Gradescope.
+
+For phase 1, you will need to submit the following files:
+
+Passenger.h, Passenger.cpp
+PassengerQueue.h, PassengerQueue.cpp
+unit_tests.h
+README
+
+You should only include other C++ files if your solution to PassengerQueue depends on them. Do
+not submit MetroSim.cpp for example. You must submit them using Gradescope to the assignment
+proj_metrosim_phase1. Submit these files directly, do not try to submit them in a folder. The
+README doesn’t have to be the final README. Just document anything that you feel we should know
+about your Passenger, PassengerQueue, or the submission in general.
+
+For the final submission, we don’t know exactly what files your final program will comprise. You
+
+will need to submit at least the following files:
+
+14
+
+CONTENTS
+
+15
+
+<end>
+            
+            #1.2 The following is about the submission requirements for the metro simulator project, detailing the need for unit tests and command files.:
+<begin>
+You must also submit:
+
+• Any unit tests you write for your program. This may be done in a file called unit_tests.h,
+using the unit_test framework that we have used on past assignments. Alternatively, you can
+create your own testing main functions, e.g., submit a file called MetroSim_tests.cpp with a
+main function that calls out to tests. Whatever testing files you use, you must submit them!
+
+• Any command files (excluding the command file provided).
+
+You must submit them using Gradescope to the assignment proj_metrosim. Note, you only need
+to include testing input files. For example, input stations or commands files you used. You do not need
+to include output files of any kind (stdout, stderr, or the output files you log passenger departures to).
+
+<end>
+            
+            #1.3 The following is about the deliverables for the assignment, specifying the phases and requirements for submission.:
+<begin>
+Deliverables There are multiple phases of deliverables for this assignment:
+
+• Week one:
+
+- Design checkoff.
+- The code for your Passenger and PassengerQueue classes.
+
+• Week two: Your final MetroSim program.
+
+Continue reading to learn more about these deliverables!
+
+Simulation Overview
+
+Data Abstraction
+
+Your design choices will be of chief importance in this project. It is your responsibility to plan out
+how you will build and utilize various components of the simulation. These components include:
+
+3
+
+• Passengers, which must contain:
+
+◦ an id
+
+◦ a starting station
+
+◦ an ending station
+
+• PassengerQueues, which contain Passengers who are waiting to board or depart from trains.
+
+• A list of Stations.
+
+• the Train, which carries Passengers between Stations.
+
+While it may not be obvious at first how to model these components, we will give you some
+guidelines to help you establish the architecture of your MetroSim program. We don’t require every
+<end>
+            
+            #1.4 The following is about Phase One of the metro simulator project, detailing the required implementations of the Passenger and PassengerQueue classes and the importance of thorough testing.:
+<begin>
+Phase One (Required)
+
+For phase one of this project, you must complete the implementations of Passenger and PassengerQueue,
+
+and you must thoroughly test these classes. See the course calendar for the due date.
+
+<end>
+            
+            #1.5 The following is about the importance of adhering to the course style guide and ensuring the program builds correctly before submission.:
+<begin>
+Before submitting your work, please make sure your code and documentation (including sections
+
+of the README) conform to the course style guide.
+
+Be sure your program builds correctly using the commands make and
+make MetroSim, because we will use those commands to build your pro-
+gram in testing. Be sure to include every file required to compile your
+code, along with any tests, and your Makefile and README. You don’t
+have to give us the reference implementation. A useful test is to make a
+submission directory, copy all your files in there, then run make and see
+if the program builds. Test it, then submit everything.
+
+<end>
+            
+            #1.6 The following is about the required design checkoff process for the metro simulator project, including submission and discussion with TAs.:
+<begin>
+Design Checkoff (Required)
+
+First, complete the required design checkoff questions given in the starter file metro design checkoff.txt,
+
+and submit your answers on Gradescope under the assignment “MetroSim Design Checkoff.”
+
+You must submit this file prior to meeting with a TA.
+Then, go to office hours and talk to a TA about your plan. You should be prepared to discuss the
+answers you submitted. You are welcome to bring other materials as well, though you are not required
+to: drawings, pseudocode, etc.
+
+The design checkoff helps twofold: you plan out your project and get your brain working on it in the
+background, and you also get design feedback before it’s too late. TAs will check off your design, but
+reserve the right to not check off your design if they believe your design was not thoroughly mapped
+out enough.
+
+Please sign up for a design check off on the form linked here.
+Note: it is completely okay to deviate from this initial plan. In fact, we encourage you to continue
+to evaluate the structure of your solution and fine-tune it as you go – that’s what programmers do in
+<end>
+            
+            #1.7 The following is about the primary tasks for the assignment, emphasizing the creation of an interactive simulation and the design of an object-oriented approach.:
+<begin>
+The primary, high-level tasks for this assignment are as follows:
+
+• Create an interactive front-end simulation that works with both files and the command line
+
+• Design and develop an object-oriented approach to solving the back-end logic for the simulation
+
+• Seamlessly connect the front-end and back-end systems
+
+A few words of caution: The training wheels are off! There are some requirements (see below)
+for your implementation, but we have given you considerably more freedom to architect your solution
+to this problem than in previous assignments. This is a double-edged sword! To succeed, it would
+be wise to read the following spec thoroughly and to start designing a solution as early as possible.
+This will give you time to go to office hours to discuss your plan with the course staff before you start
+coding. This program can be done with less code than the previous assignment if you have designed
+your program well.
+
+<end>
+            ","For Phase One, you need to submit the following files:
+
+1. `Passenger.h`
+2. `Passenger.cpp`
+3. `PassengerQueue.h`
+4. `PassengerQueue.cpp`
+5. `unit_tests.h`
+6. `README`
+
+Ensure that you only include other C++ files if your solution depends on them. Submit these files directly on Gradescope without any folders.",0.4,7,MetrosimTestSession
+is there anything i should do before phase one?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about Phase One of the metro simulator project, detailing the required implementations of the Passenger and PassengerQueue classes and the importance of thorough testing.:
+<begin>
+Phase One (Required)
+
+For phase one of this project, you must complete the implementations of Passenger and PassengerQueue,
+
+and you must thoroughly test these classes. See the course calendar for the due date.
+
+<end>
+            ","Before Phase One, it's a good idea to review the project requirements and familiarize yourself with the concepts of classes and queues, as they are central to this phase. Additionally, setting up your development environment and ensuring you have a plan for testing your classes can help you stay organized. Have you considered creating a design plan or outline for your implementation?",0.4,7,MetrosimTestSession
+what is the design checkoff?,"The following is additional context that may be helpful in answering the user's query.
+        #1 The following document is about creating a metro simulator program for a computer science project, detailing the design, implementation, and user interface requirements.
+        
+            #1.1 The following is about the required design checkoff process for the metro simulator project, including submission and discussion with TAs.:
+<begin>
+Design Checkoff (Required)
+
+First, complete the required design checkoff questions given in the starter file metro design checkoff.txt,
+
+and submit your answers on Gradescope under the assignment “MetroSim Design Checkoff.”
+
+You must submit this file prior to meeting with a TA.
+Then, go to office hours and talk to a TA about your plan. You should be prepared to discuss the
+answers you submitted. You are welcome to bring other materials as well, though you are not required
+to: drawings, pseudocode, etc.
+
+The design checkoff helps twofold: you plan out your project and get your brain working on it in the
+background, and you also get design feedback before it’s too late. TAs will check off your design, but
+reserve the right to not check off your design if they believe your design was not thoroughly mapped
+out enough.
+
+Please sign up for a design check off on the form linked here.
+Note: it is completely okay to deviate from this initial plan. In fact, we encourage you to continue
+to evaluate the structure of your solution and fine-tune it as you go – that’s what programmers do in
+<end>
+            
+            #1.2 The following is about the purpose of the check-off for the metro simulator project, emphasizing the importance of establishing a game plan and clarifying misconceptions.:
+<begin>
+urpose of this check-off is more to help you establish a game plan, as
+well as clear up any misconceptions you may have.
+
+<end>
+            ",The design checkoff is a required process for the MetroSim project where you submit your design answers and then discuss your project plan with a TA. This helps you clarify your approach and receive feedback before diving into implementation. It's essential for planning your project and addressing any misconceptions. Be prepared to discuss the details you submitted during your checkoff meeting!,0.4,7,MetrosimTestSession
