@@ -116,8 +116,8 @@ class DatabaseManager:
         digits = ''.join(secrets.choice('0123456789') for _ in range(2))
         return letters + digits
     
-    def get_or_create_anonymous_user(self, utln: str) -> AnonymousUser:
-        """Get or create an anonymous user for a given UTLN"""
+    def get_or_create_anonymous_user(self, utln: str) -> tuple:
+        """Get or create an anonymous user for a given UTLN. Returns (user_data, conversation_count)"""
         db = self.get_session()
         try:
             # Hash the UTLN for privacy
@@ -129,8 +129,17 @@ class DatabaseManager:
             if user:
                 # Update last active time
                 user.last_active = datetime.utcnow()
+                # Get conversation count before committing
+                conversation_count = db.query(Conversation).filter(Conversation.user_id == user.id).count()
                 db.commit()
-                return user
+                
+                return {
+                    'id': user.id,
+                    'anonymous_id': user.anonymous_id,
+                    'utln_hash': user.utln_hash,
+                    'created_at': user.created_at,
+                    'last_active': user.last_active
+                }, conversation_count
             
             # Create new anonymous user
             while True:
@@ -146,13 +155,22 @@ class DatabaseManager:
             db.add(user)
             db.commit()
             db.refresh(user)
-            return user
+            
+            user_data = {
+                'id': user.id,
+                'anonymous_id': user.anonymous_id,
+                'utln_hash': user.utln_hash,
+                'created_at': user.created_at,
+                'last_active': user.last_active
+            }
+            
+            return user_data, 0  # New user has 0 conversations
             
         finally:
             db.close()
     
-    def get_or_create_conversation(self, conversation_id: str, user: AnonymousUser, platform: str = 'web') -> Conversation:
-        """Get or create a conversation"""
+    def get_or_create_conversation(self, conversation_id: str, user_data: dict, platform: str = 'web') -> dict:
+        """Get or create a conversation. Returns conversation data dict"""
         db = self.get_session()
         try:
             conversation = db.query(Conversation).filter(
@@ -160,30 +178,49 @@ class DatabaseManager:
             ).first()
             
             if conversation:
-                return conversation
+                return {
+                    'id': conversation.id,
+                    'conversation_id': conversation.conversation_id,
+                    'user_id': conversation.user_id,
+                    'platform': conversation.platform,
+                    'created_at': conversation.created_at,
+                    'last_message_at': conversation.last_message_at,
+                    'message_count': conversation.message_count,
+                    'is_active': conversation.is_active
+                }
             
             # Create new conversation
             conversation = Conversation(
                 conversation_id=conversation_id,
-                user_id=user.id,
+                user_id=user_data['id'],
                 platform=platform
             )
             db.add(conversation)
             db.commit()
             db.refresh(conversation)
-            return conversation
+            
+            return {
+                'id': conversation.id,
+                'conversation_id': conversation.conversation_id,
+                'user_id': conversation.user_id,
+                'platform': conversation.platform,
+                'created_at': conversation.created_at,
+                'last_message_at': conversation.last_message_at,
+                'message_count': conversation.message_count,
+                'is_active': conversation.is_active
+            }
             
         finally:
             db.close()
     
-    def log_message(self, conversation: Conversation, message_type: str, content: str, 
+    def log_message(self, conversation_data: dict, message_type: str, content: str, 
                    rag_context: str = None, model_used: str = None, 
                    temperature: str = None, response_time_ms: int = None):
         """Log a message (query or response)"""
         db = self.get_session()
         try:
             message = Message(
-                conversation_id=conversation.id,
+                conversation_id=conversation_data['id'],
                 message_type=message_type,
                 content=content,
                 rag_context=rag_context,
@@ -193,9 +230,13 @@ class DatabaseManager:
             )
             db.add(message)
             
-            # Update conversation stats
-            conversation.last_message_at = datetime.utcnow()
-            conversation.message_count += 1
+            # Update conversation stats by querying the actual conversation
+            conversation = db.query(Conversation).filter(
+                Conversation.id == conversation_data['id']
+            ).first()
+            if conversation:
+                conversation.last_message_at = datetime.utcnow()
+                conversation.message_count += 1
             
             db.commit()
             

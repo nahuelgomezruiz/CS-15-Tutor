@@ -96,8 +96,9 @@ class GoogleSheetsSync:
                     {'properties': {'title': 'Conversations'}},
                     {'properties': {'title': 'Messages'}},
                     {'properties': {'title': 'Analytics'}},
-                    {'properties': {'title': 'Detailed Conversations'}},
-                    {'properties': {'title': 'RAG Context Analysis'}}
+                    {'properties': {'title': 'DetailedConversations'}},
+                    {'properties': {'title': 'RAGAnalysis'}},
+                    {'properties': {'title': 'UserInteractions'}}
                 ]
             }
             
@@ -114,9 +115,40 @@ class GoogleSheetsSync:
             print(f"❌ Error creating spreadsheet: {e}")
             return None
     
+    def ensure_sheet_exists(self, sheet_name: str):
+        """Ensure a sheet exists, create it if it doesn't"""
+        try:
+            # Get spreadsheet metadata to check existing sheets
+            spreadsheet = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()
+            existing_sheets = [sheet['properties']['title'] for sheet in spreadsheet.get('sheets', [])]
+            
+            if sheet_name not in existing_sheets:
+                print(f"📄 Creating missing sheet: {sheet_name}")
+                # Add the new sheet
+                requests = [{
+                    "addSheet": {
+                        "properties": {
+                            "title": sheet_name
+                        }
+                    }
+                }]
+                
+                body = {"requests": requests}
+                self.service.spreadsheets().batchUpdate(
+                    spreadsheetId=self.spreadsheet_id,
+                    body=body
+                ).execute()
+                print(f"✅ Created sheet: {sheet_name}")
+                
+        except HttpError as e:
+            print(f"❌ Error ensuring sheet {sheet_name} exists: {e}")
+
     def clear_sheet(self, sheet_name: str):
         """Clear all data from a sheet"""
         try:
+            # Ensure sheet exists first
+            self.ensure_sheet_exists(sheet_name)
+            
             range_name = f"{sheet_name}!A:Z"
             self.service.spreadsheets().values().clear(
                 spreadsheetId=self.spreadsheet_id,
@@ -128,6 +160,9 @@ class GoogleSheetsSync:
     def write_to_sheet(self, sheet_name: str, data: List[List], start_cell: str = "A1"):
         """Write data to a specific sheet"""
         try:
+            # Ensure sheet exists first
+            self.ensure_sheet_exists(sheet_name)
+            
             range_name = f"{sheet_name}!{start_cell}"
             body = {
                 'values': data
@@ -417,8 +452,8 @@ class GoogleSheetsSync:
                 # Add separator between conversations
                 data.append(["", "", "", "", "", "", "", "", "", "", ""])
             
-            self.clear_sheet("Detailed Conversations")
-            self.write_to_sheet("Detailed Conversations", data)
+            self.clear_sheet("DetailedConversations")
+            self.write_to_sheet("DetailedConversations", data)
             
         finally:
             db.close()
@@ -469,8 +504,76 @@ class GoogleSheetsSync:
                     msg.response_time_ms or 0
                 ])
             
-            self.clear_sheet("RAG Context Analysis")
-            self.write_to_sheet("RAG Context Analysis", data)
+            self.clear_sheet("RAGAnalysis")
+            self.write_to_sheet("RAGAnalysis", data)
+            
+        finally:
+            db.close()
+    
+    def sync_user_interactions(self):
+        """Sync user interactions showing Query -> RAG Context -> Response for each user"""
+        print("👤 Syncing user interactions (Query -> RAG -> Response)...")
+        
+        db = db_manager.get_session()
+        try:
+            # Get all conversations ordered by most recent
+            conversations = db.query(Conversation).order_by(Conversation.created_at.desc()).all()
+            
+            data = [
+                ["User Interactions - Queries, RAG Context, and Responses"],
+                [""],
+                ["User ID", "Platform", "Conversation Date", "Turn #", "User Query", "RAG Context Retrieved", "Model Response", "Response Time (ms)", "Query Length", "Response Length"]
+            ]
+            
+            for convo in conversations:
+                # Get all messages for this conversation
+                messages = db.query(Message).filter(
+                    Message.conversation_id == convo.id
+                ).order_by(Message.created_at.asc()).all()
+                
+                # Group messages into query-response pairs
+                query_msg = None
+                turn_number = 0
+                
+                for msg in messages:
+                    if msg.message_type == 'query':
+                        query_msg = msg
+                        turn_number += 1
+                    elif msg.message_type == 'response' and query_msg:
+                        # We have a query-response pair
+                        query_content = query_msg.content
+                        response_content = msg.content
+                        rag_context = msg.rag_context or "No RAG context retrieved"
+                        
+                        # Truncate very long content for readability
+                        if len(query_content) > 200:
+                            query_content = query_content[:200] + "... [TRUNCATED]"
+                        if len(response_content) > 300:
+                            response_content = response_content[:300] + "... [TRUNCATED]" 
+                        if len(rag_context) > 400:
+                            rag_context = rag_context[:400] + "... [TRUNCATED]"
+                        
+                        data.append([
+                            convo.user.anonymous_id,
+                            convo.platform,
+                            convo.created_at.strftime('%Y-%m-%d %H:%M'),
+                            f"Turn {turn_number}",
+                            query_content,
+                            rag_context,
+                            response_content,
+                            msg.response_time_ms or 0,
+                            len(query_msg.content),
+                            len(msg.content)
+                        ])
+                        
+                        query_msg = None  # Reset for next pair
+                
+                # Add separator between conversations  
+                if messages:  # Only add separator if conversation had messages
+                    data.append(["---", "---", "---", "---", "---", "---", "---", "---", "---", "---"])
+            
+            self.clear_sheet("UserInteractions")
+            self.write_to_sheet("UserInteractions", data)
             
         finally:
             db.close()
@@ -493,6 +596,7 @@ class GoogleSheetsSync:
             self.sync_conversations_data()
             self.sync_messages_summary()
             self.sync_analytics_data()
+            self.sync_user_interactions()  # This is what the user wants to see!
             self.sync_detailed_conversations()
             self.sync_rag_context_analysis()
             
