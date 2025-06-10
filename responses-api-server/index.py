@@ -21,17 +21,21 @@ conversations: Dict[str, List[Dict[str, str]]] = {}
 # Store accumulated RAG context for each conversation (key is conversationId)
 conversation_rag_context: Dict[str, List[Dict]] = {}
 
-"""
-name:        load_system_prompt
-description: load the system prompt from the text in system_prompt.txt
-parameters:  none
-returns:     str - the system prompt
-note:        system_prompt.txt is required in the same directory as this file
-"""
+# Cache the system prompt at startup to avoid file I/O on every new conversation
+CACHED_SYSTEM_PROMPT = None
+
 def load_system_prompt() -> str:
-    prompt_path = os.path.join(os.path.dirname(__file__), "system_prompt.txt")
-    with open(prompt_path, "r") as f:
-        return f.read().strip()
+    """Load the system prompt from cache or file if not cached"""
+    global CACHED_SYSTEM_PROMPT
+    if CACHED_SYSTEM_PROMPT is None:
+        prompt_path = os.path.join(os.path.dirname(__file__), "system_prompt.txt")
+        with open(prompt_path, "r") as f:
+            CACHED_SYSTEM_PROMPT = f.read().strip()
+        print("📄 System prompt loaded and cached")
+    return CACHED_SYSTEM_PROMPT
+
+# Preload system prompt at startup
+load_system_prompt()
 
 """
 name:        health_check
@@ -99,6 +103,46 @@ def vscode_auth_endpoint():
                 
     except Exception as e:
         print(f"❌ Error in VSCode auth: {e}")
+        return jsonify({"error": "Authentication error"}), 500
+
+"""
+name:        vscode_direct_auth
+description: endpoint for direct VSCode authentication with username/password
+parameters:  username and password in JSON body
+returns:     JWT token if successful
+"""
+@app.route('/vscode-direct-auth', methods=['POST'])
+def vscode_direct_auth():
+    """Handle direct VSCode authentication with credentials"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "JSON data required"}), 400
+        
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not username or not password:
+            return jsonify({"error": "Username and password are required"}), 400
+        
+        # Authenticate user with LDAP
+        token = auth_service.authenticate_vscode_user(username, password)
+        
+        if token:
+            return jsonify({
+                "success": True,
+                "token": token,
+                "username": username.lower(),
+                "message": "Authentication successful"
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Invalid credentials or user not authorized for CS 15"
+            }), 401
+            
+    except Exception as e:
+        print(f"❌ Error in direct VSCode auth: {e}")
         return jsonify({"error": "Authentication error"}), 500
 
 """
@@ -524,10 +568,11 @@ if __name__ == '__main__':
     print("   POST /api - Main chat endpoint (requires authentication)")
     print("   POST /api/stream - Streaming chat endpoint (requires authentication)")
     print("   GET /health - Health check")
-    print("   GET/POST /vscode-auth - VSCode extension authentication")
+    print("   GET/POST /vscode-auth - VSCode extension authentication (browser-based)")
+    print("   POST /vscode-direct-auth - VSCode extension authentication (form-based)")
     print("   GET /vscode-auth-status - Check VSCode auth status")
     print("   GET /analytics - System analytics (authenticated users)")
-    print("🔐 Authentication: Web app uses .htaccess, VSCode uses JWT tokens")
+    print("🔐 Authentication: Web app uses .htaccess, VSCode uses JWT tokens with LDAP")
     print("📊 Logging: All interactions are logged with user anonymization")
     
     # Run the Flask app

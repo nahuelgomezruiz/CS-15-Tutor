@@ -52,6 +52,16 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    // Register show user menu command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('cs15-tutor.showUserMenu', async () => {
+            await authManager.showUserMenu();
+            authManager.updateStatusBar(statusBarItem);
+            // Refresh the chat view in case authentication status changed
+            provider.refresh();
+        })
+    );
+
     // Register sign out command
     context.subscriptions.push(
         vscode.commands.registerCommand('cs15-tutor.signOut', async () => {
@@ -62,11 +72,10 @@ export function activate(context: vscode.ExtensionContext) {
             );
             
             if (result === 'Sign Out') {
-                authManager.clearAuthentication();
+                await authManager.signOut();
                 authManager.updateStatusBar(statusBarItem);
                 // Refresh the chat view to show sign-in prompt
                 provider.refresh();
-                vscode.window.showInformationMessage('You have been signed out of CS 15 Tutor.');
             }
         })
     );
