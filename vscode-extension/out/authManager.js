@@ -1,8 +1,31 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthManager = void 0;
-const vscode = require("vscode");
-const http = require("http");
+const vscode = __importStar(require("vscode"));
+const http = __importStar(require("http"));
 class AuthManager {
     constructor(context, apiBaseUrl = 'http://127.0.0.1:5000') {
         this.context = context;
@@ -43,36 +66,66 @@ class AuthManager {
      */
     async authenticate() {
         try {
-            // Show progress indicator
+            // Show username input
+            const username = await vscode.window.showInputBox({
+                prompt: 'Enter your Tufts EECS username',
+                placeHolder: 'e.g., your_eecs_username',
+                ignoreFocusOut: true,
+                validateInput: (value) => {
+                    if (!value || value.trim().length === 0) {
+                        return 'Username is required';
+                    }
+                    if (!/^[a-zA-Z][a-zA-Z0-9_]{2,15}$/.test(value.trim())) {
+                        return 'Please enter a valid EECS username';
+                    }
+                    return undefined;
+                }
+            });
+            if (!username) {
+                vscode.window.showInformationMessage('Authentication cancelled');
+                return false;
+            }
+            // Show password input
+            const password = await vscode.window.showInputBox({
+                prompt: 'Enter your Tufts EECS password',
+                placeHolder: 'Your EECS password',
+                password: true,
+                ignoreFocusOut: true,
+                validateInput: (value) => {
+                    if (!value || value.trim().length === 0) {
+                        return 'Password is required';
+                    }
+                    return undefined;
+                }
+            });
+            if (!password) {
+                vscode.window.showInformationMessage('Authentication cancelled');
+                return false;
+            }
+            // Show progress indicator for authentication
             return await vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: "CS 15 Tutor Authentication",
-                cancellable: true
-            }, async (progress, token) => {
-                progress.report({ message: "Opening authentication page..." });
-                // Generate a login URL from the server
-                const loginUrl = await this.getLoginUrl();
-                if (!loginUrl) {
-                    vscode.window.showErrorMessage('Failed to generate login URL');
-                    return false;
-                }
-                // Open the authentication URL in the browser
-                await vscode.env.openExternal(vscode.Uri.parse(loginUrl));
-                progress.report({ message: "Waiting for authentication..." });
-                // Extract session ID from the URL
-                const sessionId = this.extractSessionId(loginUrl);
-                if (!sessionId) {
-                    vscode.window.showErrorMessage('Invalid session ID');
-                    return false;
-                }
-                // Poll for authentication completion
-                const authResult = await this.pollForAuthentication(sessionId, progress, token);
-                if (authResult) {
-                    vscode.window.showInformationMessage(`Welcome, ${authResult.utln}! You are now authenticated.`);
+                cancellable: false
+            }, async (progress) => {
+                progress.report({ message: "Authenticating with Tufts LDAP..." });
+                // Authenticate with backend
+                const authResult = await this.authenticateWithCredentials(username.trim(), password);
+                if (authResult.success && authResult.token) {
+                    // Store the token
+                    const expiresAt = new Date();
+                    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+                    const authToken = {
+                        token: authResult.token,
+                        utln: authResult.username,
+                        expiresAt
+                    };
+                    this.storeToken(authToken);
+                    vscode.window.showInformationMessage(`Authentication successful! Welcome, ${authResult.username}`);
                     return true;
                 }
                 else {
-                    vscode.window.showErrorMessage('Authentication failed or was cancelled');
+                    vscode.window.showErrorMessage(authResult.error || 'Authentication failed');
                     return false;
                 }
             });
@@ -114,6 +167,54 @@ class AuthManager {
         this.context.globalState.update(AuthManager.TOKEN_KEY, authToken.token);
         this.context.globalState.update(AuthManager.UTLN_KEY, authToken.utln);
         this.context.globalState.update(AuthManager.EXPIRES_KEY, authToken.expiresAt.toISOString());
+    }
+    /**
+     * Authenticate user with credentials against backend
+     */
+    async authenticateWithCredentials(username, password) {
+        return new Promise((resolve) => {
+            const data = JSON.stringify({
+                username: username,
+                password: password
+            });
+            const options = {
+                hostname: '127.0.0.1',
+                port: 5000,
+                path: '/vscode-direct-auth',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data)
+                }
+            };
+            const req = http.request(options, (res) => {
+                let responseData = '';
+                res.on('data', (chunk) => {
+                    responseData += chunk;
+                });
+                res.on('end', () => {
+                    try {
+                        const response = JSON.parse(responseData);
+                        resolve(response);
+                    }
+                    catch (error) {
+                        resolve({
+                            success: false,
+                            error: 'Invalid response from server'
+                        });
+                    }
+                });
+            });
+            req.on('error', (error) => {
+                console.error('Error authenticating with credentials:', error);
+                resolve({
+                    success: false,
+                    error: `Connection error: ${error.message}`
+                });
+            });
+            req.write(data);
+            req.end();
+        });
     }
     /**
      * Get login URL from the server
@@ -251,10 +352,9 @@ class AuthManager {
      */
     updateStatusBar(statusBarItem) {
         if (this.isAuthenticated()) {
-            const utln = this.getUtln();
-            statusBarItem.text = `$(person) CS15: ${utln}`;
-            statusBarItem.tooltip = `Authenticated as ${utln}. Click to sign out.`;
-            statusBarItem.command = 'cs15-tutor.signOut';
+            statusBarItem.text = `CS 15 $(ellipsis)`;
+            statusBarItem.tooltip = `CS 15 Tutor - Click to see user options`;
+            statusBarItem.command = 'cs15-tutor.showUserMenu';
         }
         else {
             statusBarItem.text = `$(sign-in) CS15: Sign In`;
@@ -262,6 +362,48 @@ class AuthManager {
             statusBarItem.command = 'cs15-tutor.signIn';
         }
         statusBarItem.show();
+    }
+    /**
+     * Show user menu with username and sign out option
+     */
+    async showUserMenu() {
+        if (!this.isAuthenticated()) {
+            return;
+        }
+        const utln = this.getUtln();
+        const items = [
+            {
+                label: `$(person) Signed in as: ${utln}`,
+                description: 'Your current authentication status'
+            },
+            {
+                label: `$(sign-out) Sign Out`,
+                description: 'Sign out of CS 15 Tutor'
+            }
+        ];
+        const selection = await vscode.window.showQuickPick(items, {
+            placeHolder: 'CS 15 Tutor User Options',
+            canPickMany: false
+        });
+        if (selection && selection.label.includes('Sign Out')) {
+            const result = await vscode.window.showInformationMessage('Are you sure you want to sign out of CS 15 Tutor?', 'Sign Out', 'Cancel');
+            if (result === 'Sign Out') {
+                await this.signOut();
+            }
+        }
+    }
+    /**
+     * Sign out the current user
+     */
+    async signOut() {
+        try {
+            this.clearAuthentication();
+            vscode.window.showInformationMessage('Successfully signed out of CS 15 Tutor');
+        }
+        catch (error) {
+            console.error('Error during sign out:', error);
+            vscode.window.showErrorMessage('Error signing out');
+        }
     }
 }
 exports.AuthManager = AuthManager;

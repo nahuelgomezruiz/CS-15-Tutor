@@ -1,10 +1,35 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatViewProvider = void 0;
-const http = require("http");
+const vscode = __importStar(require("vscode"));
+const http = __importStar(require("http"));
 class ChatViewProvider {
-    constructor(_extensionUri) {
+    constructor(_extensionUri, authManager) {
         this._extensionUri = _extensionUri;
+        this.authManager = authManager;
     }
     resolveWebviewView(webviewView, context, _token) {
         this._view = webviewView;
@@ -19,6 +44,14 @@ class ChatViewProvider {
             switch (data.type) {
                 case 'sendMessage':
                     {
+                        // Check authentication first
+                        if (!this.authManager.isAuthenticated()) {
+                            webviewView.webview.postMessage({
+                                type: 'authRequired',
+                                message: 'Please sign in with your Tufts credentials to use the CS 15 Tutor.'
+                            });
+                            return;
+                        }
                         try {
                             console.log('Sending message to API:', data.message);
                             const response = await this._sendMessageToAPI(data.message, data.conversationId);
@@ -32,17 +65,44 @@ class ChatViewProvider {
                             console.error('Error sending message to API:', error);
                             webviewView.webview.postMessage({
                                 type: 'response',
-                                error: 'Error generating answer.'
+                                error: 'Error generating answer. Please try again.'
                             });
                         }
+                        break;
+                    }
+                case 'requestAuth':
+                    {
+                        // Trigger authentication flow
+                        vscode.commands.executeCommand('cs15-tutor.signIn');
+                        break;
+                    }
+                case 'getAuthStatus':
+                    {
+                        // Send current auth status to webview
+                        webviewView.webview.postMessage({
+                            type: 'authStatus',
+                            isAuthenticated: this.authManager.isAuthenticated(),
+                            utln: this.authManager.getUtln()
+                        });
                         break;
                     }
             }
         });
     }
+    refresh() {
+        if (this._view) {
+            this._view.webview.html = this._getHtmlForWebview(this._view.webview);
+        }
+    }
     _sendMessageToAPI(message, conversationId) {
         return new Promise((resolve, reject) => {
             const postData = JSON.stringify({ message, conversationId });
+            // Get auth token
+            const authToken = this.authManager.getAuthToken();
+            if (!authToken) {
+                reject(new Error('Authentication required'));
+                return;
+            }
             const options = {
                 hostname: '127.0.0.1',
                 port: 5000,
@@ -50,7 +110,8 @@ class ChatViewProvider {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(postData)
+                    'Content-Length': Buffer.byteLength(postData),
+                    'Authorization': `Bearer ${authToken}`
                 }
             };
             const req = http.request(options, (res) => {
@@ -81,11 +142,24 @@ class ChatViewProvider {
                                         resolve({
                                             response: event.response,
                                             rag_context: event.rag_context,
-                                            conversation_id: event.conversation_id
+                                            conversation_id: event.conversation_id,
+                                            user_info: event.user_info
                                         });
                                     }
                                     else if (event.status === 'error') {
-                                        reject(new Error(event.error || 'Unknown error'));
+                                        if (event.error.includes('Authentication required') ||
+                                            event.error.includes('Access denied')) {
+                                            // Authentication failed - clear local auth and prompt re-auth
+                                            this.authManager.clearAuthentication();
+                                            this._view?.webview.postMessage({
+                                                type: 'authRequired',
+                                                message: event.error
+                                            });
+                                            reject(new Error(event.error));
+                                        }
+                                        else {
+                                            reject(new Error(event.error || 'Unknown error'));
+                                        }
                                     }
                                 }
                                 catch (e) {
@@ -101,13 +175,15 @@ class ChatViewProvider {
             });
             req.on('error', (e) => {
                 console.error('Error:', e);
-                resolve({ error: 'Error generating answer.' });
+                resolve({ error: 'Error generating answer. Please try again.' });
             });
             req.write(postData);
             req.end();
         });
     }
     _getHtmlForWebview(webview) {
+        const isAuthenticated = this.authManager.isAuthenticated();
+        const utln = this.authManager.getUtln();
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -136,6 +212,51 @@ class ChatViewProvider {
             padding: 12px;
             overflow: hidden;
         }
+
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+            text-align: center;
+            gap: 12px;
+        }
+
+        .auth-container h2 {
+            color: var(--vscode-foreground);
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .auth-container p {
+            color: var(--vscode-descriptionForeground);
+            margin: 0;
+            line-height: 1.4;
+            max-width: 280px;
+        }
+
+        .auth-button {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .auth-button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+
+
         
         .messages-container {
             flex: 1;
@@ -186,6 +307,25 @@ class ChatViewProvider {
         .message.bot .message-bubble.loading {
             font-style: italic;
             opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Spinning loader animation - matches web app style */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-bottom: 2px solid var(--vscode-descriptionForeground);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .input-container {
@@ -296,6 +436,7 @@ class ChatViewProvider {
     </style>
 </head>
 <body>
+    ${isAuthenticated ? `
     <div class="chat-container">
         <div class="messages-container" id="messages">
             <div class="message bot">
@@ -315,15 +456,21 @@ class ChatViewProvider {
             <button type="button" class="send-button" id="sendButton">Send</button>
         </form>
     </div>
+    ` : `
+    <div class="auth-container">
+        <h2>CS 15 Tutor</h2>
+        <p>Please sign in with your Tufts EECS credentials to access the CS 15 AI tutor.</p>
+        <button class="auth-button" onclick="requestAuth()">
+            Sign In
+        </button>
+    </div>
+    `}
 
     <script>
         const vscode = acquireVsCodeApi();
-        const messagesContainer = document.getElementById('messages');
-        const chatInput = document.getElementById('chatInput');
-        const sendButton = document.getElementById('sendButton');
-        const chatForm = document.getElementById('chatForm');
         let conversationId = generateUUID();
         let isLoading = false;
+        const isAuthenticated = ${isAuthenticated};
 
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -332,181 +479,195 @@ class ChatViewProvider {
             });
         }
 
-        function parseMarkdown(text) {
-            // Escape HTML first
-            let html = text.replace(/&/g, '&amp;')
-                          .replace(/</g, '&lt;')
-                          .replace(/>/g, '&gt;');
-            
-            // Code blocks (triple backticks)
-            html = html.replace(/\\\`\\\`\\\`([\\s\\S]*?)\\\`\\\`\\\`/g, '<pre><code>$1</code></pre>');
-            
-            // Inline code (single backticks)
-            html = html.replace(/\\\`([^\\\`]+)\\\`/g, '<code>$1</code>');
-            
-            // Bold (double asterisks or underscores)
-            html = html.replace(/\\*\\*([^\\*]+)\\*\\*/g, '<strong>$1</strong>');
-            html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
-            
-            // Italic (single asterisks or underscores)
-            html = html.replace(/\\*([^\\*]+)\\*/g, '<em>$1</em>');
-            html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
-            
-            // Lists (unordered)
-            html = html.replace(/^\\* (.+)$/gm, '<li>$1</li>');
-            html = html.replace(/^\\- (.+)$/gm, '<li>$1</li>');
-            html = html.replace(/(<li>.*<\\/li>)/s, function(match) {
-                return '<ul>' + match + '</ul>';
-            });
-            
-            // Lists (ordered)
-            html = html.replace(/^\\d+\\. (.+)$/gm, '<li>$1</li>');
-            
-            // Paragraphs (double newlines)
-            html = html.replace(/\\n\\n/g, '</p><p>');
-            html = '<p>' + html + '</p>';
-            
-            // Single line breaks
-            html = html.replace(/\\n/g, '<br>');
-            
-            // Clean up empty paragraphs
-            html = html.replace(/<p><\\/p>/g, '');
-            html = html.replace(/<p><ul>/g, '<ul>');
-            html = html.replace(/<\\/ul><\\/p>/g, '</ul>');
-            html = html.replace(/<p><pre>/g, '<pre>');
-            html = html.replace(/<\\/pre><\\/p>/g, '</pre>');
-            
-            return html;
-        }
-
-        function addMessage(text, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ' + sender;
-            
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.className = 'message-bubble';
-            
-            // Only parse markdown for bot messages
-            if (sender === 'bot' && !text.includes('Looking at course content') && !text.includes('Thinking')) {
-                bubbleDiv.innerHTML = parseMarkdown(text);
-            } else {
-                bubbleDiv.textContent = text;
-            }
-            
-            messageDiv.appendChild(bubbleDiv);
-            messagesContainer.appendChild(messageDiv);
-            
-            // Force layout recalculation and scroll to bottom
-            setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 0);
-            
-            return bubbleDiv;
-        }
-
-        function sendMessage() {
-            console.log('sendMessage called');
-            const message = chatInput.value.trim();
-            console.log('Message:', message, 'isLoading:', isLoading);
-            
-            if (!message || isLoading) {
-                console.log('Returning early - no message or loading');
-                return;
-            }
-            
-            isLoading = true;
-            sendButton.disabled = true;
-            
-            // Add user message
-            addMessage(message, 'user');
-            chatInput.value = '';
-            chatInput.style.height = 'auto';
-            chatInput.style.overflowY = 'hidden';
-            adjustTextareaHeight();
-            
-            // Add loading message
-            const loadingBubble = addMessage('Looking at course content...', 'bot');
-            loadingBubble.classList.add('loading');
-            
-            // Send to extension
-            console.log('Posting message to extension');
+        function requestAuth() {
             vscode.postMessage({
-                type: 'sendMessage',
-                message: message,
-                conversationId: conversationId
+                type: 'requestAuth'
             });
+        }
+
+
+
+        if (isAuthenticated) {
+            const messagesContainer = document.getElementById('messages');
+            const chatInput = document.getElementById('chatInput');
+            const sendButton = document.getElementById('sendButton');
+
+            function parseMarkdown(text) {
+                // Same markdown parsing logic as before
+                let html = text.replace(/&/g, '&amp;')
+                              .replace(/</g, '&lt;')
+                              .replace(/>/g, '&gt;');
+                
+                html = html.replace(/\\\`\\\`\\\`([\\s\\S]*?)\\\`\\\`\\\`/g, '<pre><code>$1</code></pre>');
+                html = html.replace(/\\\`([^\\\`]+)\\\`/g, '<code>$1</code>');
+                html = html.replace(/\\*\\*([^\\*]+)\\*\\*/g, '<strong>$1</strong>');
+                html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+                html = html.replace(/\\*([^\\*]+)\\*/g, '<em>$1</em>');
+                html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+                html = html.replace(/^\\* (.+)$/gm, '<li>$1</li>');
+                html = html.replace(/^\\- (.+)$/gm, '<li>$1</li>');
+                html = html.replace(/(<li>.*<\\/li>)/s, function(match) {
+                    return '<ul>' + match + '</ul>';
+                });
+                html = html.replace(/^\\d+\\. (.+)$/gm, '<li>$1</li>');
+                html = html.replace(/\\n\\n/g, '</p><p>');
+                html = '<p>' + html + '</p>';
+                html = html.replace(/\\n/g, '<br>');
+                html = html.replace(/<p><\\/p>/g, '');
+                html = html.replace(/<p><ul>/g, '<ul>');
+                html = html.replace(/<\\/ul><\\/p>/g, '</ul>');
+                html = html.replace(/<p><pre>/g, '<pre>');
+                html = html.replace(/<\\/pre><\\/p>/g, '</pre>');
+                
+                return html;
+            }
+
+            function addMessage(text, sender, isLoading = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ' + sender;
+                
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = 'message-bubble';
+                
+                if (isLoading) {
+                    bubbleDiv.classList.add('loading');
+                    
+                    // Create spinner element
+                    const spinner = document.createElement('div');
+                    spinner.className = 'spinner';
+                    
+                    // Create text element
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = text;
+                    
+                    bubbleDiv.appendChild(spinner);
+                    bubbleDiv.appendChild(textSpan);
+                } else if (sender === 'bot' && !text.includes('Looking at course content') && !text.includes('Thinking')) {
+                    bubbleDiv.innerHTML = parseMarkdown(text);
+                } else {
+                    bubbleDiv.textContent = text;
+                }
+                
+                messageDiv.appendChild(bubbleDiv);
+                messagesContainer.appendChild(messageDiv);
+                
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 0);
+                
+                return bubbleDiv;
+            }
+
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                
+                if (!message || isLoading) {
+                    return;
+                }
+                
+                isLoading = true;
+                sendButton.disabled = true;
+                
+                addMessage(message, 'user');
+                chatInput.value = '';
+                adjustTextareaHeight();
+                
+                const loadingBubble = addMessage('Looking at course content...', 'bot', true);
+                
+                vscode.postMessage({
+                    type: 'sendMessage',
+                    message: message,
+                    conversationId: conversationId
+                });
+            }
+
+            function adjustTextareaHeight() {
+                chatInput.style.height = 'auto';
+                const newHeight = Math.min(chatInput.scrollHeight, 100);
+                chatInput.style.height = newHeight + 'px';
+                
+                if (chatInput.scrollHeight > 100) {
+                    chatInput.style.overflowY = 'auto';
+                } else {
+                    chatInput.style.overflowY = 'hidden';
+                }
+            }
+
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            chatInput.addEventListener('input', adjustTextareaHeight);
         }
 
         // Handle messages from extension
         window.addEventListener('message', event => {
             const message = event.data;
-            console.log('Received message from extension:', message);
             
             switch (message.type) {
+                case 'authRequired':
+                    // Reload to show auth screen
+                    location.reload();
+                    break;
+                    
                 case 'status':
-                    // Update loading message
-                    const lastBotMessage = [...messagesContainer.querySelectorAll('.message.bot .message-bubble')].pop();
-                    if (lastBotMessage && lastBotMessage.classList.contains('loading')) {
-                        lastBotMessage.textContent = message.status;
+                    if (isAuthenticated) {
+                        const lastBotMessage = [...document.querySelectorAll('.message.bot .message-bubble')].pop();
+                        if (lastBotMessage && lastBotMessage.classList.contains('loading')) {
+                            // Update the text span while keeping the spinner
+                            const textSpan = lastBotMessage.querySelector('span');
+                            if (textSpan) {
+                                textSpan.textContent = message.status;
+                            } else {
+                                // Fallback: recreate the loading message structure
+                                lastBotMessage.innerHTML = '';
+                                
+                                const spinner = document.createElement('div');
+                                spinner.className = 'spinner';
+                                
+                                const newTextSpan = document.createElement('span');
+                                newTextSpan.textContent = message.status;
+                                
+                                lastBotMessage.appendChild(spinner);
+                                lastBotMessage.appendChild(newTextSpan);
+                            }
+                        }
                     }
                     break;
                     
                 case 'response':
-                    // Remove loading message and add response
-                    const loadingMessages = messagesContainer.querySelectorAll('.message.bot .loading');
-                    loadingMessages.forEach(msg => {
-                        if (msg.parentElement) {
-                            msg.parentElement.remove();
+                    if (isAuthenticated) {
+                        const loadingMessages = document.querySelectorAll('.message.bot .loading');
+                        loadingMessages.forEach(msg => {
+                            if (msg.parentElement) {
+                                msg.parentElement.remove();
+                            }
+                        });
+                        
+                        if (message.error) {
+                            addMessage(message.error, 'bot');
+                        } else if (message.response) {
+                            addMessage(message.response, 'bot');
                         }
-                    });
-                    
-                    if (message.error) {
-                        addMessage(message.error, 'bot');
-                    } else if (message.response) {
-                        addMessage(message.response, 'bot');
+                        
+                        isLoading = false;
+                        sendButton.disabled = false;
+                        chatInput.focus();
                     }
-                    
-                    isLoading = false;
-                    sendButton.disabled = false;
-                    chatInput.focus();
                     break;
             }
         });
 
-        // Auto-resize textarea
-        function adjustTextareaHeight() {
-            chatInput.style.height = 'auto';
-            const newHeight = Math.min(chatInput.scrollHeight, 100);
-            chatInput.style.height = newHeight + 'px';
-            
-            // Enable scrolling if content exceeds max height
-            if (chatInput.scrollHeight > 100) {
-                chatInput.style.overflowY = 'auto';
-            } else {
-                chatInput.style.overflowY = 'hidden';
-            }
-        }
-
-        // Event listeners
-        chatInput.addEventListener('input', adjustTextareaHeight);
-        
-        // Simplify Enter key handling
-        chatInput.addEventListener('keydown', (e) => {
-            console.log('Key pressed:', e.key, 'Shift:', e.shiftKey);
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
+        // Request auth status on load
+        vscode.postMessage({
+            type: 'getAuthStatus'
         });
-        
-        sendButton.addEventListener('click', () => {
-            console.log('Send button clicked');
-            sendMessage();
-        });
-        
-        // Initial setup
-        chatInput.focus();
-        adjustTextareaHeight();
     </script>
 </body>
 </html>`;

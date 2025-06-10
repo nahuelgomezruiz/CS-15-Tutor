@@ -10,6 +10,14 @@ import jwt
 from datetime import datetime, timedelta
 import re
 
+# Add LDAP import
+try:
+    from ldap3 import Server, Connection, ALL, SIMPLE, SYNC
+    LDAP_AVAILABLE = True
+except ImportError:
+    LDAP_AVAILABLE = False
+    print("⚠️ Warning: ldap3 not installed. LDAP authentication will not work.")
+
 logger = logging.getLogger(__name__)
 
 class AuthenticationService:
@@ -22,8 +30,97 @@ class AuthenticationService:
         # JWT secret for VSCode extension authentication
         self.jwt_secret = os.getenv('JWT_SECRET', 'your-secret-key-change-this-in-production')
         self.jwt_expiry_hours = 24
+        
+        # LDAP configuration (same as .htaccess)
+        self.ldap_url = "ldap://ldap.eecs.tufts.edu"
+        self.ldap_base_dn = "ou=people,dc=eecs,dc=tufts,dc=edu"
+        
         logger.info("Authentication service initialized")
     
+    def authenticate_ldap_credentials(self, username: str, password: str) -> bool:
+        """
+        Authenticate user credentials against Tufts EECS LDAP server.
+        This replicates the same authentication that .htaccess performs.
+        
+        Args:
+            username: Tufts EECS username
+            password: User's password
+        
+        Returns:
+            True if authentication successful, False otherwise
+        """
+        if not LDAP_AVAILABLE:
+            logger.error("LDAP authentication not available - ldap3 not installed")
+            return False
+        
+        try:
+            # Create LDAP server object
+            server = Server(self.ldap_url, get_info=ALL)
+            
+            # Construct user DN (Distinguished Name)
+            user_dn = f"uid={username},{self.ldap_base_dn}"
+            
+            # Create connection and attempt to bind (authenticate) with provided credentials
+            conn = Connection(server, user=user_dn, password=password, authentication=SIMPLE)
+            
+            # Attempt to bind - this performs the authentication
+            if conn.bind():
+                logger.info(f"LDAP authentication successful for user: {username}")
+                conn.unbind()
+                return True
+            else:
+                logger.warning(f"LDAP authentication failed - invalid credentials for user: {username}")
+                return False
+            
+        except Exception as e:
+            logger.error(f"Error during LDAP authentication for user {username}: {e}")
+            return False
+
+    def authenticate_vscode_user(self, username: str, password: str) -> Optional[str]:
+        """
+        Authenticate VSCode user with Tufts EECS credentials and return JWT token.
+        
+        Args:
+            username: Tufts EECS username  
+            password: User's password
+        
+        Returns:
+            JWT token if successful, None otherwise
+        """
+        try:
+            # Normalize username
+            username = username.lower().strip()
+            
+            # First check if user is authorized
+            if not self.is_authorized_cs15_student(username):
+                logger.warning(f"User {username} not authorized for CS 15 tutor")
+                return None
+            
+            # Check if development mode is enabled
+            dev_mode = os.getenv('DEVELOPMENT_MODE', '').lower() == 'true'
+            
+            # For development users in development mode, skip LDAP authentication
+            if dev_mode and username in ['dev_user', 'test_user', 'demo_user']:
+                logger.info(f"Development mode: skipping LDAP authentication for {username}")
+                # Just validate that a password was provided
+                if not password or len(password.strip()) == 0:
+                    logger.warning(f"Development user {username} provided empty password")
+                    return None
+            else:
+                # Authenticate against LDAP for real users
+                if not self.authenticate_ldap_credentials(username, password):
+                    logger.warning(f"LDAP authentication failed for user: {username}")
+                    return None
+            
+            # Create and return JWT token
+            token = self.create_vscode_auth_token(username)
+            logger.info(f"VSCode authentication successful for user: {username}")
+            return token
+            
+        except Exception as e:
+            logger.error(f"Error during VSCode user authentication: {e}")
+            return None
+
     def extract_utln_from_web_request(self, request) -> Optional[str]:
         """
         Extract UTLN from web request (Apache .htaccess authentication).

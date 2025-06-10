@@ -33,6 +33,11 @@
         "icon": "$(sign-out)"
       },
       {
+        "command": "cs15-tutor.showUserMenu",
+        "title": "CS15 Tutor: Show User Menu",
+        "icon": "$(ellipsis)"
+      },
+      {
         "command": "cs15-tutor.refresh",
         "title": "CS15 Tutor: Refresh",
         "icon": "$(refresh)"
@@ -81,6 +86,10 @@
         },
         {
           "command": "cs15-tutor.signOut",
+          "when": "true"
+        },
+        {
+          "command": "cs15-tutor.showUserMenu",
           "when": "true"
         },
         {

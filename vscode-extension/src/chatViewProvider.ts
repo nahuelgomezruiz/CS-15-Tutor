@@ -76,6 +76,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                         });
                         break;
                     }
+
             }
         });
     }
@@ -219,17 +220,21 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             height: 100vh;
             padding: 20px;
             text-align: center;
+            gap: 12px;
         }
 
         .auth-container h2 {
             color: var(--vscode-foreground);
-            margin-bottom: 16px;
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
         }
 
         .auth-container p {
             color: var(--vscode-descriptionForeground);
-            margin-bottom: 20px;
+            margin: 0;
             line-height: 1.4;
+            max-width: 280px;
         }
 
         .auth-button {
@@ -242,40 +247,15 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
         }
 
         .auth-button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
 
-        .user-info {
-            background-color: var(--vscode-input-background);
-            border: 1px solid var(--vscode-input-border);
-            border-radius: 4px;
-            padding: 8px 12px;
-            margin-bottom: 12px;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
 
-        .user-info .utln {
-            font-weight: 600;
-            color: var(--vscode-foreground);
-        }
-
-        .user-info .sign-out {
-            color: var(--vscode-textLink-foreground);
-            cursor: pointer;
-            text-decoration: underline;
-            font-size: 11px;
-        }
-
-        .user-info .sign-out:hover {
-            color: var(--vscode-textLink-activeForeground);
-        }
         
         .messages-container {
             flex: 1;
@@ -326,6 +306,25 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         .message.bot .message-bubble.loading {
             font-style: italic;
             opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Spinning loader animation - matches web app style */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-bottom: 2px solid var(--vscode-descriptionForeground);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .input-container {
@@ -438,15 +437,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
 <body>
     ${isAuthenticated ? `
     <div class="chat-container">
-        <div class="user-info">
-            <span class="utln">👤 ${utln}</span>
-            <span class="sign-out" onclick="signOut()">Sign Out</span>
-        </div>
-        
         <div class="messages-container" id="messages">
             <div class="message bot">
                 <div class="message-bubble">
-                    Hi ${utln}! This is an experimental AI tutor for CS 15. Responses are logged. Email alfredo.gomez_ruiz@tufts.edu for any errors.
+                    Hi! This is an experimental AI tutor for CS 15. Responses are logged. Email alfredo.gomez_ruiz@tufts.edu for any errors.
                 </div>
             </div>
         </div>
@@ -455,7 +449,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             <textarea 
                 class="chat-input" 
                 id="chatInput" 
-                placeholder="Ask a question about CS 15"
+                placeholder="Ask a question"
                 rows="1"
             ></textarea>
             <button type="button" class="send-button" id="sendButton">Send</button>
@@ -463,12 +457,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
     </div>
     ` : `
     <div class="auth-container">
-        <h2>🔐 CS 15 Tutor</h2>
-        <p>Please sign in with your Tufts credentials to access the CS 15 AI tutor.</p>
-        <p>You must be enrolled in CS 15 to use this service.</p>
+        <h2>CS 15 Tutor</h2>
+        <p>Please sign in with your Tufts EECS credentials to access the CS 15 AI tutor.</p>
         <button class="auth-button" onclick="requestAuth()">
-            <span>🔑</span>
-            Sign In with Tufts
+            Sign In
         </button>
     </div>
     `}
@@ -492,13 +484,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             });
         }
 
-        function signOut() {
-            if (confirm('Are you sure you want to sign out?')) {
-                vscode.postMessage({
-                    type: 'requestSignOut'
-                });
-            }
-        }
+
 
         if (isAuthenticated) {
             const messagesContainer = document.getElementById('messages');
@@ -535,14 +521,27 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 return html;
             }
 
-            function addMessage(text, sender) {
+            function addMessage(text, sender, isLoading = false) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message ' + sender;
                 
                 const bubbleDiv = document.createElement('div');
                 bubbleDiv.className = 'message-bubble';
                 
-                if (sender === 'bot' && !text.includes('Looking at course content') && !text.includes('Thinking')) {
+                if (isLoading) {
+                    bubbleDiv.classList.add('loading');
+                    
+                    // Create spinner element
+                    const spinner = document.createElement('div');
+                    spinner.className = 'spinner';
+                    
+                    // Create text element
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = text;
+                    
+                    bubbleDiv.appendChild(spinner);
+                    bubbleDiv.appendChild(textSpan);
+                } else if (sender === 'bot' && !text.includes('Looking at course content') && !text.includes('Thinking')) {
                     bubbleDiv.innerHTML = parseMarkdown(text);
                 } else {
                     bubbleDiv.textContent = text;
@@ -572,8 +571,7 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 chatInput.value = '';
                 adjustTextareaHeight();
                 
-                const loadingBubble = addMessage('Looking at course content...', 'bot');
-                loadingBubble.classList.add('loading');
+                const loadingBubble = addMessage('Looking at course content...', 'bot', true);
                 
                 vscode.postMessage({
                     type: 'sendMessage',
@@ -621,7 +619,23 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     if (isAuthenticated) {
                         const lastBotMessage = [...document.querySelectorAll('.message.bot .message-bubble')].pop();
                         if (lastBotMessage && lastBotMessage.classList.contains('loading')) {
-                            lastBotMessage.textContent = message.status;
+                            // Update the text span while keeping the spinner
+                            const textSpan = lastBotMessage.querySelector('span');
+                            if (textSpan) {
+                                textSpan.textContent = message.status;
+                            } else {
+                                // Fallback: recreate the loading message structure
+                                lastBotMessage.innerHTML = '';
+                                
+                                const spinner = document.createElement('div');
+                                spinner.className = 'spinner';
+                                
+                                const newTextSpan = document.createElement('span');
+                                newTextSpan.textContent = message.status;
+                                
+                                lastBotMessage.appendChild(spinner);
+                                lastBotMessage.appendChild(newTextSpan);
+                            }
                         }
                     }
                     break;
