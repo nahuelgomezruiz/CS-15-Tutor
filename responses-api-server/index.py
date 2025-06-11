@@ -12,6 +12,37 @@ import urllib.parse
 from auth_service import auth_service
 from logging_service import logging_service
 
+def escape_for_json(text: str) -> str:
+    """
+    Escape characters in text to ensure JSON compatibility for LLMProxy API calls.
+    
+    This function handles the escaping requirements mentioned in the LLMProxy documentation
+    to prevent JSON parsing errors when text contains unescaped quotes or HTML tags.
+    
+    Args:
+        text (str): The input text that may contain characters needing escaping
+        
+    Returns:
+        str: The escaped text safe for JSON encoding
+    """
+    if not isinstance(text, str):
+        return str(text)
+    
+    # Escape backslashes first (must be done before escaping quotes)
+    escaped = text.replace('\\', '\\\\')
+    
+    # Escape double quotes
+    escaped = escaped.replace('"', '\\"')
+    
+    # Escape other control characters that could break JSON
+    escaped = escaped.replace('\n', '\\n')
+    escaped = escaped.replace('\r', '\\r')
+    escaped = escaped.replace('\t', '\\t')
+    escaped = escaped.replace('\b', '\\b')
+    escaped = escaped.replace('\f', '\\f')
+    
+    return escaped
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
@@ -25,13 +56,22 @@ conversation_rag_context: Dict[str, List[Dict]] = {}
 CACHED_SYSTEM_PROMPT = None
 
 def load_system_prompt() -> str:
-    """Load the system prompt from cache or file if not cached"""
+    """Load the system prompt from cache or file if not cached, or reload if in development mode"""
     global CACHED_SYSTEM_PROMPT
-    if CACHED_SYSTEM_PROMPT is None:
+    
+    # Check if we're in development mode
+    development_mode = os.getenv('DEVELOPMENT_MODE', '').lower() == 'true'
+    
+    if CACHED_SYSTEM_PROMPT is None or development_mode:
         prompt_path = os.path.join(os.path.dirname(__file__), "system_prompt.txt")
         with open(prompt_path, "r") as f:
             CACHED_SYSTEM_PROMPT = f.read().strip()
-        print("📄 System prompt loaded and cached")
+        
+        if development_mode:
+            print("🔄 System prompt reloaded from file (development mode)")
+        else:
+            print("📄 System prompt loaded and cached")
+    
     return CACHED_SYSTEM_PROMPT
 
 # Preload system prompt at startup
@@ -242,6 +282,11 @@ def chat_handler():
             conversation_rag_context[conversation_id] = []
             print(f"🆕 Initialized new conversation: {conversation_id}")
         
+        # In development mode, always update the base system prompt
+        development_mode = os.getenv('DEVELOPMENT_MODE', '').lower() == 'true'
+        if development_mode:
+            update_conversation_system_prompt(conversation_id, base_system_prompt)
+        
         # Calculate the number of previous user-assistant pairs for lastk
         conversation_history = conversations[conversation_id]
         num_previous_pairs = (len(conversation_history) - 1) // 2
@@ -251,8 +296,10 @@ def chat_handler():
         new_rag_context_added = False
         try:
             print(f"🔍 Attempting RAG retrieval for query: '{message}'")
+            # Escape the message for JSON compatibility
+            escaped_message = escape_for_json(message)
             rag_context = retrieve(
-                query=message,
+                query=escaped_message,
                 session_id='GenericSession',
                 rag_threshold=0.4,
                 rag_k=5
@@ -286,11 +333,15 @@ def chat_handler():
         # Get the current system prompt (which now includes all accumulated context)
         enhanced_system_prompt = conversations[conversation_id][0]["content"]
         
+        # Escape parameters for JSON compatibility
+        escaped_system_prompt = escape_for_json(enhanced_system_prompt)
+        escaped_message = escape_for_json(message)
+        
         # Use llmproxy's generate
         response = generate(
             model='4o-mini',
-            system=enhanced_system_prompt,
-            query=message,
+            system=escaped_system_prompt,
+            query=escaped_message,
             temperature=0.7,
             lastk=num_previous_pairs, 
             session_id=conversation_id,
@@ -397,6 +448,11 @@ def chat_handler_stream():
                 conversation_rag_context[conversation_id] = []
                 print(f"🆕 Initialized new conversation: {conversation_id}")
             
+            # In development mode, always update the base system prompt
+            development_mode = os.getenv('DEVELOPMENT_MODE', '').lower() == 'true'
+            if development_mode:
+                update_conversation_system_prompt(conversation_id, base_system_prompt)
+            
             # Send status: loading (RAG retrieval)
             yield f'data: {json.dumps({"status": "loading", "message": "Looking at course content..."})}\n\n'
             
@@ -409,8 +465,10 @@ def chat_handler_stream():
             new_rag_context_added = False
             try:
                 print(f"🔍 Attempting RAG retrieval for query: '{message}'")
+                # Escape the message for JSON compatibility
+                escaped_message = escape_for_json(message)
                 rag_context = retrieve(
-                    query=message,
+                    query=escaped_message,
                     session_id='GenericSession',
                     rag_threshold=0.4,
                     rag_k=5
@@ -447,11 +505,15 @@ def chat_handler_stream():
             # Send status: thinking (response generation)
             yield f'data: {json.dumps({"status": "thinking", "message": "Thinking..."})}\n\n'
             
+            # Escape parameters for JSON compatibility
+            escaped_system_prompt = escape_for_json(enhanced_system_prompt)
+            escaped_message = escape_for_json(message)
+            
             # Use llmproxy's generate
             response = generate(
                 model='4o-mini',
-                system=enhanced_system_prompt,
-                query=message,
+                system=escaped_system_prompt,
+                query=escaped_message,
                 temperature=0.7,
                 lastk=num_previous_pairs, 
                 session_id=conversation_id,
@@ -528,7 +590,9 @@ def rag_context_string_simple(rag_context):
     i = 1
     for collection in rag_context:
         if not context_string:
-            context_string = """The following is additional context that may be helpful in answering the user's query."""
+            context_string = """The following is additional context that may be
+                             helpful in answering the query. Use them only
+                             if it is relevant to the user's query."""
         
         context_string += """
         #{} {}
