@@ -76,7 +76,22 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                         });
                         break;
                     }
-
+                case 'getHealthStatus':
+                    {
+                        // Fetch and send health status to webview
+                        if (this.authManager.isAuthenticated()) {
+                            try {
+                                const healthStatus = await this._fetchHealthStatus();
+                                webviewView.webview.postMessage({
+                                    type: 'healthStatus',
+                                    ...healthStatus
+                                });
+                            } catch (error) {
+                                console.error('Error fetching health status:', error);
+                            }
+                        }
+                        break;
+                    }
             }
         });
     }
@@ -140,7 +155,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                                             response: event.response,
                                             rag_context: event.rag_context,
                                             conversation_id: event.conversation_id,
-                                            user_info: event.user_info
+                                            user_info: event.user_info,
+                                            health_status: event.health_status
                                         });
                                     } else if (event.status === 'error') {
                                         if (event.error.includes('Authentication required') || 
@@ -175,6 +191,49 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             });
 
             req.write(postData);
+            req.end();
+        });
+    }
+
+    private _fetchHealthStatus(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const authToken = this.authManager.getAuthToken();
+            if (!authToken) {
+                reject(new Error('Authentication required'));
+                return;
+            }
+            
+            const options = {
+                hostname: '127.0.0.1',
+                port: 5000,
+                path: '/health-status',
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+
+            const req = http.request(options, (res) => {
+                let data = '';
+                
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+
+                res.on('end', () => {
+                    try {
+                        const healthStatus = JSON.parse(data);
+                        resolve(healthStatus);
+                    } catch (e) {
+                        reject(new Error('Failed to parse health status'));
+                    }
+                });
+            });
+
+            req.on('error', (e) => {
+                reject(e);
+            });
+
             req.end();
         });
     }
@@ -432,11 +491,82 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
             padding: 0;
             font-size: inherit;
         }
+        
+        /* Health bar styles */
+        .health-bar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        
+        .health-bar-wrapper {
+            width: 100%;
+            max-width: 200px;
+        }
+        
+        .health-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--vscode-input-background);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .health-bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .health-bar-fill.high {
+            background-color: var(--vscode-testing-iconPassed);
+        }
+        
+        .health-bar-fill.medium {
+            background-color: var(--vscode-editorWarning-foreground);
+        }
+        
+        .health-bar-fill.low {
+            background-color: var(--vscode-testing-iconFailed);
+        }
+        
+        .health-bar-gradient {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2));
+        }
+        
+        .health-warning {
+            margin-top: 4px;
+            font-size: 9px;
+            color: var(--vscode-testing-iconFailed);
+            text-align: center;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
     ${isAuthenticated ? `
     <div class="chat-container">
+        <div id="healthBarContainer" class="health-bar-container" style="display: none;">
+            <div class="health-bar-wrapper">
+                <div class="health-bar">
+                    <div class="health-bar-fill" id="healthBarFill" style="width: 100%;">
+                        <div class="health-bar-gradient"></div>
+                    </div>
+                </div>
+                <div class="health-warning" id="healthWarning" style="display: none;">
+                    Out of queries. Please wait.
+                </div>
+            </div>
+        </div>
+        
         <div class="messages-container" id="messages">
             <div class="message bot">
                 <div class="message-bubble">
@@ -470,6 +600,8 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         let conversationId = generateUUID();
         let isLoading = false;
         const isAuthenticated = ${isAuthenticated};
+        let healthStatus = null;
+        let healthTimerInterval = null;
 
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -483,8 +615,54 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                 type: 'requestAuth'
             });
         }
-
-
+        
+        function updateHealthBar(status) {
+            if (!status) return;
+            
+            healthStatus = status;
+            const container = document.getElementById('healthBarContainer');
+            const fillEl = document.getElementById('healthBarFill');
+            const warningEl = document.getElementById('healthWarning');
+            
+            if (container) {
+                container.style.display = 'flex';
+            }
+            
+            if (fillEl) {
+                const percentage = (status.current_points / status.max_points) * 100;
+                fillEl.style.width = percentage + '%';
+                
+                // Update color based on percentage
+                fillEl.className = 'health-bar-fill';
+                if (percentage > 60) {
+                    fillEl.classList.add('high');
+                } else if (percentage > 30) {
+                    fillEl.classList.add('medium');
+                } else {
+                    fillEl.classList.add('low');
+                }
+            }
+            
+            if (warningEl) {
+                warningEl.style.display = status.current_points === 0 ? 'block' : 'none';
+            }
+            
+            // Update send button state
+            if (isAuthenticated) {
+                const sendButton = document.getElementById('sendButton');
+                if (sendButton && !isLoading) {
+                    sendButton.disabled = !status.can_query;
+                }
+            }
+        }
+        
+        function startHealthTimer(seconds) {
+            // Timer functionality removed for cleaner interface
+        }
+        
+        function stopHealthTimer() {
+            // Timer functionality removed for cleaner interface
+        }
 
         if (isAuthenticated) {
             const messagesContainer = document.getElementById('messages');
@@ -564,6 +742,12 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     return;
                 }
                 
+                // Check health status
+                if (healthStatus && !healthStatus.can_query) {
+                    addMessage("You've run out of queries. Please wait for your health points to regenerate.", 'bot');
+                    return;
+                }
+                
                 isLoading = true;
                 sendButton.disabled = true;
                 
@@ -615,6 +799,10 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                     location.reload();
                     break;
                     
+                case 'healthStatus':
+                    updateHealthBar(message);
+                    break;
+                    
                 case 'status':
                     if (isAuthenticated) {
                         const lastBotMessage = [...document.querySelectorAll('.message.bot .message-bubble')].pop();
@@ -655,8 +843,13 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
                             addMessage(message.response, 'bot');
                         }
                         
+                        // Update health status from response
+                        if (message.health_status) {
+                            updateHealthBar(message.health_status);
+                        }
+                        
                         isLoading = false;
-                        sendButton.disabled = false;
+                        sendButton.disabled = healthStatus && !healthStatus.can_query;
                         chatInput.focus();
                     }
                     break;
@@ -667,6 +860,20 @@ export class ChatViewProvider implements vscode.WebviewViewProvider {
         vscode.postMessage({
             type: 'getAuthStatus'
         });
+        
+        // Request health status on load if authenticated
+        if (isAuthenticated) {
+            vscode.postMessage({
+                type: 'getHealthStatus'
+            });
+            
+            // Refresh health status every 30 seconds
+            setInterval(() => {
+                vscode.postMessage({
+                    type: 'getHealthStatus'
+                });
+            }, 30000);
+        }
     </script>
 </body>
 </html>`;

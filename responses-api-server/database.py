@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, String, Text, DateTime, Integer, Boolean, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import secrets
 import os
@@ -90,6 +90,23 @@ class UserSession(Base):
     
     def __repr__(self):
         return f"<UserSession(user='{self.user.anonymous_id}', platform='{self.platform}', start='{self.session_start}')>"
+
+class UserHealthPoints(Base):
+    """Tracks health points for rate limiting users"""
+    __tablename__ = 'user_health_points'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('anonymous_users.id'), unique=True, nullable=False)
+    current_points = Column(Integer, default=8, nullable=False)
+    max_points = Column(Integer, default=8, nullable=False)
+    last_query_at = Column(DateTime, nullable=True)
+    last_regeneration_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("AnonymousUser", backref="health_points")
+    
+    def __repr__(self):
+        return f"<UserHealthPoints(user_id='{self.user_id}', points='{self.current_points}/{self.max_points}')>"
 
 class DatabaseManager:
     """Manages database operations for the logging system"""
@@ -288,6 +305,133 @@ class DatabaseManager:
                 'vscode_conversations': vscode_conversations,
                 'average_conversations_per_user': total_conversations / total_users if total_users else 0,
                 'average_messages_per_conversation': total_messages / total_conversations if total_conversations else 0
+            }
+            
+        finally:
+            db.close()
+    
+    def get_or_create_health_points(self, user_id: int) -> UserHealthPoints:
+        """Get or create health points for a user"""
+        db = self.get_session()
+        try:
+            health_points = db.query(UserHealthPoints).filter(
+                UserHealthPoints.user_id == user_id
+            ).first()
+            
+            if not health_points:
+                health_points = UserHealthPoints(
+                    user_id=user_id,
+                    current_points=8,
+                    max_points=8,
+                    last_regeneration_at=datetime.utcnow()
+                )
+                db.add(health_points)
+                db.commit()
+                db.refresh(health_points)
+            
+            return health_points
+            
+        finally:
+            db.close()
+    
+    def regenerate_health_points(self, user_id: int) -> dict:
+        """Regenerate health points based on time elapsed (1 point per 3 minutes)"""
+        db = self.get_session()
+        try:
+            health_points = self.get_or_create_health_points(user_id)
+            
+            # Refresh the object in this session
+            health_points = db.query(UserHealthPoints).filter(
+                UserHealthPoints.user_id == user_id
+            ).first()
+            
+            now = datetime.utcnow()
+            time_since_last_regen = now - health_points.last_regeneration_at
+            
+            # Calculate points to regenerate (1 point per 3 minutes)
+            minutes_elapsed = time_since_last_regen.total_seconds() / 60
+            points_to_add = int(minutes_elapsed / 3)
+            
+            if points_to_add > 0 and health_points.current_points < health_points.max_points:
+                # Add points but don't exceed max
+                health_points.current_points = min(
+                    health_points.current_points + points_to_add,
+                    health_points.max_points
+                )
+                health_points.last_regeneration_at = now
+                db.commit()
+            
+            return {
+                'current_points': health_points.current_points,
+                'max_points': health_points.max_points,
+                'can_query': health_points.current_points > 0
+            }
+            
+        finally:
+            db.close()
+    
+    def consume_health_point(self, user_id: int) -> tuple:
+        """Consume a health point for a query. Returns (success, current_points)"""
+        db = self.get_session()
+        try:
+            # First regenerate any points
+            self.regenerate_health_points(user_id)
+            
+            # Get fresh health points
+            health_points = db.query(UserHealthPoints).filter(
+                UserHealthPoints.user_id == user_id
+            ).first()
+            
+            if not health_points:
+                health_points = UserHealthPoints(
+                    user_id=user_id,
+                    current_points=8,
+                    max_points=8,
+                    last_regeneration_at=datetime.utcnow()
+                )
+                db.add(health_points)
+            
+            if health_points.current_points > 0:
+                health_points.current_points -= 1
+                health_points.last_query_at = datetime.utcnow()
+                db.commit()
+                return True, health_points.current_points
+            else:
+                return False, 0
+                
+        finally:
+            db.close()
+    
+    def get_user_health_status(self, user_id: int) -> dict:
+        """Get current health status for a user"""
+        # First regenerate any points
+        self.regenerate_health_points(user_id)
+        
+        db = self.get_session()
+        try:
+            health_points = db.query(UserHealthPoints).filter(
+                UserHealthPoints.user_id == user_id
+            ).first()
+            
+            if not health_points:
+                return {
+                    'current_points': 8,
+                    'max_points': 8,
+                    'can_query': True,
+                    'time_until_next_regen': 180  # 3 minutes in seconds
+                }
+            
+            # Calculate time until next regeneration
+            now = datetime.utcnow()
+            time_since_last_regen = now - health_points.last_regeneration_at
+            seconds_elapsed = time_since_last_regen.total_seconds()
+            time_until_next_regen = max(0, 180 - (seconds_elapsed % 180))
+            
+            return {
+                'current_points': health_points.current_points,
+                'max_points': health_points.max_points,
+                'can_query': health_points.current_points > 0,
+                'time_until_next_regen': int(time_until_next_regen)
             }
             
         finally:

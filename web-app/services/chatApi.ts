@@ -3,6 +3,7 @@ interface ChatResponse {
   error?: string;
   rag_context?: string;
   conversation_id?: string;
+  health_status?: HealthStatus;
 }
 
 interface StreamEvent {
@@ -12,6 +13,14 @@ interface StreamEvent {
   error?: string;
   rag_context?: string;
   conversation_id?: string;
+  health_status?: HealthStatus;
+}
+
+interface HealthStatus {
+  current_points: number;
+  max_points: number;
+  can_query: boolean;
+  time_until_next_regen: number;
 }
 
 class ChatApiService {
@@ -82,7 +91,8 @@ class ChatApiService {
                   return {
                     response: event.response,
                     rag_context: event.rag_context,
-                    conversation_id: event.conversation_id
+                    conversation_id: event.conversation_id,
+                    health_status: event.health_status
                   };
                 } else if (event.status === 'error') {
                   throw new Error(event.error || 'Unknown error');
@@ -111,7 +121,30 @@ class ChatApiService {
       throw error;
     }
   }
+
+  async getHealthStatus(): Promise<HealthStatus> {
+    try {
+      const headers: Record<string, string> = {};
+      
+      // Add development headers if in development mode
+      const isDevelopmentMode = process.env.NODE_ENV === 'development' || 
+                               process.env.DEVELOPMENT_MODE === 'true';
+      if (isDevelopmentMode) {
+        headers["X-Development-Mode"] = "true";
+        headers["X-Remote-User"] = "testuser";
+      }
+      
+      const response = await fetch(`${this.baseUrl}/health-status`, { headers });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Health status check failed:", error);
+      throw error;
+    }
+  }
 }
 
 export const chatApiService = new ChatApiService();
-export type { ChatResponse, StreamEvent }; 
+export type { ChatResponse, StreamEvent, HealthStatus }; 

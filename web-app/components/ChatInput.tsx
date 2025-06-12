@@ -41,14 +41,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isDisabled 
   };
 
   return (
-    <div className="mt-2 flex gap-2 p-3 bg-gray-50 rounded-lg items-end">
+    <div className="mt-2 flex gap-2 p-3 bg-gray-700 rounded-lg items-end border border-gray-600">
       <textarea
         ref={textareaRef}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Ask a question"
-        className="flex-1 bg-white rounded-md border border-gray-300 px-3 py-2 text-sm 
-                   focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent
+        className="flex-1 bg-gray-600 text-gray-100 placeholder-gray-400 rounded-md border border-gray-500 px-3 py-2 text-sm 
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    resize-none overflow-y-auto min-h-[40px]"
         onKeyDown={handleKeyDown}
         disabled={isDisabled}
@@ -56,7 +56,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isDisabled 
       />
       <Button 
         onClick={handleSend} 
-        className="bg-cs-accent hover:bg-cs-navy text-white transition-colors"
+        className="bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:bg-gray-600 disabled:text-gray-400"
         disabled={isDisabled || !input.trim()}
       >
         <LuSendHorizontal size="24px" />

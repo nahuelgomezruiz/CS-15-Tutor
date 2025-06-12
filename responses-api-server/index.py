@@ -11,6 +11,7 @@ import urllib.parse
 # Import our new services
 from auth_service import auth_service
 from logging_service import logging_service
+from database import db_manager
 
 def escape_for_json(text: str) -> str:
     """
@@ -236,6 +237,33 @@ def analytics_endpoint():
         return jsonify({"error": "Analytics error"}), 500
 
 """
+name:        health_status_endpoint
+description: endpoint to get user's health points status
+parameters:  none (uses authentication)
+returns:     health points status
+"""
+@app.route('/health-status', methods=['GET'])
+def health_status_endpoint():
+    """Get user's health points status"""
+    try:
+        # Authenticate request
+        utln, platform = auth_service.authenticate_request(request)
+        if not utln:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        # Get user data
+        user_data, _ = db_manager.get_or_create_anonymous_user(utln)
+        
+        # Get health status
+        health_status = db_manager.get_user_health_status(user_data['id'])
+        
+        return jsonify(health_status)
+        
+    except Exception as e:
+        print(f"❌ Error getting health status: {e}")
+        return jsonify({"error": "Health status error"}), 500
+
+"""
 name:        chat_handler
 description: endpoint to handle the chat request and return a message-response
 parameters:  a json object with a message key and a conversationId key
@@ -264,6 +292,20 @@ def chat_handler():
         
         if not message.strip():
             return jsonify({"error": "Message is required"}), 400
+        
+        # Get user data for health points
+        user_data, _ = db_manager.get_or_create_anonymous_user(utln)
+        
+        # Check and consume health point
+        can_query, remaining_points = db_manager.consume_health_point(user_data['id'])
+        if not can_query:
+            health_status = db_manager.get_user_health_status(user_data['id'])
+            return jsonify({
+                "error": "You have run out of queries. Please wait for your health points to regenerate.",
+                "health_status": health_status
+            }), 429  # Too Many Requests
+        
+        print(f"💚 Health points consumed. Remaining: {remaining_points}")
         
         # Log the user query
         query_log_result = logging_service.log_user_query(
@@ -379,6 +421,9 @@ def chat_handler():
         print(f"⏱️ Total request time: {response_time_ms}ms")
         print(f"👤 User analytics: {query_log_result}")
         
+        # Get updated health status
+        health_status = db_manager.get_user_health_status(user_data['id'])
+        
         # return the response 
         return jsonify({
             "response": assistant_response,
@@ -388,7 +433,8 @@ def chat_handler():
                 "anonymous_id": query_log_result.get('anonymous_id'),
                 "platform": platform,
                 "is_new_conversation": query_log_result.get('is_new_conversation', False)
-            }
+            },
+            "health_status": health_status
         })
         
     except Exception as error:
@@ -430,6 +476,18 @@ def chat_handler_stream():
             if not message.strip():
                 yield f'data: {json.dumps({"error": "Message is required"})}\n\n'
                 return
+            
+            # Get user data for health points
+            user_data, _ = db_manager.get_or_create_anonymous_user(utln)
+            
+            # Check and consume health point
+            can_query, remaining_points = db_manager.consume_health_point(user_data['id'])
+            if not can_query:
+                health_status = db_manager.get_user_health_status(user_data['id'])
+                yield f'data: {json.dumps({"error": "You have run out of queries. Please wait for your health points to regenerate.", "health_status": health_status})}\n\n'
+                return
+            
+            print(f"💚 Health points consumed. Remaining: {remaining_points}")
             
             # Log the user query
             query_log_result = logging_service.log_user_query(
@@ -551,6 +609,9 @@ def chat_handler_stream():
             print(f"⏱️ Total request time: {response_time_ms}ms")
             print(f"👤 User analytics: {query_log_result}")
             
+            # Get updated health status
+            health_status = db_manager.get_user_health_status(user_data['id'])
+            
             # Send final response
             response_data = {
                 "status": "complete", 
@@ -561,7 +622,8 @@ def chat_handler_stream():
                     "anonymous_id": query_log_result.get('anonymous_id'),
                     "platform": platform,
                     "is_new_conversation": query_log_result.get('is_new_conversation', False)
-                }
+                },
+                "health_status": health_status
             }
             yield f'data: {json.dumps(response_data)}\n\n'
             
@@ -636,6 +698,7 @@ if __name__ == '__main__':
     print("   POST /vscode-direct-auth - VSCode extension authentication (form-based)")
     print("   GET /vscode-auth-status - Check VSCode auth status")
     print("   GET /analytics - System analytics (authenticated users)")
+    print("   GET /health-status - Get user's health points status")
     print("🔐 Authentication: Web app uses .htaccess, VSCode uses JWT tokens with LDAP")
     print("📊 Logging: All interactions are logged with user anonymization")
     
