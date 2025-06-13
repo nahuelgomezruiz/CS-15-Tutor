@@ -157,6 +157,24 @@ class AuthenticationService:
                 if utln:
                     logger.info(f"Development mode authentication: {utln}")
             
+            # Method 6: Tufts frontend deployment - validate requests from authorized Tufts domains
+            if not utln and request.headers.get('X-Tufts-Authenticated') == 'true':
+                frontend_domain = request.headers.get('X-Frontend-Domain')
+                remote_user = request.headers.get('X-Remote-User')
+                
+                # Validate that the request is coming from a legitimate Tufts domain
+                if (frontend_domain and remote_user and 
+                    ('.tufts.edu' in frontend_domain or 'eecs.tufts.edu' in frontend_domain)):
+                    
+                    # Additional validation: check if user is in our authorized list
+                    if self.is_authorized_cs15_student(remote_user):
+                        utln = remote_user
+                        logger.info(f"Tufts frontend authentication: {utln} from {frontend_domain}")
+                    else:
+                        logger.warning(f"Unauthorized user from Tufts frontend: {remote_user}")
+                else:
+                    logger.warning(f"Invalid Tufts frontend request: domain={frontend_domain}, user={remote_user}")
+            
             if utln:
                 logger.info(f"Authenticated web user: {utln}")
                 return utln.lower().strip()
@@ -269,32 +287,50 @@ class AuthenticationService:
             # Check if development mode is explicitly enabled
             dev_mode = os.getenv('DEVELOPMENT_MODE', '').lower() == 'true'
             
-            # For now, read from the .htgrp file like the web app
-            htgrp_path = os.path.join(os.path.dirname(__file__), '../web-app/.htgrp')
-            
-            if os.path.exists(htgrp_path):
-                with open(htgrp_path, 'r') as f:
-                    content = f.read()
-                    # Parse the .htgrp file format: "group: user1 user2 user3"
-                    for line in content.strip().split('\n'):
-                        if line.startswith('cs15_students:'):
-                            authorized_users = line.split(':', 1)[1].strip().split()
-                            if utln.lower() in [user.lower() for user in authorized_users]:
-                                return True
-            
-            # Fallback: if file doesn't exist, check environment variable or default list
+            # First check environment variable (for cloud deployments like Render)
             authorized_users_env = os.getenv('CS15_AUTHORIZED_USERS', '')
             if authorized_users_env:
                 authorized_users = [user.strip().lower() for user in authorized_users_env.split(',')]
                 if utln.lower() in authorized_users:
+                    logger.info(f"User {utln} authorized via environment variable")
                     return True
+            
+            # Try to read from .htgrp file (for local/server deployments)
+            possible_paths = [
+                os.path.join(os.path.dirname(__file__), '../web-app/.htgrp'),
+                os.path.join(os.path.dirname(__file__), '.htgrp'),
+                '.htgrp',
+                '../.htgrp'
+            ]
+            
+            for htgrp_path in possible_paths:
+                if os.path.exists(htgrp_path):
+                    try:
+                        with open(htgrp_path, 'r') as f:
+                            content = f.read()
+                            # Parse the .htgrp file format: "group: user1 user2 user3"
+                            for line in content.strip().split('\n'):
+                                if line.startswith('cs15_students:'):
+                                    authorized_users = line.split(':', 1)[1].strip().split()
+                                    if utln.lower() in [user.lower() for user in authorized_users]:
+                                        logger.info(f"User {utln} authorized via .htgrp file: {htgrp_path}")
+                                        return True
+                    except Exception as e:
+                        logger.warning(f"Error reading .htgrp file {htgrp_path}: {e}")
+                        continue
+            
+            # Default authorized users (hardcoded fallback for deployments)
+            default_authorized = ['vhenao01', 'agomez08', 'dzabne01', 'mkazer01']
+            if utln.lower() in default_authorized:
+                logger.info(f"User {utln} authorized via default list")
+                return True
             
             # Development mode: allow any user that looks like a valid UTLN
             if dev_mode and re.match(r'^[a-zA-Z][a-zA-Z0-9]{2,15}$', utln):
                 logger.info(f"Development mode: allowing user {utln}")
                 return True
             
-            logger.warning(f"User {utln} not authorized for CS 15 tutor")
+            logger.warning(f"User {utln} not authorized for CS 15 tutor. Checked env var, .htgrp files, and default list.")
             return False
             
         except Exception as e:
@@ -402,4 +438,4 @@ class AuthenticationService:
             return {'status': 'error'}
 
 # Global authentication service instance
-auth_service = AuthenticationService() 
+auth_service = AuthenticationService()
