@@ -24,7 +24,7 @@ interface HealthStatus {
 }
 
 class ChatApiService {
-  private baseUrl = "http://127.0.0.1:5000";
+  private baseUrl = "https://cs-15-tutor.onrender.com";
 
   async sendMessage(
     message: string, 

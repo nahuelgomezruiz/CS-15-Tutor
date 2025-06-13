@@ -1,6 +1,9 @@
 {
-  "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js"
+  "/_app": "pages/_app.js",
+  "/api/complete-vscode-auth": "pages/api/complete-vscode-auth.js",
+  "/": "pages/index.html",
+  "/vscode-auth": "pages/vscode-auth.html",
+  "/_error": "pages/_error.js",
+  "/404": "pages/404.html"
 }
