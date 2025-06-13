@@ -5,6 +5,13 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 import csv
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+email = os.getenv("PIAZZA_EMAIL")
+password = os.getenv("PIAZZA_PASSWORD")
 
 all_posts = {}
 
@@ -51,10 +58,10 @@ login_button = wait.until(EC.presence_of_element_located((By.ID, "login_button")
 login_button.click()
 
 email_input = wait.until(EC.visibility_of_element_located((By.NAME, "email")))
-email_input.send_keys("valentina.henao_giraldo@tufts.edu")
+email_input.send_keys(email)
 
 password_input = driver.find_element(By.NAME, "password")
-password_input.send_keys("PIValenhg2012!")
+password_input.send_keys(password)
 
 submit_btn = driver.find_element(By.ID, "modal_login_button")
 submit_btn.click()
