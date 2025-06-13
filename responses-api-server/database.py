@@ -391,6 +391,18 @@ class DatabaseManager:
                 )
                 db.add(health_points)
             
+            # Check if this is the development test user
+            user = db.query(AnonymousUser).filter(AnonymousUser.id == user_id).first()
+            is_dev_user = user and user.utln_hash == hashlib.sha256("testuser".encode()).hexdigest()
+            
+            # Development test user gets unlimited queries
+            if is_dev_user and os.getenv('DEVELOPMENT_MODE', '').lower() == 'true':
+                # Always return success with max points for dev user
+                health_points.current_points = health_points.max_points
+                health_points.last_query_at = datetime.utcnow()
+                db.commit()
+                return True, health_points.current_points
+            
             if health_points.current_points > 0:
                 health_points.current_points -= 1
                 health_points.last_query_at = datetime.utcnow()
@@ -419,6 +431,19 @@ class DatabaseManager:
                     'max_points': 8,
                     'can_query': True,
                     'time_until_next_regen': 180  # 3 minutes in seconds
+                }
+            
+            # Check if this is the development test user
+            user = db.query(AnonymousUser).filter(AnonymousUser.id == user_id).first()
+            is_dev_user = user and user.utln_hash == hashlib.sha256("testuser".encode()).hexdigest()
+            
+            # Development test user gets unlimited queries
+            if is_dev_user and os.getenv('DEVELOPMENT_MODE', '').lower() == 'true':
+                return {
+                    'current_points': health_points.max_points,
+                    'max_points': health_points.max_points,
+                    'can_query': True,
+                    'time_until_next_regen': 0  # No regeneration needed
                 }
             
             # Calculate time until next regeneration
