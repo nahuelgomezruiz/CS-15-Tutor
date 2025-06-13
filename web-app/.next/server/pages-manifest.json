@@ -1,6 +1,6 @@
 {
-  "/_document": "pages/_document.js",
   "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
   "/api/complete-vscode-auth": "pages/api/complete-vscode-auth.js",
   "/": "pages/index.html",
   "/vscode-auth": "pages/vscode-auth.html",
