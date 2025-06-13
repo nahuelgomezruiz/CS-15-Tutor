@@ -567,7 +567,7 @@ class ChatViewProvider {
         <div class="messages-container" id="messages">
             <div class="message bot">
                 <div class="message-bubble">
-                    Hi! This is an experimental AI tutor for CS 15. Responses are logged. Email alfredo.gomez_ruiz@tufts.edu for any errors.
+                    Hi! I'm an experimental AI tutor for CS15. Queries are logged to help improve the tool. Responses may be inaccurate, so please think critically. Feel free to send feedback to nahuel.gomez_ruiz@tufts.edu.
                 </div>
             </div>
         </div>
