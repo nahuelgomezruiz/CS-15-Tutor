@@ -23,8 +23,11 @@ interface HealthStatus {
   time_until_next_regen: number;
 }
 
+import { getApiBaseUrl } from '../config/api';
+import { frontendAuthService } from './authService';
+
 class ChatApiService {
-  private baseUrl = "https://cs-15-tutor.onrender.com";
+  private baseUrl = getApiBaseUrl();
 
   async sendMessage(
     message: string, 
@@ -32,16 +35,20 @@ class ChatApiService {
     onStatusUpdate?: (status: string) => void
   ): Promise<ChatResponse> {
     try {
+      // Get authentication headers
+      const authHeaders = await frontendAuthService.getAuthHeaders();
+      
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...authHeaders
+      };
+      
       // Check if we're in development mode
       const isDevelopmentMode = process.env.NODE_ENV === 'development' || 
                                process.env.DEVELOPMENT_MODE === 'true';
       
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json"
-      };
-      
-      // Add development headers if in development mode
-      if (isDevelopmentMode) {
+      // Add development headers if in development mode and no auth headers
+      if (isDevelopmentMode && !authHeaders['X-Remote-User']) {
         headers["X-Development-Mode"] = "true";
         headers["X-Remote-User"] = "testuser"; // Default test user for development
       }
@@ -124,12 +131,14 @@ class ChatApiService {
 
   async getHealthStatus(): Promise<HealthStatus> {
     try {
-      const headers: Record<string, string> = {};
+      // Get authentication headers
+      const authHeaders = await frontendAuthService.getAuthHeaders();
+      const headers: Record<string, string> = { ...authHeaders };
       
-      // Add development headers if in development mode
+      // Add development headers if in development mode and no auth headers
       const isDevelopmentMode = process.env.NODE_ENV === 'development' || 
                                process.env.DEVELOPMENT_MODE === 'true';
-      if (isDevelopmentMode) {
+      if (isDevelopmentMode && !authHeaders['X-Remote-User']) {
         headers["X-Development-Mode"] = "true";
         headers["X-Remote-User"] = "testuser";
       }
@@ -147,4 +156,4 @@ class ChatApiService {
 }
 
 export const chatApiService = new ChatApiService();
-export type { ChatResponse, StreamEvent, HealthStatus }; 
+export type { ChatResponse, StreamEvent, HealthStatus };
