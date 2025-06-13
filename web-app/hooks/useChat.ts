@@ -65,7 +65,7 @@ export const useChat = () => {
       
       if (data.response) {
         updateLastMessage(data.response, false);
-        console.log("RAG Context:", data.rag_context);
+        // console.log("RAG Context:", data.rag_context);
         
         // Update health status from response
         if (data.health_status) {
