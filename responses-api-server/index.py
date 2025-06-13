@@ -248,7 +248,7 @@ def health_status_endpoint():
     try:
         # Authenticate request
         utln, platform = auth_service.authenticate_request(request)
-        if not utln:
+        if not utln: 
             return jsonify({"error": "Authentication required"}), 401
         
         # Get user data
@@ -640,7 +640,7 @@ def chat_handler_stream():
         }
     )
 
-"""
+""" 
 name:        rag_context_string_simple
 description: create a context string from retrieve's return value
 parameters:  rag_context - the return value from retrieve()
@@ -702,5 +702,5 @@ if __name__ == '__main__':
     print("🔐 Authentication: Web app uses .htaccess, VSCode uses JWT tokens with LDAP")
     print("📊 Logging: All interactions are logged with user anonymization")
     
-    # Run the Flask app
-    app.run(host='127.0.0.1', port=5000, debug=True) 
+    # Run the Flask app (127.0.0.1 for local development)
+    app.run(host='0.0.0.0', port=5000, debug=True) 
