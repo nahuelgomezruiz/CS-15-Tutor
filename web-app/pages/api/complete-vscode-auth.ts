@@ -16,7 +16,8 @@ export default async function handler(
 
   try {
     // Proxy the request to the backend to avoid CORS issues
-    const response = await fetch('http://127.0.0.1:5000/vscode-auth', {
+    // http://127.0.0.1:5000/vscode-auth 
+    const response = await fetch('https://cs-15-tutor.onrender.c/vscode-auth', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
