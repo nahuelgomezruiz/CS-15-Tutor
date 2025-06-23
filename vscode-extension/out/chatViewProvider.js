@@ -111,131 +111,87 @@ class ChatViewProvider {
             this._view.webview.html = this._getHtmlForWebview(this._view.webview);
         }
     }
-    _sendMessageToAPI(message, conversationId) {
-        return new Promise((resolve, reject) => {
-            const postData = JSON.stringify({ message, conversationId });
-            // Get auth token
-            const authToken = this.authManager.getAuthToken();
-            if (!authToken) {
-                reject(new Error('Authentication required'));
-                return;
-            }
-            const options = {
-                hostname: '127.0.0.1',
-                port: 5000,
-                path: '/api/stream',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(postData),
-                    'Authorization': `Bearer ${authToken}`
-                }
-            };
-            const req = http.request(options, (res) => {
-                let buffer = '';
-                res.on('data', (chunk) => {
-                    buffer += chunk.toString();
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const jsonStr = line.slice(6);
-                            if (jsonStr.trim()) {
-                                try {
-                                    const event = JSON.parse(jsonStr);
-                                    if (event.status === 'loading') {
-                                        this._view?.webview.postMessage({
-                                            type: 'status',
-                                            status: 'Looking at course content...'
-                                        });
-                                    }
-                                    else if (event.status === 'thinking') {
-                                        this._view?.webview.postMessage({
-                                            type: 'status',
-                                            status: 'Thinking...'
-                                        });
-                                    }
-                                    else if (event.status === 'complete') {
-                                        resolve({
-                                            response: event.response,
-                                            rag_context: event.rag_context,
-                                            conversation_id: event.conversation_id,
-                                            user_info: event.user_info,
-                                            health_status: event.health_status
-                                        });
-                                    }
-                                    else if (event.status === 'error') {
-                                        if (event.error.includes('Authentication required') ||
-                                            event.error.includes('Access denied')) {
-                                            // Authentication failed - clear local auth and prompt re-auth
-                                            this.authManager.clearAuthentication();
-                                            this._view?.webview.postMessage({
-                                                type: 'authRequired',
-                                                message: event.error
-                                            });
-                                            reject(new Error(event.error));
-                                        }
-                                        else {
-                                            reject(new Error(event.error || 'Unknown error'));
-                                        }
-                                    }
-                                }
-                                catch (e) {
-                                    console.error('Error parsing SSE data:', e);
-                                }
-                            }
-                        }
-                    }
-                });
-                res.on('end', () => {
-                    reject(new Error('Stream ended without complete status'));
-                });
-            });
-            req.on('error', (e) => {
-                console.error('Error:', e);
-                resolve({ error: 'Error generating answer. Please try again.' });
-            });
-            req.write(postData);
-            req.end();
+    async _sendMessageToAPI(message, conversationId) {
+        const authToken = this.authManager.getAuthToken();
+        if (!authToken) {
+          throw new Error('Authentication required');
+        }
+      
+        const response = await fetch('https://cs-15-tutor.onrender.com/api/stream', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ message, conversationId })
         });
-    }
-    _fetchHealthStatus() {
-        return new Promise((resolve, reject) => {
-            const authToken = this.authManager.getAuthToken();
-            if (!authToken) {
-                reject(new Error('Authentication required'));
-                return;
-            }
-            const options = {
-                hostname: '127.0.0.1',
-                port: 5000,
-                path: '/health-status',
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authToken}`
+      
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+      
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+      
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+      
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6);
+              if (jsonStr.trim()) {
+                const event = JSON.parse(jsonStr);
+                if (event.status === 'loading') {
+                  this._view?.webview.postMessage({ type: 'status', status: 'Looking at course content...' });
+                } else if (event.status === 'thinking') {
+                  this._view?.webview.postMessage({ type: 'status', status: 'Thinking...' });
+                } else if (event.status === 'complete') {
+                  return {
+                    response: event.response,
+                    rag_context: event.rag_context,
+                    conversation_id: event.conversation_id,
+                    user_info: event.user_info,
+                    health_status: event.health_status
+                  };
+                } else if (event.status === 'error') {
+                  if (event.error.includes('Authentication required') || event.error.includes('Access denied')) {
+                    this.authManager.clearAuthentication();
+                    this._view?.webview.postMessage({ type: 'authRequired', message: event.error });
+                    throw new Error(event.error);
+                  } else {
+                    throw new Error(event.error || 'Unknown error');
+                  }
                 }
-            };
-            const req = http.request(options, (res) => {
-                let data = '';
-                res.on('data', (chunk) => {
-                    data += chunk;
-                });
-                res.on('end', () => {
-                    try {
-                        const healthStatus = JSON.parse(data);
-                        resolve(healthStatus);
-                    }
-                    catch (e) {
-                        reject(new Error('Failed to parse health status'));
-                    }
-                });
-            });
-            req.on('error', (e) => {
-                reject(e);
-            });
-            req.end();
+              }
+            }
+          }
+        }
+      
+        throw new Error('Stream ended without complete status');
+      }
+
+      async _fetchHealthStatus() {
+        const authToken = this.authManager.getAuthToken();
+        if (!authToken) {
+          throw new Error('Authentication required');
+        }
+      
+        const response = await fetch('https://cs-15-tutor.onrender.com/health-status', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
         });
-    }
+      
+        if (!response.ok) {
+          throw new Error('Failed to fetch health status');
+        }
+      
+        return await response.json();
+      }
+      
     _getHtmlForWebview(webview) {
         const isAuthenticated = this.authManager.isAuthenticated();
         const utln = this.authManager.getUtln();

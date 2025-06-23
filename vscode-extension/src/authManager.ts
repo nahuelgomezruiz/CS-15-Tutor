@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as http from 'http';
+import fetch from 'node-fetch';
+
 
 export interface AuthToken {
     token: string;
@@ -14,7 +16,7 @@ export class AuthManager {
     private context: vscode.ExtensionContext;
     private apiBaseUrl: string;
 
-    constructor(context: vscode.ExtensionContext, apiBaseUrl: string = 'http://127.0.0.1:5000') {
+    constructor(context: vscode.ExtensionContext, apiBaseUrl: string = 'https://cs-15-tutor.onrender.com') {
         this.context = context;
         this.apiBaseUrl = apiBaseUrl;
     }
@@ -181,99 +183,39 @@ export class AuthManager {
      * Authenticate user with credentials against backend
      */
     private async authenticateWithCredentials(username: string, password: string): Promise<any> {
-        return new Promise((resolve) => {
-            const data = JSON.stringify({
-                username: username,
-                password: password
-            });
-
-            const options = {
-                hostname: '127.0.0.1',
-                port: 5000,
-                path: '/vscode-direct-auth',
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/vscode-direct-auth`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(data)
-                }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+    
+            return await response.json();
+        } catch (error: any) {
+            console.error('Fetch error:', error);
+            return {
+                success: false,
+                error: `Connection error: ${error.message}`
             };
-
-            const req = http.request(options, (res) => {
-                let responseData = '';
-                res.on('data', (chunk) => {
-                    responseData += chunk;
-                });
-                res.on('end', () => {
-                    try {
-                        const response = JSON.parse(responseData);
-                        resolve(response);
-                    } catch (error) {
-                        resolve({ 
-                            success: false, 
-                            error: 'Invalid response from server' 
-                        });
-                    }
-                });
-            });
-
-            req.on('error', (error) => {
-                console.error('Error authenticating with credentials:', error);
-                resolve({ 
-                    success: false, 
-                    error: `Connection error: ${error.message}` 
-                });
-            });
-
-            req.write(data);
-            req.end();
-        });
+        }
     }
 
     /**
      * Get login URL from the server
      */
     private async getLoginUrl(): Promise<string | null> {
-        return new Promise((resolve) => {
-            const options = {
-                hostname: '127.0.0.1',
-                port: 5000,
-                path: '/vscode-auth',
-                method: 'GET'
-            };
-
-            const req = http.request(options, (res) => {
-                let data = '';
-                res.on('data', (chunk) => {
-                    data += chunk;
-                });
-                res.on('end', () => {
-                    try {
-                        const response = JSON.parse(data);
-                        if (response.login_url) {
-                            // Server provides the complete login URL
-                            resolve(response.login_url);
-                        } else if (response.session_id) {
-                            // Fallback: construct URL from session_id
-                            resolve(`${this.apiBaseUrl}/vscode-auth?session_id=${response.session_id}`);
-                        } else {
-                            console.error('No session_id or login_url in response:', response);
-                            resolve(null);
-                        }
-                    } catch (error) {
-                        console.error('Error parsing login URL response:', error);
-                        resolve(null);
-                    }
-                });
-            });
-
-            req.on('error', (error) => {
-                console.error('Error getting login URL:', error);
-                resolve(null);
-            });
-
-            req.end();
-        });
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/vscode-auth`);
+            const data = await response.json() as { login_url?: string; session_id?: string };
+            if (data.login_url) return data.login_url;
+            if (data.session_id) return `${this.apiBaseUrl}/vscode-auth?session_id=${data.session_id}`;
+            return null;
+        } catch (error) {
+            console.error('Login URL fetch error:', error);
+            return null;
+        }
     }
+    
 
     /**
      * Extract session ID from login URL
@@ -347,35 +289,13 @@ export class AuthManager {
      * Check authentication status on server
      */
     private async checkAuthStatus(sessionId: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            const options = {
-                hostname: '127.0.0.1',
-                port: 5000,
-                path: `/vscode-auth-status?session_id=${encodeURIComponent(sessionId)}`,
-                method: 'GET'
-            };
-
-            const req = http.request(options, (res) => {
-                let data = '';
-                res.on('data', (chunk) => {
-                    data += chunk;
-                });
-                res.on('end', () => {
-                    try {
-                        const response = JSON.parse(data);
-                        resolve(response);
-                    } catch (error) {
-                        reject(new Error('Invalid response from server'));
-                    }
-                });
-            });
-
-            req.on('error', (error) => {
-                reject(error);
-            });
-
-            req.end();
-        });
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/vscode-auth-status?session_id=${encodeURIComponent(sessionId)}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Error checking auth status:', error);
+            throw new Error('Failed to check auth status');
+        }
     }
 
     /**
