@@ -78,6 +78,19 @@ def load_system_prompt() -> str:
 # Preload system prompt at startup
 load_system_prompt()
 
+def load_allowed_vscode_users():
+    """Load list of allowed usernames for VSCode extension authentication"""
+    try:
+        with open('allowed_vscode_users.json', 'r') as f:
+            data = json.load(f)
+            return data.get('allowed_users', [])
+    except FileNotFoundError:
+        # Return default allowed users if file doesn't exist
+        return ["testuser", "demo_user", "student123"]
+    except Exception as e:
+        print(f"Error loading allowed VSCode users: {e}")
+        return ["testuser"]  # Fallback to just testuser
+
 """
 name:        health_check
 description: endpoint to check if the server is running
@@ -162,25 +175,67 @@ def vscode_direct_auth():
         
         username = data.get('username', '').strip()
         password = data.get('password', '').strip()
+        auth_method = data.get('auth_method', 'ldap')
         
-        if not username or not password:
-            return jsonify({"error": "Username and password are required"}), 400
+        if not username:
+            return jsonify({"error": "Username is required"}), 400
         
-        # Authenticate user with LDAP
-        token = auth_service.authenticate_vscode_user(username, password)
+        # Check if this is a username-only auth request (from VSCode extension with dev headers)
+        is_username_only_auth = (auth_method == 'username_only' or 
+                                request.headers.get('X-Development-Mode') == 'true')
         
-        if token:
-            return jsonify({
-                "success": True,
-                "token": token,
-                "username": username.lower(),
-                "message": "Authentication successful"
-            })
+        if is_username_only_auth:
+            # Username-only authentication for VSCode extension
+            # Check if username is in allowed list
+            allowed_users = load_allowed_vscode_users()
+            
+            if username.lower() not in [user.lower() for user in allowed_users]:
+                return jsonify({
+                    "success": False,
+                    "error": f"Username '{username}' is not authorized for VSCode access"
+                }), 403
+            
+            # Validate username format
+            if len(username) >= 3 and re.match(r'^[a-zA-Z][a-zA-Z0-9_]{2,15}$', username):
+                # Create a token for the user
+                token = auth_service.create_vscode_auth_token(username.lower())
+                if token:
+                    print(f"✅ VSCode username-only auth successful for user: {username}")
+                    return jsonify({
+                        "success": True,
+                        "token": token,
+                        "username": username.lower(),
+                        "message": "Authentication successful"
+                    })
+                else:
+                    return jsonify({
+                        "success": False,
+                        "error": "Failed to create authentication token"
+                    }), 500
+            else:
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid username format"
+                }), 401
         else:
-            return jsonify({
-                "success": False,
-                "error": "Invalid credentials or user not authorized for CS 15"
-            }), 401
+            # Original LDAP authentication for web app (requires password)
+            if not password:
+                return jsonify({"error": "Password is required for LDAP authentication"}), 400
+                
+            token = auth_service.authenticate_vscode_user(username, password)
+            
+            if token:
+                return jsonify({
+                    "success": True,
+                    "token": token,
+                    "username": username.lower(),
+                    "message": "Authentication successful"
+                })
+            else:
+                return jsonify({
+                    "success": False,
+                    "error": "Invalid credentials or user not authorized for CS 15"
+                }), 401
             
     except Exception as e:
         print(f"❌ Error in direct VSCode auth: {e}")
