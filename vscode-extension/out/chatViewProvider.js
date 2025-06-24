@@ -22,14 +22,18 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatViewProvider = void 0;
 const vscode = __importStar(require("vscode"));
-const http = __importStar(require("http"));
+const node_fetch_1 = __importDefault(require("node-fetch"));
 class ChatViewProvider {
-    constructor(_extensionUri, authManager) {
+    constructor(_extensionUri, authManager, apiBaseUrl = 'https://cs-15-tutor.onrender.com') {
         this._extensionUri = _extensionUri;
         this.authManager = authManager;
+        this.apiBaseUrl = apiBaseUrl;
     }
     resolveWebviewView(webviewView, context, _token) {
         this._view = webviewView;
@@ -112,86 +116,106 @@ class ChatViewProvider {
         }
     }
     async _sendMessageToAPI(message, conversationId) {
+        // Get auth token
         const authToken = this.authManager.getAuthToken();
         if (!authToken) {
-          throw new Error('Authentication required');
+            throw new Error('Authentication required');
         }
-      
-        const response = await fetch('https://cs-15-tutor.onrender.com/api/stream', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({ message, conversationId })
-        });
-      
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-        let buffer = '';
-      
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-      
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-      
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const jsonStr = line.slice(6);
-              if (jsonStr.trim()) {
-                const event = JSON.parse(jsonStr);
-                if (event.status === 'loading') {
-                  this._view?.webview.postMessage({ type: 'status', status: 'Looking at course content...' });
-                } else if (event.status === 'thinking') {
-                  this._view?.webview.postMessage({ type: 'status', status: 'Thinking...' });
-                } else if (event.status === 'complete') {
-                  return {
-                    response: event.response,
-                    rag_context: event.rag_context,
-                    conversation_id: event.conversation_id,
-                    user_info: event.user_info,
-                    health_status: event.health_status
-                  };
-                } else if (event.status === 'error') {
-                  if (event.error.includes('Authentication required') || event.error.includes('Access denied')) {
-                    this.authManager.clearAuthentication();
-                    this._view?.webview.postMessage({ type: 'authRequired', message: event.error });
-                    throw new Error(event.error);
-                  } else {
-                    throw new Error(event.error || 'Unknown error');
-                  }
-                }
-              }
+        try {
+            const response = await (0, node_fetch_1.default)(`${this.apiBaseUrl}/api/stream`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({ message, conversationId })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-          }
+            // For node-fetch, we need to handle the response differently
+            const text = await response.text();
+            const lines = text.split('\n');
+            let buffer = '';
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const jsonStr = line.slice(6);
+                    if (jsonStr.trim()) {
+                        try {
+                            const event = JSON.parse(jsonStr);
+                            if (event.status === 'loading') {
+                                this._view?.webview.postMessage({
+                                    type: 'status',
+                                    status: 'Looking at course content...'
+                                });
+                            }
+                            else if (event.status === 'thinking') {
+                                this._view?.webview.postMessage({
+                                    type: 'status',
+                                    status: 'Thinking...'
+                                });
+                            }
+                            else if (event.status === 'complete') {
+                                return {
+                                    response: event.response,
+                                    rag_context: event.rag_context,
+                                    conversation_id: event.conversation_id,
+                                    user_info: event.user_info,
+                                    health_status: event.health_status
+                                };
+                            }
+                            else if (event.status === 'error') {
+                                if (event.error.includes('Authentication required') ||
+                                    event.error.includes('Access denied')) {
+                                    // Authentication failed - clear local auth and prompt re-auth
+                                    this.authManager.clearAuthentication();
+                                    this._view?.webview.postMessage({
+                                        type: 'authRequired',
+                                        message: event.error
+                                    });
+                                    throw new Error(event.error);
+                                }
+                                else {
+                                    throw new Error(event.error || 'Unknown error');
+                                }
+                            }
+                        }
+                        catch (e) {
+                            console.error('Error parsing SSE data:', e);
+                        }
+                    }
+                }
+            }
+            throw new Error("Stream ended without complete status");
         }
-      
-        throw new Error('Stream ended without complete status');
-      }
-
-      async _fetchHealthStatus() {
+        catch (error) {
+            console.error('Error sending message to API:', error);
+            throw new Error("Error generating answer. Please try again.");
+        }
+    }
+    async _fetchHealthStatus() {
         const authToken = this.authManager.getAuthToken();
         if (!authToken) {
-          throw new Error('Authentication required');
+            throw new Error('Authentication required');
         }
-      
-        const response = await fetch('https://cs-15-tutor.onrender.com/health-status', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${authToken}`
-          }
-        });
-      
-        if (!response.ok) {
-          throw new Error('Failed to fetch health status');
+        try {
+            const response = await (0, node_fetch_1.default)(`${this.apiBaseUrl}/health-status`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const healthStatus = await response.json();
+            return healthStatus;
         }
-      
-        return await response.json();
-      }
-      
+        catch (error) {
+            console.error('Error fetching health status:', error);
+            throw new Error('Failed to fetch health status');
+        }
+    }
     _getHtmlForWebview(webview) {
         const isAuthenticated = this.authManager.isAuthenticated();
         const utln = this.authManager.getUtln();

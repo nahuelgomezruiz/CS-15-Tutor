@@ -8,8 +8,11 @@ let statusBarItem: vscode.StatusBarItem;
 export function activate(context: vscode.ExtensionContext) {
     console.log('CS15 Tutor extension is now active!');
 
+    // API base URL - change this if your backend is hosted elsewhere
+    const apiBaseUrl = 'https://cs-15-tutor.onrender.com';
+
     // Initialize authentication manager
-    authManager = new AuthManager(context);
+    authManager = new AuthManager(context, apiBaseUrl);
 
     // Create status bar item
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -19,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
     authManager.updateStatusBar(statusBarItem);
 
     // Create and register the webview provider
-    const provider = new ChatViewProvider(context.extensionUri, authManager);
+    const provider = new ChatViewProvider(context.extensionUri, authManager, apiBaseUrl);
 
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(

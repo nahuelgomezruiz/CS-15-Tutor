@@ -61,42 +61,23 @@ export class AuthManager {
      */
     public async authenticate(): Promise<boolean> {
         try {
-            // Show username input
+            // Show username input only
             const username = await vscode.window.showInputBox({
-                prompt: 'Enter your Tufts EECS username',
-                placeHolder: 'e.g., your_eecs_username',
+                prompt: 'Enter your CS 15 Tutor username',
+                placeHolder: 'e.g., your_username',
                 ignoreFocusOut: true,
                 validateInput: (value: string) => {
                     if (!value || value.trim().length === 0) {
                         return 'Username is required';
                     }
                     if (!/^[a-zA-Z][a-zA-Z0-9_]{2,15}$/.test(value.trim())) {
-                        return 'Please enter a valid EECS username';
+                        return 'Please enter a valid username (3-16 characters, alphanumeric + underscore)';
                     }
                     return undefined;
                 }
             });
 
             if (!username) {
-                vscode.window.showInformationMessage('Authentication cancelled');
-                return false;
-            }
-
-            // Show password input
-            const password = await vscode.window.showInputBox({
-                prompt: 'Enter your Tufts EECS password',
-                placeHolder: 'Your EECS password',
-                password: true,
-                ignoreFocusOut: true,
-                validateInput: (value: string) => {
-                    if (!value || value.trim().length === 0) {
-                        return 'Password is required';
-                    }
-                    return undefined;
-                }
-            });
-
-            if (!password) {
                 vscode.window.showInformationMessage('Authentication cancelled');
                 return false;
             }
@@ -109,10 +90,10 @@ export class AuthManager {
                     cancellable: false
                 },
                 async (progress) => {
-                    progress.report({ message: "Authenticating with Tufts LDAP..." });
+                    progress.report({ message: "Authenticating with CS 15 Tutor..." });
 
-                    // Authenticate with backend
-                    const authResult = await this.authenticateWithCredentials(username.trim(), password);
+                    // Authenticate with backend using username only
+                    const authResult = await this.authenticateWithUsername(username.trim());
                     
                     if (authResult.success && authResult.token) {
                         // Store the token
@@ -177,6 +158,35 @@ export class AuthManager {
         this.context.globalState.update(AuthManager.TOKEN_KEY, authToken.token);
         this.context.globalState.update(AuthManager.UTLN_KEY, authToken.utln);
         this.context.globalState.update(AuthManager.EXPIRES_KEY, authToken.expiresAt.toISOString());
+    }
+
+    /**
+     * Authenticate user with username only against backend
+     */
+    private async authenticateWithUsername(username: string): Promise<any> {
+        try {
+            // Use the same endpoint but with development mode headers to bypass LDAP
+            const response = await fetch(`${this.apiBaseUrl}/vscode-direct-auth`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Development-Mode': 'true',
+                    'X-Remote-User': username
+                },
+                body: JSON.stringify({ 
+                    username, 
+                    auth_method: 'username_only' // Indicate this is username-only auth
+                })
+            });
+    
+            return await response.json();
+        } catch (error: any) {
+            console.error('Fetch error:', error);
+            return {
+                success: false,
+                error: `Connection error: ${error.message}`
+            };
+        }
     }
 
     /**

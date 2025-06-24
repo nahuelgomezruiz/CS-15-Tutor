@@ -45,7 +45,15 @@ def escape_for_json(text: str) -> str:
     return escaped
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, origins=[
+    'https://www.eecs.tufts.edu',
+    'https://eecs.tufts.edu', 
+    'https://cs-15-tutor.onrender.com',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5000',
+    'http://127.0.0.1:5000'
+])  # Enable CORS for specific origins
 
 # Store conversations in memory (key is conversationId)
 conversations: Dict[str, List[Dict[str, str]]] = {}

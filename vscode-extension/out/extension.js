@@ -31,15 +31,17 @@ let authManager;
 let statusBarItem;
 function activate(context) {
     console.log('CS15 Tutor extension is now active!');
+    // API base URL - change this if your backend is hosted elsewhere
+    const apiBaseUrl = 'https://cs-15-tutor.onrender.com';
     // Initialize authentication manager
-    authManager = new authManager_1.AuthManager(context);
+    authManager = new authManager_1.AuthManager(context, apiBaseUrl);
     // Create status bar item
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     context.subscriptions.push(statusBarItem);
     // Update status bar
     authManager.updateStatusBar(statusBarItem);
     // Create and register the webview provider
-    const provider = new chatViewProvider_1.ChatViewProvider(context.extensionUri, authManager);
+    const provider = new chatViewProvider_1.ChatViewProvider(context.extensionUri, authManager, apiBaseUrl);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('cs15-tutor.chatView', provider, {
         webviewOptions: {
             retainContextWhenHidden: true

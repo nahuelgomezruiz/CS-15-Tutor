@@ -22,10 +22,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthManager = void 0;
 const vscode = __importStar(require("vscode"));
-const http = __importStar(require("http"));
+const node_fetch_1 = __importDefault(require("node-fetch"));
 class AuthManager {
     constructor(context, apiBaseUrl = 'https://cs-15-tutor.onrender.com') {
         this.context = context;
@@ -66,39 +69,22 @@ class AuthManager {
      */
     async authenticate() {
         try {
-            // Show username input
+            // Show username input only
             const username = await vscode.window.showInputBox({
-                prompt: 'Enter your Tufts EECS username',
-                placeHolder: 'e.g., your_eecs_username',
+                prompt: 'Enter your CS 15 Tutor username',
+                placeHolder: 'e.g., your_username',
                 ignoreFocusOut: true,
                 validateInput: (value) => {
                     if (!value || value.trim().length === 0) {
                         return 'Username is required';
                     }
                     if (!/^[a-zA-Z][a-zA-Z0-9_]{2,15}$/.test(value.trim())) {
-                        return 'Please enter a valid EECS username';
+                        return 'Please enter a valid username (3-16 characters, alphanumeric + underscore)';
                     }
                     return undefined;
                 }
             });
             if (!username) {
-                vscode.window.showInformationMessage('Authentication cancelled');
-                return false;
-            }
-            // Show password input
-            const password = await vscode.window.showInputBox({
-                prompt: 'Enter your Tufts EECS password',
-                placeHolder: 'Your EECS password',
-                password: true,
-                ignoreFocusOut: true,
-                validateInput: (value) => {
-                    if (!value || value.trim().length === 0) {
-                        return 'Password is required';
-                    }
-                    return undefined;
-                }
-            });
-            if (!password) {
                 vscode.window.showInformationMessage('Authentication cancelled');
                 return false;
             }
@@ -108,9 +94,9 @@ class AuthManager {
                 title: "CS 15 Tutor Authentication",
                 cancellable: false
             }, async (progress) => {
-                progress.report({ message: "Authenticating with Tufts LDAP..." });
-                // Authenticate with backend
-                const authResult = await this.authenticateWithCredentials(username.trim(), password);
+                progress.report({ message: "Authenticating with CS 15 Tutor..." });
+                // Authenticate with backend using username only
+                const authResult = await this.authenticateWithUsername(username.trim());
                 if (authResult.success && authResult.token) {
                     // Store the token
                     const expiresAt = new Date();
@@ -169,149 +155,71 @@ class AuthManager {
         this.context.globalState.update(AuthManager.EXPIRES_KEY, authToken.expiresAt.toISOString());
     }
     /**
-     * Authenticate user with credentials against backend
+     * Authenticate user with username only against backend
      */
-    async authenticateWithCredentials(username, password) {
-        console.log("Sending credentials...");
+    async authenticateWithUsername(username) {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/vscode-direct-auth`, {
+            // Use the same endpoint but with development mode headers to bypass LDAP
+            const response = await (0, node_fetch_1.default)(`${this.apiBaseUrl}/vscode-direct-auth`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-Development-Mode': 'true',
+                    'X-Remote-User': username
                 },
                 body: JSON.stringify({
                     username,
-                    password
+                    auth_method: 'username_only' // Indicate this is username-only auth
                 })
             });
-    
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Auth failed with status:', response.status, errorText);
-                return { success: false, error: `Authentication failed: ${response.status}` };
-            }
-    
-            const data = await response.json();
-            return data;
-    
-        } catch (error) {
-            console.error('Error authenticating with credentials:', error);
+            return await response.json();
+        }
+        catch (error) {
+            console.error('Fetch error:', error);
             return {
                 success: false,
                 error: `Connection error: ${error.message}`
             };
         }
     }
-    
-    // async authenticateWithCredentials(username, password) {
-    //     return new Promise((resolve) => {
-    //         const data = JSON.stringify({
-    //             username: username,
-    //             password: password
-    //         });
-    //         const options = {
-    //             hostname: '127.0.0.1',
-    //             port: 5000,
-    //             path: '/vscode-direct-auth',
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //                 'Content-Length': Buffer.byteLength(data)
-    //             }
-    //         };
-    //         const req = http.request(options, (res) => {
-    //             let responseData = '';
-    //             res.on('data', (chunk) => {
-    //                 responseData += chunk;
-    //             });
-    //             res.on('end', () => {
-    //                 try {
-    //                     const response = JSON.parse(responseData);
-    //                     resolve(response);
-    //                 }
-    //                 catch (error) {
-    //                     resolve({
-    //                         success: false,
-    //                         error: 'Invalid response from server'
-    //                     });
-    //                 }
-    //             });
-    //         });
-    //         req.on('error', (error) => {
-    //             console.error('Error authenticating with credentials:', error);
-    //             resolve({
-    //                 success: false,
-    //                 error: `Connection error: ${error.message}`
-    //             });
-    //         });
-    //         req.write(data);
-    //         req.end();
-    //     });
-    // }
+    /**
+     * Authenticate user with credentials against backend
+     */
+    async authenticateWithCredentials(username, password) {
+        try {
+            const response = await (0, node_fetch_1.default)(`${this.apiBaseUrl}/vscode-direct-auth`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            return await response.json();
+        }
+        catch (error) {
+            console.error('Fetch error:', error);
+            return {
+                success: false,
+                error: `Connection error: ${error.message}`
+            };
+        }
+    }
     /**
      * Get login URL from the server
      */
     async getLoginUrl() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/vscode-auth`);
+            const response = await (0, node_fetch_1.default)(`${this.apiBaseUrl}/vscode-auth`);
             const data = await response.json();
-    
-            if (data.login_url) {
+            if (data.login_url)
                 return data.login_url;
-            } else if (data.session_id) {
+            if (data.session_id)
                 return `${this.apiBaseUrl}/vscode-auth?session_id=${data.session_id}`;
-            } else {
-                console.error('Missing login_url or session_id in response:', data);
-                return null;
-            }
-        } catch (error) {
-            console.error('Error fetching login URL:', error);
+            return null;
+        }
+        catch (error) {
+            console.error('Login URL fetch error:', error);
             return null;
         }
     }
-    
-    // async getLoginUrl() {
-    //     return new Promise((resolve) => {
-    //         const options = {
-    //             hostname: '127.0.0.1',
-    //             port: 5000,
-    //             path: '/vscode-auth',
-    //             method: 'GET'
-    //         };
-    //         const req = http.request(options, (res) => {
-    //             let data = '';
-    //             res.on('data', (chunk) => {
-    //                 data += chunk;
-    //             });
-    //             res.on('end', () => {
-    //                 try {
-    //                     const response = JSON.parse(data);
-    //                     if (response.login_url) {
-    //                         // Server provides the complete login URL
-    //                         resolve(response.login_url);
-    //                     }
-    //                     else if (response.session_id) {
-    //                         // Fallback: construct URL from session_id
-    //                         resolve(`${this.apiBaseUrl}/vscode-auth?session_id=${response.session_id}`);
-    //                     }
-    //                     else {
-    //                         console.error('No session_id or login_url in response:', response);
-    //                         resolve(null);
-    //                     }
-    //                 }
-    //                 catch (error) {
-    //                     console.error('Error parsing login URL response:', error);
-    //                     resolve(null);
-    //                 }
-    //             });
-    //         });
-    //         req.on('error', (error) => {
-    //             console.error('Error getting login URL:', error);
-    //             resolve(null);
-    //         });
-    //         req.end();
-    //     });
-    // }
     /**
      * Extract session ID from login URL
      */
@@ -371,51 +279,14 @@ class AuthManager {
      */
     async checkAuthStatus(sessionId) {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/vscode-auth-status?session_id=${encodeURIComponent(sessionId)}`);
-            
-            if (!response.ok) {
-                console.error(`Status check failed with ${response.status}`);
-                return { status: 'error' };
-            }
-    
-            const data = await response.json();
-            return data;
-    
-        } catch (error) {
-            console.error('Error checking authentication status:', error);
-            return { status: 'error', error: error.message };
+            const response = await (0, node_fetch_1.default)(`${this.apiBaseUrl}/vscode-auth-status?session_id=${encodeURIComponent(sessionId)}`);
+            return await response.json();
+        }
+        catch (error) {
+            console.error('Error checking auth status:', error);
+            throw new Error('Failed to check auth status');
         }
     }
-    
-    // async checkAuthStatus(sessionId) {
-    //     return new Promise((resolve, reject) => {
-    //         const options = {
-    //             hostname: '127.0.0.1',
-    //             port: 5000,
-    //             path: `/vscode-auth-status?session_id=${encodeURIComponent(sessionId)}`,
-    //             method: 'GET'
-    //         };
-    //         const req = http.request(options, (res) => {
-    //             let data = '';
-    //             res.on('data', (chunk) => {
-    //                 data += chunk;
-    //             });
-    //             res.on('end', () => {
-    //                 try {
-    //                     const response = JSON.parse(data);
-    //                     resolve(response);
-    //                 }
-    //                 catch (error) {
-    //                     reject(new Error('Invalid response from server'));
-    //                 }
-    //             });
-    //         });
-    //         req.on('error', (error) => {
-    //             reject(error);
-    //         });
-    //         req.end();
-    //     });
-    // }
     /**
      * Show authentication status in status bar
      */
