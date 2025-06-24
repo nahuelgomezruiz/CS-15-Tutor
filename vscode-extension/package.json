@@ -72,18 +72,7 @@
       ]
     },
     "menus": {
-      "view/title": [
-        {
-          "command": "cs15-tutor.refresh",
-          "when": "view == cs15-tutor.chatView",
-          "group": "navigation@1"
-        },
-        {
-          "command": "cs15-tutor.signIn",
-          "when": "view == cs15-tutor.chatView",
-          "group": "navigation@2"
-        }
-      ],
+
       "commandPalette": [
         {
           "command": "cs15-tutor.openChat",
