@@ -3,7 +3,25 @@
     "testuser",
     "demo_user", 
     "vhenao01",
-    "agomez08"
+    "agomez08",
+    "aavdiu01",
+    "fmboya01",
+    "fyorda01",
+    "kmulam01",
+    "lburut01",
+    "njarbe01",
+    "rbadao01",
+    "ssekye01",
+    "tzhuma01",
+    "wongen01",
+    "eli09",
+    "jflore12",
+    "mmurdo01",
+    "milod",
+    "dzabne01",
+    "cmagna02",
+    "lliu16",
+    "eramir02"
   ],
   "description": "List of usernames allowed to authenticate with the VSCode extension"
-} 
+}
