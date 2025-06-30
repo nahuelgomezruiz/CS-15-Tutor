@@ -5,11 +5,18 @@ Google Sheets Sync for CS 15 Tutor Database
 This script syncs anonymized data from the CS 15 Tutor database to Google Sheets
 for easy analysis and reporting.
 
-Setup Requirements:
+Server Setup (Render/Production):
 1. Install: pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 2. Create Google Cloud Project and enable Sheets API
-3. Download credentials.json file
-4. Run this script to authenticate and sync data
+3. Create Service Account and download JSON key
+4. Set environment variables: GOOGLE_SERVICE_ACCOUNT_JSON and SPREADSHEET_ID
+5. Run: python google_sheets_sync.py sync
+
+Local Setup (Development):
+1. Follow server setup steps 1-3
+2. Place service-account.json in this directory OR use credentials.json
+3. Create sheets_config.json with spreadsheet_id
+4. Run: python google_sheets_sync.py sync
 """
 
 import os
@@ -19,6 +26,7 @@ from typing import List, Dict, Any
 
 try:
     from google.oauth2.credentials import Credentials
+    from google.oauth2.service_account import Credentials as ServiceAccountCredentials
     from google_auth_oauthlib.flow import InstalledAppFlow
     from google.auth.transport.requests import Request
     from googleapiclient.discovery import build
@@ -33,10 +41,11 @@ from database import db_manager, AnonymousUser, Conversation, Message, UserSessi
 # Google Sheets API scope
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-# Google Sheets configuration
-SPREADSHEET_ID = None  # Will be set during setup
-CREDENTIALS_FILE = 'credentials.json'
+# Google Sheets configuration files
+OAUTH_CREDENTIALS_FILE = 'credentials.json'
+SERVICE_ACCOUNT_FILE = 'service-account.json'
 TOKEN_FILE = 'token.json'
+CONFIG_FILE = 'sheets_config.json'
 
 class GoogleSheetsSync:
     """Handles syncing CS 15 Tutor data to Google Sheets"""
@@ -47,42 +56,86 @@ class GoogleSheetsSync:
         self.authenticate()
     
     def authenticate(self):
-        """Authenticate with Google Sheets API"""
-        creds = None
+        """Authenticate with Google Sheets API using Service Account or OAuth"""
         
-        # Load existing token
-        if os.path.exists(TOKEN_FILE):
-            creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-        
-        # If no valid credentials, authenticate
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                if not os.path.exists(CREDENTIALS_FILE):
-                    print(f"❌ {CREDENTIALS_FILE} not found!")
-                    print("Please download credentials from Google Cloud Console:")
-                    print("1. Go to https://console.cloud.google.com")
-                    print("2. Create project & enable Google Sheets API") 
-                    print("3. Create OAuth 2.0 credentials")
-                    print("4. Download as 'credentials.json'")
-                    return False
-                
-                flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-                creds = flow.run_local_server(port=0)
-            
-            # Save credentials for next run
-            with open(TOKEN_FILE, 'w') as token:
-                token.write(creds.to_json())
-        
-        try:
-            self.service = build('sheets', 'v4', credentials=creds)
-            print("✅ Successfully authenticated with Google Sheets API")
+        # Try Service Account authentication first (for servers)
+        if self._authenticate_service_account():
             return True
+        
+        # Fall back to OAuth (for local development)
+        return self._authenticate_oauth()
+    
+    def _authenticate_service_account(self):
+        """Authenticate using Service Account (for server environments)"""
+        try:
+            # Try environment variable first (for Render/production)
+            service_account_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON')
+            
+            if service_account_json:
+                print("🔐 Using Service Account from environment variable...")
+                # Parse JSON from environment variable
+                service_account_info = json.loads(service_account_json)
+                creds = ServiceAccountCredentials.from_service_account_info(
+                    service_account_info, scopes=SCOPES
+                )
+            elif os.path.exists(SERVICE_ACCOUNT_FILE):
+                print("🔐 Using Service Account from file...")
+                # Use service account file
+                creds = ServiceAccountCredentials.from_service_account_file(
+                    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+                )
+            else:
+                return False
+            
+            self.service = build('sheets', 'v4', credentials=creds)
+            print("✅ Successfully authenticated with Service Account")
+            return True
+            
         except Exception as e:
-            print(f"❌ Failed to connect to Google Sheets API: {e}")
+            print(f"⚠️ Service Account authentication failed: {e}")
             return False
     
+    def _authenticate_oauth(self):
+        """Authenticate using OAuth (for local development)"""
+        try:
+            creds = None
+            
+            # Load existing token
+            if os.path.exists(TOKEN_FILE):
+                creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+            
+            # If no valid credentials, authenticate
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                else:
+                    if not os.path.exists(OAUTH_CREDENTIALS_FILE):
+                        print(f"❌ Neither Service Account nor OAuth credentials found!")
+                        print("\nFor server deployment (Render), set up Service Account:")
+                        print("1. Go to https://console.cloud.google.com")
+                        print("2. Create Service Account")
+                        print("3. Download JSON key")
+                        print("4. Set GOOGLE_SERVICE_ACCOUNT_JSON environment variable")
+                        print("\nFor local development:")
+                        print("1. Download OAuth credentials.json OR service-account.json")
+                        return False
+                    
+                    print("🔐 Using OAuth authentication...")
+                    flow = InstalledAppFlow.from_client_secrets_file(OAUTH_CREDENTIALS_FILE, SCOPES)
+                    creds = flow.run_local_server(port=0)
+                
+                # Save credentials for next run
+                with open(TOKEN_FILE, 'w') as token:
+                    token.write(creds.to_json())
+            
+            self.service = build('sheets', 'v4', credentials=creds)
+            print("✅ Successfully authenticated with OAuth")
+            return True
+            
+        except Exception as e:
+            print(f"❌ OAuth authentication failed: {e}")
+            return False
+
     def create_spreadsheet(self, title: str = "CS 15 Tutor Analytics") -> str:
         """Create a new Google Spreadsheet"""
         try:
@@ -114,7 +167,7 @@ class GoogleSheetsSync:
         except HttpError as e:
             print(f"❌ Error creating spreadsheet: {e}")
             return None
-    
+
     def ensure_sheet_exists(self, sheet_name: str):
         """Ensure a sheet exists, create it if it doesn't"""
         try:
@@ -179,7 +232,8 @@ class GoogleSheetsSync:
             
         except HttpError as e:
             print(f"❌ Error writing to sheet {sheet_name}: {e}")
-    
+
+    # ... existing code ...
     def sync_overview_data(self):
         """Sync system overview to Overview sheet"""
         print("📊 Syncing overview data...")
@@ -608,45 +662,66 @@ class GoogleSheetsSync:
             print(f"❌ Sync failed: {e}")
             return False
 
+def get_spreadsheet_id():
+    """Get spreadsheet ID from environment variable or config file"""
+    # Try environment variable first (for Render)
+    spreadsheet_id = os.getenv('SPREADSHEET_ID')
+    if spreadsheet_id:
+        return spreadsheet_id
+    
+    # Try config file (for local development)
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as f:
+            config = json.load(f)
+            return config.get('spreadsheet_id')
+    
+    return None
+
 def setup_google_sheets():
     """Interactive setup for Google Sheets integration"""
     print("🔧 Google Sheets Setup for CS 15 Tutor")
     print("=====================================")
     
-    # Check for credentials
-    if not os.path.exists(CREDENTIALS_FILE):
-        print("\n📋 Setup Steps:")
-        print("1. Go to https://console.cloud.google.com")
-        print("2. Create a new project or select existing")
-        print("3. Enable the Google Sheets API")
-        print("4. Go to 'Credentials' → 'Create Credentials' → 'OAuth 2.0 Client ID'")
-        print("5. Choose 'Desktop Application'")
-        print("6. Download the JSON file and rename it to 'credentials.json'")
-        print("7. Place credentials.json in this directory")
-        print("\nRun this script again after completing these steps.")
+    # Check authentication method
+    if os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON') or os.path.exists(SERVICE_ACCOUNT_FILE):
+        print("✅ Service Account credentials found")
+        sync = GoogleSheetsSync()
+    elif os.path.exists(OAUTH_CREDENTIALS_FILE):
+        print("✅ OAuth credentials found") 
+        sync = GoogleSheetsSync()
+    else:
+        print("\n❌ No credentials found!")
+        print("\nFor server deployment (Render):")
+        print("1. Create Service Account in Google Cloud Console")
+        print("2. Download JSON key file")
+        print("3. Set GOOGLE_SERVICE_ACCOUNT_JSON environment variable")
+        print("4. Set SPREADSHEET_ID environment variable")
+        print("\nFor local development:")
+        print("1. Place service-account.json OR credentials.json in this directory")
         return
     
-    # Create spreadsheet
-    sync = GoogleSheetsSync()
     if not sync.service:
         return
     
+    # Create spreadsheet
     print("\n📊 Creating new spreadsheet...")
     spreadsheet_id = sync.create_spreadsheet("CS 15 Tutor Analytics Dashboard")
     
     if spreadsheet_id:
-        # Save spreadsheet ID
+        # Save spreadsheet ID locally
         config = {"spreadsheet_id": spreadsheet_id}
-        with open("sheets_config.json", "w") as f:
+        with open(CONFIG_FILE, "w") as f:
             json.dump(config, f)
+        
+        print(f"\n✅ Setup complete!")
+        print(f"📄 Spreadsheet ID: {spreadsheet_id}")
+        print(f"🔗 Spreadsheet: https://docs.google.com/spreadsheets/d/{spreadsheet_id}")
+        print(f"\nFor Render deployment, set this environment variable:")
+        print(f"SPREADSHEET_ID={spreadsheet_id}")
         
         # Perform initial sync
         sync.spreadsheet_id = spreadsheet_id
         sync.full_sync()
-        
-        print(f"\n✅ Setup complete!")
-        print(f"📄 Config saved to sheets_config.json")
-        print(f"🔗 Spreadsheet: https://docs.google.com/spreadsheets/d/{spreadsheet_id}")
 
 def main():
     """Main function"""
@@ -657,11 +732,10 @@ def main():
         print("\nCommands:")
         print("  python google_sheets_sync.py setup       - Initial setup")
         print("  python google_sheets_sync.py sync        - Full sync")
+        print("  python google_sheets_sync.py queries     - Sync user interactions (queries)")
         print("  python google_sheets_sync.py overview    - Sync overview only")
         print("  python google_sheets_sync.py users       - Sync users only")
         print("  python google_sheets_sync.py messages    - Sync messages only")
-        print("  python google_sheets_sync.py detailed    - Sync detailed conversations")
-        print("  python google_sheets_sync.py rag         - Sync RAG context analysis")
         return
     
     command = sys.argv[1].lower()
@@ -670,36 +744,32 @@ def main():
         setup_google_sheets()
         return
     
-    # Load existing config
-    if not os.path.exists("sheets_config.json"):
-        print("❌ No configuration found. Run setup first:")
+    # Get spreadsheet ID
+    spreadsheet_id = get_spreadsheet_id()
+    if not spreadsheet_id:
+        print("❌ No spreadsheet ID found!")
+        print("Set SPREADSHEET_ID environment variable or run setup:")
         print("python google_sheets_sync.py setup")
         return
     
-    with open("sheets_config.json", "r") as f:
-        config = json.load(f)
-    
-    spreadsheet_id = config.get("spreadsheet_id")
-    if not spreadsheet_id:
-        print("❌ No spreadsheet ID in config")
-        return
-    
+    # Create sync instance
     sync = GoogleSheetsSync(spreadsheet_id)
+    if not sync.service:
+        print("❌ Authentication failed")
+        return
     
     if command == "sync":
         sync.full_sync()
+    elif command == "queries":
+        sync.sync_user_interactions()
     elif command == "overview":
         sync.sync_overview_data()
     elif command == "users":
         sync.sync_users_data()
     elif command == "messages":
         sync.sync_messages_summary()
-    elif command == "detailed":
-        sync.sync_detailed_conversations()
-    elif command == "rag":
-        sync.sync_rag_context_analysis()
     else:
         print(f"❌ Unknown command: {command}")
 
 if __name__ == "__main__":
-    main() 
+    main()

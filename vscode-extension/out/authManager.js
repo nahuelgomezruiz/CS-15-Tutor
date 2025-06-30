@@ -292,7 +292,7 @@ class AuthManager {
      */
     updateStatusBar(statusBarItem) {
         if (this.isAuthenticated()) {
-            statusBarItem.text = `CS 15 $(ellipsis)`;
+            statusBarItem.text = `CS 15`;
             statusBarItem.tooltip = `CS 15 Tutor - Click to see user options`;
             statusBarItem.command = 'cs15-tutor.showUserMenu';
         }
