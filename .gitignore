@@ -37,3 +37,21 @@ wheels/
 chatbot/.next/
 chatbot/.env.local
 .env
+
+# Security - OAuth tokens and credentials (NEVER COMMIT THESE!)
+token.json
+credentials.json
+service-account.json
+sheets_config.json
+*.db
+cs15_data_export.json
+
+# Logs and exports
+*.log
+*_backup_*.json
+sqlite_backup_*.json
+orm_backup_*.json
+
+# Temporary files
+*.tmp
+*.temp
