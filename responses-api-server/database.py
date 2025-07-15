@@ -97,8 +97,8 @@ class UserHealthPoints(Base):
     
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('anonymous_users.id'), unique=True, nullable=False)
-    current_points = Column(Integer, default=8, nullable=False)
-    max_points = Column(Integer, default=8, nullable=False)
+    current_points = Column(Integer, default=12, nullable=False)
+    max_points = Column(Integer, default=12, nullable=False)
     last_query_at = Column(DateTime, nullable=True)
     last_regeneration_at = Column(DateTime, default=datetime.utcnow)
     
@@ -321,8 +321,8 @@ class DatabaseManager:
             if not health_points:
                 health_points = UserHealthPoints(
                     user_id=user_id,
-                    current_points=8,
-                    max_points=8,
+                    current_points=12,
+                    max_points=12,
                     last_regeneration_at=datetime.utcnow()
                 )
                 db.add(health_points)
@@ -385,8 +385,8 @@ class DatabaseManager:
             if not health_points:
                 health_points = UserHealthPoints(
                     user_id=user_id,
-                    current_points=8,
-                    max_points=8,
+                    current_points=12,
+                    max_points=12,
                     last_regeneration_at=datetime.utcnow()
                 )
                 db.add(health_points)
@@ -427,8 +427,8 @@ class DatabaseManager:
             
             if not health_points:
                 return {
-                    'current_points': 8,
-                    'max_points': 8,
+                    'current_points': 12,
+                    'max_points': 12,
                     'can_query': True,
                     'time_until_next_regen': 180  # 3 minutes in seconds
                 }
