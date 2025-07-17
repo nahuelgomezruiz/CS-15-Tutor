@@ -29,6 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthManager = void 0;
 const vscode = __importStar(require("vscode"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
+const ssh2_1 = require("ssh2");
 class AuthManager {
     constructor(context, apiBaseUrl = 'https://cs-15-tutor.onrender.com') {
         this.context = context;
@@ -65,21 +66,38 @@ class AuthManager {
         return token ? token.utln : null;
     }
     /**
-     * Initiate the authentication process
+     * Helper to check SSH credentials
+     */
+    async checkSshCredentials(username, password, host) {
+        return new Promise((resolve) => {
+            const conn = new ssh2_1.Client();
+            conn.on('ready', () => {
+                conn.end();
+                resolve(true);
+            }).on('error', () => {
+                resolve(false);
+            }).connect({
+                host: host,
+                port: 22,
+                username: username,
+                password: password,
+                readyTimeout: 5000
+            });
+        });
+    }
+    /**
+     * Initiate the authentication process (now with SSH check)
      */
     async authenticate() {
         try {
-            // Show username input only
+            // Prompt for username
             const username = await vscode.window.showInputBox({
-                prompt: 'Enter your CS 15 Tutor username',
-                placeHolder: 'e.g., your_username',
+                prompt: 'Enter your EECS username',
+                placeHolder: 'e.g., vhenao01',
                 ignoreFocusOut: true,
                 validateInput: (value) => {
                     if (!value || value.trim().length === 0) {
                         return 'Username is required';
-                    }
-                    if (!/^[a-zA-Z][a-zA-Z0-9_]{2,15}$/.test(value.trim())) {
-                        return 'Please enter a valid username (3-16 characters, alphanumeric + underscore)';
                     }
                     return undefined;
                 }
@@ -88,19 +106,29 @@ class AuthManager {
                 vscode.window.showInformationMessage('Authentication cancelled');
                 return false;
             }
-            // Show progress indicator for authentication
-            return await vscode.window.withProgress({
+            // Prompt for password
+            const password = await vscode.window.showInputBox({
+                prompt: 'Enter your EECS password',
+                password: true,
+                ignoreFocusOut: true
+            });
+            if (!password) {
+                vscode.window.showInformationMessage('Authentication cancelled');
+                return false;
+            }
+            const host = 'homework.cs.tufts.edu';
+            // Show progress while checking credentials
+            const isValid = await vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
-                title: "CS 15 Tutor Authentication",
+                title: 'Authenticating...',
                 cancellable: false
-            }, async (progress) => {
-                progress.report({ message: "Authenticating with CS 15 Tutor..." });
-                // Authenticate with backend using username only
+            }, () => this.checkSshCredentials(username, password, host));
+            if (isValid) {
+                // After SSH success, proceed to backend auth (send only username)
                 const authResult = await this.authenticateWithUsername(username.trim());
                 if (authResult.success && authResult.token) {
-                    // Store the token
                     const expiresAt = new Date();
-                    expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+                    expiresAt.setHours(expiresAt.getHours() + 24);
                     const authToken = {
                         token: authResult.token,
                         utln: authResult.username,
@@ -114,7 +142,11 @@ class AuthManager {
                     vscode.window.showErrorMessage(authResult.error || 'Authentication failed');
                     return false;
                 }
-            });
+            }
+            else {
+                vscode.window.showErrorMessage('Authentication failed. Please check your credentials.');
+                return false;
+            }
         }
         catch (error) {
             console.error('Authentication error:', error);
