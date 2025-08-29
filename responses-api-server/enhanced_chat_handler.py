@@ -1,27 +1,24 @@
 """
-Enhanced Chat Handler with Multi-Stage Processing
+Enhanced Chat Handler with Quality Checking
 
-This module implements the three-stage system:
-1. Query Categorization
-2. Category-Specific Response Generation  
-3. Quality Checking and Regeneration
+This module implements a simplified system:
+1. RAG Context Retrieval
+2. Response Generation with Quality Checking
 """
 
 import time
 import os
 from typing import Dict, Any, Optional, Tuple
-from query_categorization import QueryCategorizer, QueryCategory
 from llmproxy import generate, retrieve
 from utils import _retrieve_rag_context, _format_rag_context
 
 
 class EnhancedChatHandler:
     """
-    Enhanced chat handler with categorization and quality checking
+    Enhanced chat handler with quality checking for code solutions and invented info
     """
     
     def __init__(self):
-        self.categorizer = QueryCategorizer()
         self.base_system_prompt = self._load_system_prompt()
         self.max_regeneration_attempts = 3
     
@@ -29,62 +26,47 @@ class EnhancedChatHandler:
                            conversation_history: list, conversation_rag_context: list,
                            utln: str, platform: str) -> Dict[str, Any]:
         """
-        Process a chat request through the three-stage system
+        Process a chat request with RAG retrieval and quality checking
         """
         request_start_time = time.time()
         
         print(f"🤖 Enhanced processing message from {utln} ({platform}): {message}")
         print(f"💬 Conversation ID: {conversation_id}")
         
-        # Stage 1: Query Categorization
-        print("📋 Stage 1: Categorizing query...")
-        category = self.categorizer.categorize_query(message)
-        print(f"📋 Query categorized as: {category.value}")
-        
-        # Handle unrelated queries immediately
-        if category == QueryCategory.UNRELATED_TO_COURSE:
-            unrelated_response = self._generate_unrelated_response()
-            return self._prepare_response(
-                unrelated_response, conversation_id, request_start_time,
-                category, utln, platform, conversation_rag_context
-            )
-        
-        # Stage 2: RAG Context Retrieval
-        print("🔍 Stage 2: Retrieving RAG context...")
+        # Stage 1: RAG Context Retrieval
+        print("🔍 Stage 1: Retrieving RAG context...")
         rag_context = _retrieve_rag_context(message, 0.4, 5)
         
-        # Stage 3: Response Generation with Quality Checking
-        print("🚀 Stage 3: Generating response with quality checking...")
+        # Stage 2: Response Generation with Quality Checking
+        print("🚀 Stage 2: Generating response with quality checking...")
         final_response = self._generate_quality_checked_response(
-            message, category, rag_context, conversation_history
+            message, rag_context, conversation_history
         )
         
         # Prepare and return response
         return self._prepare_response(
             final_response, conversation_id, request_start_time,
-            category, utln, platform, rag_context  # Pass the current rag_context instead of conversation_rag_context
+            utln, platform, rag_context
         )
     
-    def _generate_quality_checked_response(self, message: str, category: QueryCategory, 
+    def _generate_quality_checked_response(self, message: str, 
                                          rag_context: list, conversation_history: list) -> str:
-        """Generate response with quality checking and regeneration"""
+        """Generate response with quality checking for code solutions and invented info"""
         
         rag_context_formatted = _format_rag_context(rag_context) if rag_context else ""
 
-    # Generate the first response (initial attempt)
-        response = self._generate_response(message, category, rag_context_formatted, conversation_history)
+        # Generate the first response (initial attempt)
+        response = self._generate_response(message, rag_context_formatted, conversation_history)
         print(f"\n\nInitial response: {response}\n")
 
-        # Each time it will improve on the enhanced response
+        # Quality check and regeneration loop
         for attempt in range(self.max_regeneration_attempts):
             print(f"🔄 Generation attempt {attempt + 1}/{self.max_regeneration_attempts}")
 
-            # Run quality check
-            score, feedback = self.categorizer.check_response_quality(
-                category, message, response, rag_context_formatted
-            )
+            # Run quality check for code solutions and invented info
+            score, feedback = self._check_response_quality(message, response, rag_context_formatted)
             
-            print(f"score: {score} and score type: {type(score)}")
+            print(f"Quality score: {score}")
 
             if score > 7:
                 print(f"✅ Quality check passed on attempt {attempt + 1}")
@@ -94,11 +76,11 @@ class EnhancedChatHandler:
                 
                 if attempt < self.max_regeneration_attempts - 1:
                     # Regenerate with feedback
-                    enhanced_message = self._enhance_response_with_feedback(response, feedback, category)
+                    enhanced_message = self._enhance_response_with_feedback(response, feedback)
                     print(f"🔄 Regenerating with enhanced instructions...")
                     print(f"\n\nEnhanced message: {enhanced_message}\n")
                     
-                    response = self._generate_response(enhanced_message, category, rag_context_formatted, conversation_history)
+                    response = self._generate_response(enhanced_message, rag_context_formatted, conversation_history)
                     print(f"\n\nEnhanced response: {response}\n")
                 else:
                     # Last resort
@@ -106,6 +88,67 @@ class EnhancedChatHandler:
                     return response
         
         return "I apologize, but I'm having trouble generating an appropriate response. Please try rephrasing your question."
+    
+    def _check_response_quality(self, message: str, response: str, rag_context: str) -> Tuple[int, str]:
+        """
+        Check response quality focusing on:
+        1. No complete code solutions
+        2. No invented course/project information
+        """
+        
+        quality_check_prompt = f"""
+        You are a quality checker for a CS 15 tutor assistant. Rate the following response on a scale of 1-10.
+        
+        Student Query: "{message}"
+        RAG Context: "{rag_context}"
+        Assistant Response: "{response}"
+        
+        Check for these issues:
+        1. COMPLETE CODE SOLUTIONS: Does the response provide complete, runnable code solutions? (Major issue)
+        2. INVENTED INFORMATION: Does the response make up or invent information about CS 15 course details, project requirements, due dates, or specific implementation details that aren't in the RAG context?
+        
+        Scoring:
+        - 9-10: No issues, helpful and accurate
+        - 7-8: Minor issues, mostly good
+        - 5-6: Some issues, needs improvement
+        - 1-4: Major issues, should be regenerated
+        
+        Return ONLY a JSON object with "score" (integer 1-10) and "feedback" (string explaining issues found).
+        """
+        
+        try:
+            quality_result = generate(
+                model='4o-mini',
+                system="You are a quality checker. Return only valid JSON with 'score' and 'feedback' fields.",
+                query=quality_check_prompt,
+                temperature=0.1,
+                lastk=0,
+                rag_usage=False,
+            )
+            
+            if isinstance(quality_result, dict) and 'response' in quality_result:
+                quality_text = quality_result['response']
+            else:
+                quality_text = str(quality_result)
+            
+            # Try to parse JSON response
+            import json
+            try:
+                quality_data = json.loads(quality_text)
+                score = quality_data.get('score', 5)
+                feedback = quality_data.get('feedback', 'Unable to parse quality feedback')
+            except json.JSONDecodeError:
+                # Fallback: try to extract score from text
+                import re
+                score_match = re.search(r'score["\s]*:["\s]*(\d+)', quality_text)
+                score = int(score_match.group(1)) if score_match else 5
+                feedback = quality_text if quality_text else 'Quality check failed to parse'
+            
+            return score, feedback
+            
+        except Exception as e:
+            print(f"❌ Error in quality check: {e}")
+            return 5, f"Quality check error: {str(e)}"
     
     def _load_system_prompt(self) -> str:
         """Load the base system prompt from system_prompt.txt"""
@@ -123,14 +166,8 @@ class EnhancedChatHandler:
             print(f"⚠️ Warning: Error reading system_prompt.txt: {e}, using default prompt")
             return "You are a friendly and brief Teaching Assistant (TA) for CS 15: Data Structures at Tufts University."
     
-    def _generate_response(self, message: str, category: QueryCategory,
-                          rag_context: list, conversation_history: list) -> str:
-        """Generate a response for the given category"""
-        
-        # Get category-specific system prompt
-        system_prompt = self.categorizer.get_system_prompt_for_category(
-            category, self.base_system_prompt
-        )
+    def _generate_response(self, message: str, rag_context: str, conversation_history: list) -> str:
+        """Generate a response using the base system prompt"""
         
         # Calculate conversation history context
         num_previous_pairs = (len(conversation_history) - 1) // 2 if conversation_history else 0
@@ -140,9 +177,9 @@ class EnhancedChatHandler:
         try:
             response = generate(
                 model='4o-mini',
-                system=system_prompt,
+                system=self.base_system_prompt,
                 query=query_with_rag_context,
-                temperature=0.5, # Testing a lower temp - originally 0.7
+                temperature=0.5,
                 lastk=num_previous_pairs,
                 rag_usage=False,
             )
@@ -156,31 +193,26 @@ class EnhancedChatHandler:
             print(f"❌ Error generating response: {e}")
             return "I apologize, but I encountered an error while generating a response. Please try again."
     
-    def _enhance_response_with_feedback(self, original_response: str, feedback: str, category: QueryCategory) -> str:
+    def _enhance_response_with_feedback(self, original_response: str, feedback: str) -> str:
         """Enhance the original message with quality check feedback"""
         
         enhancement_prompt = f"""
         The following assistant response to a CS 15 student query failed quality checks:
     
         Original Response: "{original_response}"
-        Category: {category.value}
         Quality Feedback: "{feedback}"
         
-        Please rewrite the assistant's response so that it addresses the student's query appropriately,
-        incorporates the feedback, and avoids the listed issues.
+        Please rewrite the assistant's response so that it avoids the listed issues. Focus on:
+        1. Not providing complete code solutions
+        2. Not inventing course/project information
         
         Return only the improved response, nothing else.
         """
         
         return enhancement_prompt
     
-    def _generate_unrelated_response(self) -> str:
-        """Generate response for unrelated queries"""
-        return """I can only help with questions related to CS 15: Data Structures. This includes C++ programming, data structures, algorithms, course logistics, and CS 15 projects. Please feel free to ask any CS 15 related questions!"""
-    
     def _prepare_response(self, assistant_response: str, conversation_id: str, 
-                         request_start_time: float, category: QueryCategory,
-                         utln: str, platform: str, rag_context: list) -> Dict[str, Any]:
+                         request_start_time: float, utln: str, platform: str, rag_context: list) -> Dict[str, Any]:
         """Prepare the final response with metadata"""
         
         response_time_ms = int((time.time() - request_start_time) * 1000)
@@ -192,18 +224,15 @@ class EnhancedChatHandler:
         
         print(f"📄 Generated response length: {len(assistant_response)}")
         print(f"⏱️ Total request time: {response_time_ms}ms")
-        print(f"🏷️ Query category: {category.value}")
 
-        
         return {
             "response": assistant_response,
             "rag_context": formatted_rag_context,
             "conversation_id": conversation_id,
-            "category": category.value,
+            "category": "general",  # Simplified - no categorization
             "response_time_ms": response_time_ms,
             "enhanced_metadata": {
-                "query_category": category.value,
-                "processing_stages": ["categorization", "rag_retrieval", "quality_checked_generation"],
+                "processing_stages": ["rag_retrieval", "quality_checked_generation"],
                 "quality_checks_performed": True,
                 "rag_context_used": bool(formatted_rag_context)
             }
@@ -215,16 +244,14 @@ def example_enhanced_processing():
     
     handler = EnhancedChatHandler()
     
-    # Example queries for different categories
+    # Example queries
     test_queries = [
-        # "How do I implement a linked list in C++?",  # Homework Help
-        # "What is the difference between a stack and a queue?",  # Explanation of Concepts
-        # "When is the MetroSim project due?",  # Course Information
-        # "What's the weather like today?"  # Unrelated to Course
         "What is MetroSim?",
         "What is Zap?",
         "What is CalcYouLater?",
         "What is Gerp?",
+        "Can you give me the complete code for implementing a linked list?",
+        "When is the final exam?",
     ]
     
     conversation_history = [
@@ -247,7 +274,6 @@ def example_enhanced_processing():
                 platform="web"
             )
             
-            print(f"Category: {result['category']}")
             print(f"Response: {result['response']}")
             print(f"Processing time: {result['response_time_ms']}ms")
             print(f"Enhanced metadata: {result['enhanced_metadata']}")
