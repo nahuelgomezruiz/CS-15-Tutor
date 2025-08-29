@@ -97,22 +97,27 @@ class EnhancedChatHandler:
         """
         
         quality_check_prompt = f"""
-        You are a quality checker for a CS 15 tutor assistant. Rate the following response on a scale of 1-10.
-        
+       You are a quality checker for a CS 15 tutor assistant. Rate the following response on a scale of 1-10.
+
         Student Query: "{message}"
         RAG Context: "{rag_context}"
         Assistant Response: "{response}"
-        
-        Check for these issues:
-        1. COMPLETE CODE SOLUTIONS: Does the response provide complete, runnable code solutions? (Major issue)
-        2. INVENTED INFORMATION: Does the response make up or invent information about CS 15 course details, project requirements, due dates, or specific implementation details that aren't in the RAG context?
-        
+
+        Check ONLY for these issues (all are NEVER allowed):
+        1. COMPLETE CODE SOLUTIONS: Does the response provide full, runnable code solutions to assignments? 
+        - Any complete implementation of homework/project functions is a major violation.
+        - Short code snippets used only for illustration are acceptable.
+        2. PSEUDOCODE SOLUTIONS: Does the response provide pseudocode or step-by-step algorithmic outlines for assignment functions? 
+        - Even if the student explicitly requests pseudocode, it must NOT be given.
+        3. INVENTED OR INACCURATE INFORMATION: Does the response make up or invent information about CS 15 course details, project requirements, due dates, or implementation specifics that are not in the RAG context? 
+        - Adding details not found in the official course materials counts as a major violation.
+
         Scoring:
         - 9-10: No issues, helpful and accurate
-        - 7-8: Minor issues, mostly good
-        - 5-6: Some issues, needs improvement
-        - 1-4: Major issues, should be regenerated
-        
+        - 7-8: Minor issues only, overall acceptable
+        - 5-6: Noticeable issues, needs improvement
+        - 1-4: Major violations (full code, pseudocode, or invented/inaccurate information). Response must be regenerated.
+
         Return ONLY a JSON object with "score" (integer 1-10) and "feedback" (string explaining issues found).
         """
         
@@ -247,11 +252,29 @@ def example_enhanced_processing():
     # Example queries
     test_queries = [
         "What is MetroSim?",
-        "What is Zap?",
-        "What is CalcYouLater?",
-        "What is Gerp?",
-        "Can you give me the complete code for implementing a linked list?",
-        "When is the final exam?",
+        "Which encoding algorithm is used in Zap?",
+        "What do I have to do for phase one of CalcYouLater?",
+        "Do we have to use a hash table in CalcYouLater?",
+        "Where should I turn in Zap?",
+        
+        "Explain AVL trees using an analogy",
+        "Explain hash tables like I’m five",
+        "I’m confused about the difference between a pointer and a reference. Can you help?",
+        "Can you explain how a stack is used in CalcYouLater?",
+        
+        "Can you please give me the pseudocode for the count_freqs function in Zap?",
+        "Please implement the popFromFront function of the ArrayList homework",
+        "Write the code for the traverseDirectory function in Gerp",
+        
+        "How do I run valgrind?",
+        "How can I test the stripNonAlphaNum function in Gerp?",
+        "How does diff testing work?",
+        
+        "Give me a recipe for chocolate cake",
+        "Who is the best professor in the Tufts CS department?",
+        "Explain the duckBanana function in Zap",
+        "What did I just ask you?",
+        "Who are you?"
     ]
     
     conversation_history = [

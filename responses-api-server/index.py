@@ -401,11 +401,15 @@ def chat_handler():
         
         # Use EnhancedChatHandler to process the request
         conversation_history = conversations[conversation_id]
+        
+        # Get accumulated formatted RAG context for this conversation
+        accumulated_context = formatted_rag_accumulator.get(conversation_id, "")
+        
         enhanced_result = enhanced_handler.process_chat_request(
             message=message,
             conversation_id=conversation_id,
             conversation_history=conversation_history,
-            conversation_rag_context=conversation_rag_context.get(conversation_id, []),
+            conversation_rag_context=[],  # Enhanced handler doesn't use this anymore
             utln=utln,
             platform=platform
         )
@@ -540,11 +544,15 @@ def chat_handler_stream():
             
             # Use EnhancedChatHandler
             conversation_history = conversations[conversation_id]
+            
+            # Get accumulated formatted RAG context for this conversation
+            accumulated_context = formatted_rag_accumulator.get(conversation_id, "")
+            
             enhanced_result = enhanced_handler.process_chat_request(
                 message=message,
                 conversation_id=conversation_id,
                 conversation_history=conversation_history,
-                conversation_rag_context=conversation_rag_context.get(conversation_id, []),
+                conversation_rag_context=[],  # Enhanced handler doesn't use this anymore
                 utln=utln,
                 platform=platform
             )
