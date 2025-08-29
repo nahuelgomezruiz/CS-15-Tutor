@@ -36,10 +36,12 @@ class QueryCategorizer:
         categorization_prompt = f"""
         Categorize this CS 15 student query into exactly one of these categories:
         
-        - Homework Help: Questions about implementing assignments, debugging code, or getting help with specific project requirements (CS15 projects are called: Array Lists, Linked Lists, CalcYouLater, MetroSim, Zap, Typewriter, and Gerp)
+        - Homework Help: Questions about implementing assignments (ANY query that mentions one of the following projects schould be categorized as Homework Help: Array Lists, Linked Lists, CalcYouLater, MetroSim, Zap, Typewriter, and Gerp), debugging code, or getting help with specific project requirements 
         - Explanation of Concepts: Questions about understanding data structures, algorithms, C++ concepts, or theoretical topics
         - Course Information: Questions about course logistics, policies, deadlines, or administrative matters
         - Unrelated to Course: Questions that are not related to CS 15 content, programming, or course administration
+
+        - If the query mentions ANY of these project names: Array Lists, Linked Lists, CalcYouLater, MetroSim, Zap, Typewriter, Gerp → ALWAYS choose Homework Help.
         
         Student Query: "{user_query}"
         
@@ -208,29 +210,34 @@ You are providing information about CS 15 course logistics, policies, and admini
             QueryCategory.COURSE_INFORMATION: self._check_course_info_quality
         }
     
-    def _check_homework_help_quality(self, user_query: str, assistant_response: str, rag_context: str = "") -> Tuple[bool, str]:
+    def _check_homework_help_quality(self, user_query: str, assistant_response: str, rag_context: str = "") -> Tuple[int, str]:
         """Check homework help response quality"""
         quality_prompt = f"""
-        Review this CS 15 homework help response for quality issues:
-        
+        You are reviewing an assistant's response to a CS 15 student query.
+        Evaluate it against the CS 15 homework help guidelines.
+
         Student Query: "{user_query}"
         Assistant Response: "{assistant_response}"
         Course Context: "{rag_context}"
-        
-        Focus only on serious problems that violate homework help guidelines. Minor hints, general guidance, or partial explanations should not cause failure.
+
+        Grading Rules:
+        - Focus only on serious problems that violate homework help guidelines.
+        - Minor hints, general guidance, or partial explanations should NOT significantly lower the score.
+        - A perfect, guideline-compliant answer = 10.
+        - Completely unacceptable (major violations) = 1.
 
         Check for these major issues:
-        1. Does it include full code solutions or large runnable code blocks? (FAIL if yes)
-        2. Does it walk through a complete step-by-step implementation rather than giving hints? (FAIL if yes)
-        3. Is any provided information clearly inaccurate or misleading about course content? (FAIL if yes)
-        4. Does it give away so much of the final answer that the student could bypass learning? (FAIL if yes)
+        1. Does it include full code solutions or large runnable code blocks? (severe penalty)
+        2. Does it walk through a complete step-by-step implementation rather than giving hints? (severe penalty)
+        3. Is any information inaccurate or misleading about course content? (severe penalty)
+        4. Does it give away so much of the final answer that the student could bypass learning? (severe penalty)
+        5. Does the response invent assignment details that are not in the official course materials?? (severe penalty)
 
-        
-        Return JSON with:
+        Return JSON only in this format:
         {{
-            "passes_check": (boolean, true if it passes, false if it fails),
-            "issues": ["list of specific issues found"],
-            "feedback": "specific feedback for improvement, if fails"
+            "score": (integer 1–10, 10 = best/highest quality),
+            "issues": ["list of specific issues found, empty if none"],
+            "feedback": "concise, constructive feedback on how to improve (if issues exist)"
         }}
         """
 
@@ -255,33 +262,38 @@ You are providing information about CS 15 course logistics, policies, and admini
                 # Error path - raise exception
                 raise RuntimeError(f"Generation failed: {response}")
             
-            return result.get('passes_check', True), result.get('feedback', 'No specific feedback')
+            return result.get('score', 0), result.get('feedback', 'No specific feedback')
             
         except Exception as e:
             print(f"Error in homework quality check: {e}")
             return True, "Quality check failed - proceeding with response"
     
-    def _check_concept_explanation_quality(self, user_query: str, assistant_response: str, rag_context: str = "") -> Tuple[bool, str]:
+    def _check_concept_explanation_quality(self, user_query: str, assistant_response: str, rag_context: str = "") -> Tuple[int, str]:
         """Check concept explanation response quality"""
         quality_prompt = f"""
-        Review this CS 15 concept explanation response for quality issues:
-        
+        You are reviewing an assistant response that explains a CS 15 concept
+
         Student Query: "{user_query}"
         Assistant Response: "{assistant_response}"
         Course Context: "{rag_context}"
-        
-        Check for these issues:
-        1. Are there any logic mistakes in the explanation?
-        2. Does it contain project-specific implementation details?
-        3. Is the concept explained clearly and accurately?
-        4. Does it provide educational value?
-        5. Is it appropriate for the student's level?
-        
-        Return JSON with:
+
+        Guidelines reminder:
+        - Focus on correctness, clarity, and educational value.
+        - The response should be concept-level, not project-specific code/implementation details.
+        - It should be accessible for a CS 15 student’s level.
+
+        Rate this response on a scale of 1–10 (10 = excellent, 1 = very poor).
+        Scoring guide:
+        - 9–10: Clear, correct, conceptually accurate, well-suited for CS 15 students.
+        - 6–8: Generally correct and helpful, but may be slightly unclear, incomplete, or too advanced.
+        - 4–5: Contains some mistakes, confusing explanations, or dives into project-specific details.
+        - 1–3: Major logic errors, misleading explanations, or not educational.
+
+        Return JSON only in this format:
         {{
-            "passes_check": (boolean, true if it passes, false if it fails),
-            "issues": ["list of specific issues found"],
-            "feedback": "specific feedback for improvement, if fails"
+            "score": (integer 1–10),
+            "issues": ["list of specific issues found, empty if none"],
+            "feedback": "specific feedback for improvement if needed"
         }}
         """
         
@@ -303,34 +315,39 @@ You are providing information about CS 15 course logistics, policies, and admini
                 # Error path - raise exception
                 raise RuntimeError(f"Generation failed: {response}")
             
-            return result.get('passes_check', True), result.get('feedback', 'No specific feedback')
+            return result.get('score', 0), result.get('feedback', 'No specific feedback')
             
         except Exception as e:
             print(f"Error in concept explanation quality check: {e}")
             return True, "Quality check failed - proceeding with response"
     
-    def _check_course_info_quality(self, user_query: str, assistant_response: str, rag_context: str = "") -> Tuple[bool, str]:
+    def _check_course_info_quality(self, user_query: str, assistant_response: str, rag_context: str = "") -> Tuple[int, str]:
         """Check course information response quality"""
         quality_prompt = f"""
-        Review this CS 15 course information response for quality issues:
-        
+        Review this CS 15 course information response:
+
         Student Query: "{user_query}"
         Assistant Response: "{assistant_response}"
         Course Context: "{rag_context}"
-        
-        ONLY fail if the response contains clearly inaccurate info, misleading guidance, or directly contradicts course materials.  
-        Do NOT fail for responses that are generally helpful but could be slightly more detailed.  
 
-        Check for these major issues:
-        1. Is any information clearly inaccurate or contradictory to course documents?
-        2. Does it invent or speculate about policies not supported by the context?
-        3. Does it fail to clarify when information is unavailable (instead of redirecting to resources)?
-        
-        Return JSON with:
+        Guidelines reminder:
+        - The ONLY serious failing issue is when the assistant makes up or fabricates information not supported by course context.
+        - Redirecting students to official resources (syllabus, TA, professor, Piazza, etc.) is GOOD and should not lower the score.
+        - Minor omissions or lack of detail are fine, as long as the response remains accurate and not misleading.
+        - Accuracy, alignment with course context, and honesty about unknowns are the most important.
+
+        Rate this response on a scale of 1–10 (10 = excellent, 1 = very poor).
+        Scoring guide:
+        - 9–10: Accurate, aligned with course context, honest when info is unknown, professional.
+        - 6–8: Generally correct, but could be clearer, more detailed, or better phrased.
+        - 4–5: Some noticeable issues (vague, confusing, or slightly misleading).
+        - 1–3: Contains fabricated info, contradicts course docs, or misleads students.
+
+        Return JSON only in this format:
         {{
-            "passes_check": (boolean, true if it passes, false if it fails),
-            "issues": ["list of specific issues found"],
-            "feedback": "specific feedback for improvement, if fails"
+            "score": (integer 1–10),
+            "issues": ["list of specific issues found, empty if none"],
+            "feedback": "specific feedback for improvement if needed"
         }}
         """
         
@@ -355,7 +372,7 @@ You are providing information about CS 15 course logistics, policies, and admini
                 # Error path - raise exception
                 raise RuntimeError(f"Generation failed: {response}")
             
-            return result.get('passes_check', True), result.get('feedback', 'No specific feedback')
+            return result.get('score', 0), result.get('feedback', 'No specific feedback')
             
         except Exception as e:
             print(f"Error in course info quality check: {e}")

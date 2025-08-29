@@ -29,26 +29,8 @@ try:
 
     category_text = response
     
-    # if isinstance(response, dict) and 'response' in response:
-    #     print(f"🔍 Categorization response: {response}")
-    #     category_text = response['response'].strip()
-    # else:
-    #     category_text = str(response).strip()
 except Exception as e:
     print(f"❌ Error categorizing query: {e}")
     category_text = "Error"
 
 print(f"🔍 Categorization result: {category_text}")
-
-# from llmproxy import generate
-
-# if __name__ == '__main__':
-#     response = generate(model = '4o-mini',
-#         system = 'Answer my question in a funny manner',
-#         query = 'Who are the Jumbos?',
-#         temperature=0.0,
-#         lastk=0,
-#         rag_usage = False,
-#         )
-
-#     print(response)

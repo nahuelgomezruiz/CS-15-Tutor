@@ -80,11 +80,13 @@ class EnhancedChatHandler:
             print(f"🔄 Generation attempt {attempt + 1}/{self.max_regeneration_attempts}")
 
             # Run quality check
-            passes_check, feedback = self.categorizer.check_response_quality(
+            score, feedback = self.categorizer.check_response_quality(
                 category, message, response, rag_context_formatted
             )
             
-            if passes_check:
+            print(f"score: {score} and score type: {type(score)}")
+
+            if score > 7:
                 print(f"✅ Quality check passed on attempt {attempt + 1}")
                 return response
             else:
@@ -140,7 +142,7 @@ class EnhancedChatHandler:
                 model='4o-mini',
                 system=system_prompt,
                 query=query_with_rag_context,
-                temperature=0.7,
+                temperature=0.5, # Testing a lower temp - originally 0.7
                 lastk=num_previous_pairs,
                 rag_usage=False,
             )
@@ -171,25 +173,6 @@ class EnhancedChatHandler:
         """
         
         return enhancement_prompt
-
-        # try:
-        #     response = generate(
-        #         model='4o-mini',
-        #         system="You are a query enhancer. Return only the enhanced query.",
-        #         query=enhancement_prompt,
-        #         temperature=0.3,
-        #         lastk=2,
-        #         rag_usage=False,
-        #     )
-            
-        #     if isinstance(response, dict) and 'response' in response:
-        #         return response['response'].strip()
-        #     else:
-        #         return str(response).strip()
-                
-        # except Exception as e:
-        #     print(f"❌ Error enhancing message: {e}")
-        #     return original_message
     
     def _generate_unrelated_response(self) -> str:
         """Generate response for unrelated queries"""
@@ -234,10 +217,14 @@ def example_enhanced_processing():
     
     # Example queries for different categories
     test_queries = [
-        "How do I implement a linked list in C++?",  # Homework Help
-        "What is the difference between a stack and a queue?",  # Explanation of Concepts
-        "When is the MetroSim project due?",  # Course Information
-        "What's the weather like today?"  # Unrelated to Course
+        # "How do I implement a linked list in C++?",  # Homework Help
+        # "What is the difference between a stack and a queue?",  # Explanation of Concepts
+        # "When is the MetroSim project due?",  # Course Information
+        # "What's the weather like today?"  # Unrelated to Course
+        "What is MetroSim?",
+        "What is Zap?",
+        "What is CalcYouLater?",
+        "What is Gerp?",
     ]
     
     conversation_history = [
@@ -261,7 +248,7 @@ def example_enhanced_processing():
             )
             
             print(f"Category: {result['category']}")
-            print(f"Response: {result['response'][:200]}...")
+            print(f"Response: {result['response']}")
             print(f"Processing time: {result['response_time_ms']}ms")
             print(f"Enhanced metadata: {result['enhanced_metadata']}")
             
