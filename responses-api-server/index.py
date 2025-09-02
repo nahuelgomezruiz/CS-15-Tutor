@@ -50,6 +50,8 @@ CORS(app, origins=[
     'https://www.eecs.tufts.edu',
     'https://eecs.tufts.edu', 
     'https://cs-15-tutor.onrender.com',
+    'https://www.cs.tufts.edu',
+    'https://cs.tufts.edu',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:5000',
@@ -682,4 +684,4 @@ if __name__ == '__main__':
     print("📊 Logging: All interactions are logged with user anonymization")
     
     # Run the Flask app (127.0.0.1 for local development)
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+    app.run(host='0.0.0.0', port=5000, debug=False) 

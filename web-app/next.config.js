@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // For Tufts deployment
+  basePath: '/comp/15/chatbot',
+  assetPrefix: '/comp/15/chatbot',
   output: 'export',
-  basePath: '/~vhenao01/chatbot',
-  assetPrefix: '/~vhenao01/chatbot',
 };
 
 module.exports = nextConfig;
