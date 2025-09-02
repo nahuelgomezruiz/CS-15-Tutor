@@ -8,7 +8,6 @@ import logging
 import os
 import jwt
 from datetime import datetime, timedelta
-import re
 
 # Add LDAP import
 try:
@@ -91,10 +90,7 @@ class AuthenticationService:
             # Normalize username
             username = username.lower().strip()
             
-            # First check if user is authorized
-            if not self.is_authorized_cs15_student(username):
-                logger.warning(f"User {username} not authorized for CS 15 tutor")
-                return None
+            # Authorization handled by Tufts LDAP authentication
             
             # Check if development mode is enabled
             dev_mode = os.getenv('DEVELOPMENT_MODE', '').lower() == 'true'
@@ -166,12 +162,9 @@ class AuthenticationService:
                 if (frontend_domain and remote_user and 
                     ('.tufts.edu' in frontend_domain or 'eecs.tufts.edu' in frontend_domain)):
                     
-                    # Additional validation: check if user is in our authorized list
-                    if self.is_authorized_cs15_student(remote_user):
-                        utln = remote_user
-                        logger.info(f"Tufts frontend authentication: {utln} from {frontend_domain}")
-                    else:
-                        logger.warning(f"Unauthorized user from Tufts frontend: {remote_user}")
+                    # Trust the Tufts frontend authentication
+                    utln = remote_user
+                    logger.info(f"Tufts frontend authentication: {utln} from {frontend_domain}")
                 else:
                     logger.warning(f"Invalid Tufts frontend request: domain={frontend_domain}, user={remote_user}")
             
@@ -272,70 +265,7 @@ class AuthenticationService:
             logger.error(f"Error authenticating request: {e}")
             return None, ''
     
-    def is_authorized_cs15_student(self, utln: str) -> bool:
-        """
-        Check if a user is authorized to use the CS 15 tutor system.
-        This could be extended to check against a database or LDAP group.
-        
-        Args:
-            utln: Tufts University Login Name
-        
-        Returns:
-            True if authorized, False otherwise
-        """
-        try:
-            # Check if development mode is explicitly enabled
-            dev_mode = os.getenv('DEVELOPMENT_MODE', '').lower() == 'true'
-            
-            # First check environment variable (for cloud deployments like Render)
-            authorized_users_env = os.getenv('CS15_AUTHORIZED_USERS', '')
-            if authorized_users_env:
-                authorized_users = [user.strip().lower() for user in authorized_users_env.split(',')]
-                if utln.lower() in authorized_users:
-                    logger.info(f"User {utln} authorized via environment variable")
-                    return True
-            
-            # Try to read from .htgrp file (for local/server deployments)
-            possible_paths = [
-                os.path.join(os.path.dirname(__file__), '../web-app/.htgrp'),
-                os.path.join(os.path.dirname(__file__), '.htgrp'),
-                '.htgrp',
-                '../.htgrp'
-            ]
-            
-            for htgrp_path in possible_paths:
-                if os.path.exists(htgrp_path):
-                    try:
-                        with open(htgrp_path, 'r') as f:
-                            content = f.read()
-                            # Parse the .htgrp file format: "group: user1 user2 user3"
-                            for line in content.strip().split('\n'):
-                                if line.startswith('cs15_students:'):
-                                    authorized_users = line.split(':', 1)[1].strip().split()
-                                    if utln.lower() in [user.lower() for user in authorized_users]:
-                                        logger.info(f"User {utln} authorized via .htgrp file: {htgrp_path}")
-                                        return True
-                    except Exception as e:
-                        logger.warning(f"Error reading .htgrp file {htgrp_path}: {e}")
-                        continue
-            
-            # Default authorized users (hardcoded fallback for deployments)
-            default_authorized = ['vhenao01', 'agomez08', 'dzabne01', 'mkazer01']
-            if utln.lower() in default_authorized:
-                logger.info(f"User {utln} authorized via default list")
-                return True
-            
-            # Development mode: allow any user that looks like a valid UTLN
-            if dev_mode and re.match(r'^[a-zA-Z][a-zA-Z0-9]{2,15}$', utln):
-                logger.info(f"Development mode: allowing user {utln}")
-                return True
-            
-            logger.warning(f"User {utln} not authorized for CS 15 tutor. Checked env var, .htgrp files, and default list.")
-            return False
-            
-        except Exception as e:
-            logger.error(f"Error checking user authorization: {e}")
-            return False
+
     
     def generate_vscode_login_url(self, base_url: str) -> str:
         """
@@ -389,10 +319,7 @@ class AuthenticationService:
             if not session or session['status'] != 'pending':
                 return None
             
-            # Check if user is authorized
-            if not self.is_authorized_cs15_student(utln):
-                logger.warning(f"Unauthorized VSCode login attempt: {utln}")
-                return None
+            # Authorization handled by Tufts LDAP authentication
             
             # Create auth token
             token = self.create_vscode_auth_token(utln)

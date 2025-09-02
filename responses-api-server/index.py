@@ -95,18 +95,7 @@ def load_system_prompt() -> str:
 # Preload system prompt at startup
 load_system_prompt()
 
-def load_allowed_vscode_users():
-    """Load list of allowed usernames for VSCode extension authentication"""
-    try:
-        with open('allowed_vscode_users.json', 'r') as f:
-            data = json.load(f)
-            return data.get('allowed_users', [])
-    except FileNotFoundError:
-        # Return default allowed users if file doesn't exist
-        return ["testuser", "demo_user", "student123"]
-    except Exception as e:
-        print(f"Error loading allowed VSCode users: {e}")
-        return ["testuser"]  # Fallback to just testuser
+
 
 """
 name:        health_check
@@ -203,17 +192,11 @@ def vscode_direct_auth():
         
         if is_username_only_auth:
             # Username-only authentication for VSCode extension
-            # Check if username is in allowed list
-            allowed_users = load_allowed_vscode_users()
+            # Since VSCode already validated credentials via SSH to Tufts,
+            # we trust any user who can reach this point
             
-            if username.lower() not in [user.lower() for user in allowed_users]:
-                return jsonify({
-                    "success": False,
-                    "error": f"Username '{username}' is not authorized for VSCode access"
-                }), 403
-            
-            # Validate username format
-            if len(username) >= 3 and re.match(r'^[a-zA-Z][a-zA-Z0-9_]{2,15}$', username):
+            # Validate username format (Tufts username format)
+            if len(username) >= 3 and re.match(r'^[a-zA-Z][a-zA-Z0-9]{2,15}$', username):
                 # Create a token for the user
                 token = auth_service.create_vscode_auth_token(username.lower())
                 if token:
@@ -351,9 +334,7 @@ def chat_handler():
         if not utln:
             return jsonify({"error": "Authentication required. Please log in with your Tufts credentials."}), 401
         
-        # Check authorization
-        if not auth_service.is_authorized_cs15_student(utln):
-            return jsonify({"error": "Access denied. You must be enrolled in CS 15."}), 403
+        # Authorization handled by .htaccess - if we get here, user is authenticated
         
         data = request.get_json()
         message = data.get('message', '')
@@ -485,11 +466,7 @@ def chat_handler_stream():
             yield f'data: {json.dumps({"status": "error", "error": "Authentication required. Please log in with your Tufts credentials."})}\n\n'
         return Response(stream_with_context(error_stream()), mimetype='text/event-stream')
     
-    # Check authorization
-    if not auth_service.is_authorized_cs15_student(utln):
-        def error_stream():
-            yield f'data: {json.dumps({"status": "error", "error": "Access denied. You must be enrolled in CS 15."})}\n\n'
-        return Response(stream_with_context(error_stream()), mimetype='text/event-stream')
+    # Authorization handled by .htaccess - if we get here, user is authenticated
     
     data = request.get_json()
     message = data.get('message', '')
