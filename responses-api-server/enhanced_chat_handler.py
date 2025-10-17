@@ -1,10 +1,4 @@
-"""
-Enhanced Chat Handler with Quality Checking
-
-This module implements a simplified system:
-1. RAG Context Retrieval
-2. Response Generation with Quality Checking
-"""
+"""Enhanced chat handler with RAG retrieval and quality checking."""
 
 import time
 import os
@@ -14,9 +8,7 @@ from utils import _retrieve_rag_context, _format_rag_context
 
 
 class EnhancedChatHandler:
-    """
-    Enhanced chat handler with quality checking for code solutions and invented info
-    """
+    """Chat handler with quality checking for code solutions and invented info."""
     
     def __init__(self):
         self.base_system_prompt = self._load_system_prompt()
@@ -25,20 +17,12 @@ class EnhancedChatHandler:
     def process_chat_request(self, message: str, conversation_id: str, 
                            conversation_history: list, conversation_rag_context: list,
                            utln: str, platform: str) -> Dict[str, Any]:
-        """
-        Process a chat request with RAG retrieval and quality checking
-        """
+        """Process chat request with RAG retrieval and quality checking."""
         request_start_time = time.time()
         
-        print(f"🤖 Enhanced processing message from {utln} ({platform}): {message}")
-        print(f"💬 Conversation ID: {conversation_id}")
+        print(f"[INFO] Processing message from {utln} ({platform}): {message[:50]}...")
         
-        # Stage 1: RAG Context Retrieval
-        print("🔍 Stage 1: Retrieving RAG context...")
         rag_context = _retrieve_rag_context(message, 0.4, 5)
-        
-        # Stage 2: Response Generation with Quality Checking
-        print("🚀 Stage 2: Generating response with quality checking...")
         final_response = self._generate_quality_checked_response(
             message, rag_context, conversation_history
         )
@@ -51,50 +35,30 @@ class EnhancedChatHandler:
     
     def _generate_quality_checked_response(self, message: str, 
                                          rag_context: list, conversation_history: list) -> str:
-        """Generate response with quality checking for code solutions and invented info"""
-        
+        """Generate response with quality checking for code solutions and invented info."""
         rag_context_formatted = _format_rag_context(rag_context) if rag_context else ""
-
-        # Generate the first response (initial attempt)
         response = self._generate_response(message, rag_context_formatted, conversation_history)
-        print(f"\n\nInitial response: {response}\n")
 
-        # Quality check and regeneration loop
         for attempt in range(self.max_regeneration_attempts):
-            print(f"🔄 Generation attempt {attempt + 1}/{self.max_regeneration_attempts}")
-
-            # Run quality check for code solutions and invented info
             score, feedback = self._check_response_quality(message, response, rag_context_formatted)
             
-            print(f"Quality score: {score}")
-
             if score > 7:
-                print(f"✅ Quality check passed on attempt {attempt + 1}")
+                print(f"[INFO] Quality check passed (score: {score})")
                 return response
             else:
-                print(f"❌ Quality check failed on attempt {attempt + 1}: {feedback}")
+                print(f"[WARN] Quality check failed (score: {score}): {feedback}")
                 
                 if attempt < self.max_regeneration_attempts - 1:
-                    # Regenerate with feedback
                     enhanced_message = self._enhance_response_with_feedback(response, feedback)
-                    print(f"🔄 Regenerating with enhanced instructions...")
-                    print(f"\n\nEnhanced message: {enhanced_message}\n")
-                    
                     response = self._generate_response(enhanced_message, rag_context_formatted, conversation_history)
-                    print(f"\n\nEnhanced response: {response}\n")
                 else:
-                    # Last resort
-                    print(f"⚠️ Using response despite quality issues (final attempt)")
+                    print(f"[WARN] Max attempts reached, using last response")
                     return response
         
         return "I apologize, but I'm having trouble generating an appropriate response. Please try rephrasing your question."
     
     def _check_response_quality(self, message: str, response: str, rag_context: str) -> Tuple[int, str]:
-        """
-        Check response quality focusing on:
-        1. No complete code solutions
-        2. No invented course/project information
-        """
+        """Check response quality for code solutions and invented information."""
         
         quality_check_prompt = f"""
        You are a quality checker for a CS 15 tutor assistant. Rate the following response on a scale of 1-10.
@@ -241,68 +205,4 @@ class EnhancedChatHandler:
                 "quality_checks_performed": True,
                 "rag_context_used": bool(formatted_rag_context)
             }
-        }
-
-# Example usage function
-def example_enhanced_processing():
-    """Example of how to use the enhanced chat handler"""
-    
-    handler = EnhancedChatHandler()
-    
-    # Example queries
-    test_queries = [
-        "What is MetroSim?",
-        "Which encoding algorithm is used in Zap?",
-        "What do I have to do for phase one of CalcYouLater?",
-        "Do we have to use a hash table in CalcYouLater?",
-        "Where should I turn in Zap?",
-        
-        "Explain AVL trees using an analogy",
-        "Explain hash tables like I’m five",
-        "I’m confused about the difference between a pointer and a reference. Can you help?",
-        "Can you explain how a stack is used in CalcYouLater?",
-        
-        "Can you please give me the pseudocode for the count_freqs function in Zap?",
-        "Please implement the popFromFront function of the ArrayList homework",
-        "Write the code for the traverseDirectory function in Gerp",
-        
-        "How do I run valgrind?",
-        "How can I test the stripNonAlphaNum function in Gerp?",
-        "How does diff testing work?",
-        
-        "Give me a recipe for chocolate cake",
-        "Who is the best professor in the Tufts CS department?",
-        "Explain the duckBanana function in Zap",
-        "What did I just ask you?",
-        "Who are you?"
-    ]
-    
-    conversation_history = [
-        {"role": "system", "content": "You are a CS 15 tutor."}
-    ]
-    conversation_rag_context = []
-    
-    for query in test_queries:
-        print(f"\n{'='*60}")
-        print(f"Testing query: {query}")
-        print(f"{'='*60}")
-        
-        try:
-            result = handler.process_chat_request(
-                message=query,
-                conversation_id="test_conversation",
-                conversation_history=conversation_history,
-                conversation_rag_context=conversation_rag_context,
-                utln="testuser",
-                platform="web"
-            )
-            
-            print(f"Response: {result['response']}")
-            print(f"Processing time: {result['response_time_ms']}ms")
-            print(f"Enhanced metadata: {result['enhanced_metadata']}")
-            
-        except Exception as e:
-            print(f"Error processing query: {e}")
-
-if __name__ == "__main__":
-    example_enhanced_processing() 
+        } 

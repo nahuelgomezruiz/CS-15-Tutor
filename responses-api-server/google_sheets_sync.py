@@ -1,23 +1,5 @@
 #!/usr/bin/env python3
-"""
-Google Sheets Sync for CS 15 Tutor Database
-
-This script syncs anonymized data from the CS 15 Tutor database to Google Sheets
-for easy analysis and reporting.
-
-Server Setup (Render/Production):
-1. Install: pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
-2. Create Google Cloud Project and enable Sheets API
-3. Create Service Account and download JSON key
-4. Set environment variables: GOOGLE_SERVICE_ACCOUNT_JSON and SPREADSHEET_ID
-5. Run: python google_sheets_sync.py sync
-
-Local Setup (Development):
-1. Follow server setup steps 1-3
-2. Place service-account.json in this directory OR use credentials.json
-3. Create sheets_config.json with spreadsheet_id
-4. Run: python google_sheets_sync.py sync
-"""
+"""Google Sheets sync for CS 15 Tutor database."""
 
 import os
 import json
@@ -32,7 +14,7 @@ try:
     from googleapiclient.discovery import build
     from googleapiclient.errors import HttpError
 except ImportError:
-    print("❌ Missing Google API libraries. Please install:")
+    print(" Missing Google API libraries. Please install:")
     print("pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client")
     exit(1)
 
@@ -50,10 +32,29 @@ CONFIG_FILE = 'sheets_config.json'
 class GoogleSheetsSync:
     """Handles syncing CS 15 Tutor data to Google Sheets"""
     
+    # Google Sheets has a 50,000 character limit per cell
+    MAX_CELL_LENGTH = 45000  # Use 45k to leave some buffer
+    
     def __init__(self, spreadsheet_id: str = None):
         self.spreadsheet_id = spreadsheet_id
         self.service = None
         self.authenticate()
+    
+    @staticmethod
+    def truncate_cell_content(content: str, max_length: int = None) -> str:
+        """Truncate content to fit Google Sheets cell limit"""
+        if not content:
+            return content
+        
+        max_length = max_length or GoogleSheetsSync.MAX_CELL_LENGTH
+        
+        if len(content) <= max_length:
+            return content
+        
+        # Truncate and add indicator
+        truncated = content[:max_length - 50]  # Leave room for the truncation message
+        truncated += f"\n\n... [TRUNCATED - Original length: {len(content)} chars]"
+        return truncated
     
     def authenticate(self):
         """Authenticate with Google Sheets API using Service Account or OAuth"""
@@ -72,14 +73,14 @@ class GoogleSheetsSync:
             service_account_json = os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON')
             
             if service_account_json:
-                print("🔐 Using Service Account from environment variable...")
+                print(" Using Service Account from environment variable...")
                 # Parse JSON from environment variable
                 service_account_info = json.loads(service_account_json)
                 creds = ServiceAccountCredentials.from_service_account_info(
                     service_account_info, scopes=SCOPES
                 )
             elif os.path.exists(SERVICE_ACCOUNT_FILE):
-                print("🔐 Using Service Account from file...")
+                print(" Using Service Account from file...")
                 # Use service account file
                 creds = ServiceAccountCredentials.from_service_account_file(
                     SERVICE_ACCOUNT_FILE, scopes=SCOPES
@@ -88,11 +89,11 @@ class GoogleSheetsSync:
                 return False
             
             self.service = build('sheets', 'v4', credentials=creds)
-            print("✅ Successfully authenticated with Service Account")
+            print(" Successfully authenticated with Service Account")
             return True
             
         except Exception as e:
-            print(f"⚠️ Service Account authentication failed: {e}")
+            print(f" Service Account authentication failed: {e}")
             return False
     
     def _authenticate_oauth(self):
@@ -110,7 +111,7 @@ class GoogleSheetsSync:
                     creds.refresh(Request())
                 else:
                     if not os.path.exists(OAUTH_CREDENTIALS_FILE):
-                        print(f"❌ Neither Service Account nor OAuth credentials found!")
+                        print(f" Neither Service Account nor OAuth credentials found!")
                         print("\nFor server deployment (Render), set up Service Account:")
                         print("1. Go to https://console.cloud.google.com")
                         print("2. Create Service Account")
@@ -120,7 +121,7 @@ class GoogleSheetsSync:
                         print("1. Download OAuth credentials.json OR service-account.json")
                         return False
                     
-                    print("🔐 Using OAuth authentication...")
+                    print(" Using OAuth authentication...")
                     flow = InstalledAppFlow.from_client_secrets_file(OAUTH_CREDENTIALS_FILE, SCOPES)
                     creds = flow.run_local_server(port=0)
                 
@@ -129,11 +130,11 @@ class GoogleSheetsSync:
                     token.write(creds.to_json())
             
             self.service = build('sheets', 'v4', credentials=creds)
-            print("✅ Successfully authenticated with OAuth")
+            print(" Successfully authenticated with OAuth")
             return True
             
         except Exception as e:
-            print(f"❌ OAuth authentication failed: {e}")
+            print(f" OAuth authentication failed: {e}")
             return False
 
     def create_spreadsheet(self, title: str = "CS 15 Tutor Analytics") -> str:
@@ -158,14 +159,14 @@ class GoogleSheetsSync:
             result = self.service.spreadsheets().create(body=spreadsheet).execute()
             spreadsheet_id = result.get('spreadsheetId')
             
-            print(f"✅ Created spreadsheet: {title}")
-            print(f"📊 Spreadsheet ID: {spreadsheet_id}")
-            print(f"🔗 URL: https://docs.google.com/spreadsheets/d/{spreadsheet_id}")
+            print(f" Created spreadsheet: {title}")
+            print(f" Spreadsheet ID: {spreadsheet_id}")
+            print(f" URL: https://docs.google.com/spreadsheets/d/{spreadsheet_id}")
             
             return spreadsheet_id
             
         except HttpError as e:
-            print(f"❌ Error creating spreadsheet: {e}")
+            print(f" Error creating spreadsheet: {e}")
             return None
 
     def ensure_sheet_exists(self, sheet_name: str):
@@ -176,7 +177,7 @@ class GoogleSheetsSync:
             existing_sheets = [sheet['properties']['title'] for sheet in spreadsheet.get('sheets', [])]
             
             if sheet_name not in existing_sheets:
-                print(f"📄 Creating missing sheet: {sheet_name}")
+                print(f" Creating missing sheet: {sheet_name}")
                 # Add the new sheet
                 requests = [{
                     "addSheet": {
@@ -191,10 +192,10 @@ class GoogleSheetsSync:
                     spreadsheetId=self.spreadsheet_id,
                     body=body
                 ).execute()
-                print(f"✅ Created sheet: {sheet_name}")
+                print(f" Created sheet: {sheet_name}")
                 
         except HttpError as e:
-            print(f"❌ Error ensuring sheet {sheet_name} exists: {e}")
+            print(f" Error ensuring sheet {sheet_name} exists: {e}")
 
     def clear_sheet(self, sheet_name: str):
         """Clear all data from a sheet"""
@@ -208,7 +209,7 @@ class GoogleSheetsSync:
                 range=range_name
             ).execute()
         except HttpError as e:
-            print(f"❌ Error clearing sheet {sheet_name}: {e}")
+            print(f" Error clearing sheet {sheet_name}: {e}")
     
     def write_to_sheet(self, sheet_name: str, data: List[List], start_cell: str = "A1"):
         """Write data to a specific sheet"""
@@ -228,15 +229,15 @@ class GoogleSheetsSync:
                 body=body
             ).execute()
             
-            print(f"✅ Updated {sheet_name}: {result.get('updatedCells')} cells")
+            print(f" Updated {sheet_name}: {result.get('updatedCells')} cells")
             
         except HttpError as e:
-            print(f"❌ Error writing to sheet {sheet_name}: {e}")
+            print(f" Error writing to sheet {sheet_name}: {e}")
 
     # ... existing code ...
     def sync_overview_data(self):
         """Sync system overview to Overview sheet"""
-        print("📊 Syncing overview data...")
+        print(" Syncing overview data...")
         
         db = db_manager.get_session()
         try:
@@ -281,7 +282,7 @@ class GoogleSheetsSync:
     
     def sync_users_data(self):
         """Sync user data to Users sheet"""
-        print("👥 Syncing users data...")
+        print(" Syncing users data...")
         
         db = db_manager.get_session()
         try:
@@ -314,7 +315,7 @@ class GoogleSheetsSync:
     
     def sync_conversations_data(self):
         """Sync conversation data to Conversations sheet"""
-        print("💬 Syncing conversations data...")
+        print(" Syncing conversations data...")
         
         db = db_manager.get_session()
         try:
@@ -346,7 +347,7 @@ class GoogleSheetsSync:
     
     def sync_messages_summary(self):
         """Sync full message data to Messages sheet"""
-        print("📝 Syncing full message data...")
+        print(" Syncing full message data...")
         
         db = db_manager.get_session()
         try:
@@ -354,10 +355,10 @@ class GoogleSheetsSync:
             
             # Headers
             data = [
-                ["Timestamp", "User ID", "Platform", "Type", "Full Content", "Full RAG Context", "Content Length", "Model", "Response Time (ms)"]
+                ["Timestamp", "User ID", "Platform", "Type", "Content (truncated if >45k)", "RAG Context (truncated if >45k)", "Content Length", "Model", "Response Time (ms)"]
             ]
             
-            # Message data with full content
+            # Message data with truncated content for Google Sheets limits
             for msg in messages:
                 convo = msg.conversation
                 
@@ -366,8 +367,8 @@ class GoogleSheetsSync:
                     convo.user.anonymous_id,
                     convo.platform,
                     msg.message_type,
-                    msg.content,
-                    msg.rag_context or "No RAG context",
+                    self.truncate_cell_content(msg.content),
+                    self.truncate_cell_content(msg.rag_context or "No RAG context"),
                     len(msg.content),
                     msg.model_used or 'N/A',
                     msg.response_time_ms or 0
@@ -381,7 +382,7 @@ class GoogleSheetsSync:
     
     def sync_analytics_data(self):
         """Sync advanced analytics to Analytics sheet"""
-        print("📈 Syncing analytics data...")
+        print(" Syncing analytics data...")
         
         db = db_manager.get_session()
         try:
@@ -445,7 +446,7 @@ class GoogleSheetsSync:
     
     def sync_detailed_conversations(self):
         """Sync detailed conversation threads with full content and RAG context"""
-        print("🔍 Syncing detailed conversations with full content...")
+        print(" Syncing detailed conversations with full content...")
         
         db = db_manager.get_session()
         try:
@@ -453,7 +454,7 @@ class GoogleSheetsSync:
             
             # Headers
             data = [
-                ["Conversation Details - Full Content and RAG Context"],
+                ["Conversation Details - Content and RAG Context (truncated if >45k chars)"],
                 [""],
                 ["User ID", "Platform", "Conversation Start", "Message #", "Timestamp", "Type", "Content", "RAG Context", "Model", "Response Time (ms)", "Content Length"]
             ]
@@ -481,11 +482,11 @@ class GoogleSheetsSync:
                 
                 # Add each message
                 for i, msg in enumerate(messages, 1):
-                    # Display full content without truncation
-                    content = msg.content
+                    # Truncate content for Google Sheets cell limits
+                    content = self.truncate_cell_content(msg.content)
                     
-                    # Display full RAG context without truncation
-                    rag_context = msg.rag_context or "No RAG context"
+                    # Truncate RAG context for Google Sheets cell limits
+                    rag_context = self.truncate_cell_content(msg.rag_context or "No RAG context")
                     
                     data.append([
                         convo.user.anonymous_id,
@@ -523,9 +524,9 @@ class GoogleSheetsSync:
             ).order_by(Message.created_at.desc()).all()
             
             data = [
-                ["RAG Context Analysis"],
+                ["RAG Context Analysis (content truncated if >45k chars)"],
                 [""],
-                ["Timestamp", "User ID", "Platform", "Query", "Full Response", "Full RAG Context", "Model", "Response Time (ms)"]
+                ["Timestamp", "User ID", "Platform", "Query", "Response", "RAG Context", "Model", "Response Time (ms)"]
             ]
             
             for msg in messages_with_rag:
@@ -540,15 +541,15 @@ class GoogleSheetsSync:
                 
                 query_content = query_msg.content if query_msg else "No query found"
                 
-                # Display full content without truncation
-                response_content = msg.content
-                rag_context = msg.rag_context
+                # Truncate content for Google Sheets cell limits
+                response_content = self.truncate_cell_content(msg.content)
+                rag_context = self.truncate_cell_content(msg.rag_context)
                 
                 data.append([
                     msg.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                     convo.user.anonymous_id,
                     convo.platform,
-                    query_content,
+                    self.truncate_cell_content(query_content),
                     response_content,
                     rag_context,
                     msg.model_used or 'N/A',
@@ -563,7 +564,7 @@ class GoogleSheetsSync:
     
     def sync_user_interactions(self):
         """Sync user interactions showing Query -> RAG Context -> Response for each user"""
-        print("👤 Syncing user interactions (Query -> RAG -> Response)...")
+        print(" Syncing user interactions (Query -> RAG -> Response)...")
         
         db = db_manager.get_session()
         try:
@@ -571,7 +572,7 @@ class GoogleSheetsSync:
             conversations = db.query(Conversation).order_by(Conversation.created_at.desc()).all()
             
             data = [
-                ["User Interactions - Queries, RAG Context, and Responses"],
+                ["User Interactions - Queries, RAG Context, and Responses (truncated if >45k chars)"],
                 [""],
                 ["User ID", "Platform", "Conversation Date", "Turn #", "User Query", "RAG Context Retrieved", "Model Response", "Response Time (ms)", "Query Length", "Response Length"]
             ]
@@ -596,16 +597,16 @@ class GoogleSheetsSync:
                         response_content = msg.content
                         rag_context = msg.rag_context or "No RAG context retrieved"
                         
-                        # Display full content without truncation
+                        # Truncate content for Google Sheets cell limits
                         
                         data.append([
                             convo.user.anonymous_id,
                             convo.platform,
                             convo.created_at.strftime('%Y-%m-%d %H:%M'),
                             f"Turn {turn_number}",
-                            query_content,
-                            rag_context,
-                            response_content,
+                            self.truncate_cell_content(query_content),
+                            self.truncate_cell_content(rag_context),
+                            self.truncate_cell_content(response_content),
                             msg.response_time_ms or 0,
                             len(query_msg.content),
                             len(msg.content)
@@ -625,14 +626,14 @@ class GoogleSheetsSync:
     
     def full_sync(self):
         """Perform a complete sync of all data"""
-        print("🔄 Starting full sync to Google Sheets...")
+        print(" Starting full sync to Google Sheets...")
         
         if not self.service:
-            print("❌ Not authenticated with Google Sheets API")
+            print(" Not authenticated with Google Sheets API")
             return False
         
         if not self.spreadsheet_id:
-            print("❌ No spreadsheet ID configured")
+            print(" No spreadsheet ID configured")
             return False
         
         try:
@@ -645,12 +646,12 @@ class GoogleSheetsSync:
             self.sync_detailed_conversations()
             self.sync_rag_context_analysis()
             
-            print(f"✅ Full sync completed!")
-            print(f"🔗 View spreadsheet: https://docs.google.com/spreadsheets/d/{self.spreadsheet_id}")
+            print(f" Full sync completed!")
+            print(f" View spreadsheet: https://docs.google.com/spreadsheets/d/{self.spreadsheet_id}")
             return True
             
         except Exception as e:
-            print(f"❌ Sync failed: {e}")
+            print(f" Sync failed: {e}")
             return False
 
 def get_spreadsheet_id():
@@ -670,18 +671,18 @@ def get_spreadsheet_id():
 
 def setup_google_sheets():
     """Interactive setup for Google Sheets integration"""
-    print("🔧 Google Sheets Setup for CS 15 Tutor")
+    print(" Google Sheets Setup for CS 15 Tutor")
     print("=====================================")
     
     # Check authentication method
     if os.getenv('GOOGLE_SERVICE_ACCOUNT_JSON') or os.path.exists(SERVICE_ACCOUNT_FILE):
-        print("✅ Service Account credentials found")
+        print(" Service Account credentials found")
         sync = GoogleSheetsSync()
     elif os.path.exists(OAUTH_CREDENTIALS_FILE):
-        print("✅ OAuth credentials found") 
+        print(" OAuth credentials found") 
         sync = GoogleSheetsSync()
     else:
-        print("\n❌ No credentials found!")
+        print("\n No credentials found!")
         print("\nFor server deployment (Render):")
         print("1. Create Service Account in Google Cloud Console")
         print("2. Download JSON key file")
@@ -695,7 +696,7 @@ def setup_google_sheets():
         return
     
     # Create spreadsheet
-    print("\n📊 Creating new spreadsheet...")
+    print("\n Creating new spreadsheet...")
     spreadsheet_id = sync.create_spreadsheet("CS 15 Tutor Analytics Dashboard")
     
     if spreadsheet_id:
@@ -704,9 +705,9 @@ def setup_google_sheets():
         with open(CONFIG_FILE, "w") as f:
             json.dump(config, f)
         
-        print(f"\n✅ Setup complete!")
-        print(f"📄 Spreadsheet ID: {spreadsheet_id}")
-        print(f"🔗 Spreadsheet: https://docs.google.com/spreadsheets/d/{spreadsheet_id}")
+        print(f"\n Setup complete!")
+        print(f" Spreadsheet ID: {spreadsheet_id}")
+        print(f" Spreadsheet: https://docs.google.com/spreadsheets/d/{spreadsheet_id}")
         print(f"\nFor Render deployment, set this environment variable:")
         print(f"SPREADSHEET_ID={spreadsheet_id}")
         
@@ -738,7 +739,7 @@ def main():
     # Get spreadsheet ID
     spreadsheet_id = get_spreadsheet_id()
     if not spreadsheet_id:
-        print("❌ No spreadsheet ID found!")
+        print(" No spreadsheet ID found!")
         print("Set SPREADSHEET_ID environment variable or run setup:")
         print("python google_sheets_sync.py setup")
         return
@@ -746,7 +747,7 @@ def main():
     # Create sync instance
     sync = GoogleSheetsSync(spreadsheet_id)
     if not sync.service:
-        print("❌ Authentication failed")
+        print(" Authentication failed")
         return
     
     if command == "sync":
@@ -760,7 +761,7 @@ def main():
     elif command == "messages":
         sync.sync_messages_summary()
     else:
-        print(f"❌ Unknown command: {command}")
+        print(f" Unknown command: {command}")
 
 if __name__ == "__main__":
     main()
