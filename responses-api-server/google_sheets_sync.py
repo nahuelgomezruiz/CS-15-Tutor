@@ -345,8 +345,8 @@ class GoogleSheetsSync:
             db.close()
     
     def sync_messages_summary(self):
-        """Sync message summary to Messages sheet"""
-        print("📝 Syncing messages summary...")
+        """Sync full message data to Messages sheet"""
+        print("📝 Syncing full message data...")
         
         db = db_manager.get_session()
         try:
@@ -354,10 +354,10 @@ class GoogleSheetsSync:
             
             # Headers
             data = [
-                ["Timestamp", "User ID", "Platform", "Type", "Content Length", "Model", "Response Time (ms)"]
+                ["Timestamp", "User ID", "Platform", "Type", "Full Content", "Full RAG Context", "Content Length", "Model", "Response Time (ms)"]
             ]
             
-            # Message data (summary only for privacy)
+            # Message data with full content
             for msg in messages:
                 convo = msg.conversation
                 
@@ -366,6 +366,8 @@ class GoogleSheetsSync:
                     convo.user.anonymous_id,
                     convo.platform,
                     msg.message_type,
+                    msg.content,
+                    msg.rag_context or "No RAG context",
                     len(msg.content),
                     msg.model_used or 'N/A',
                     msg.response_time_ms or 0
@@ -479,15 +481,11 @@ class GoogleSheetsSync:
                 
                 # Add each message
                 for i, msg in enumerate(messages, 1):
-                    # Truncate very long content for sheet readability
+                    # Display full content without truncation
                     content = msg.content
-                    if len(content) > 500:
-                        content = content[:500] + "... [TRUNCATED]"
                     
-                    # Truncate RAG context
+                    # Display full RAG context without truncation
                     rag_context = msg.rag_context or "No RAG context"
-                    if len(rag_context) > 300:
-                        rag_context = rag_context[:300] + "... [TRUNCATED]"
                     
                     data.append([
                         convo.user.anonymous_id,
@@ -527,7 +525,7 @@ class GoogleSheetsSync:
             data = [
                 ["RAG Context Analysis"],
                 [""],
-                ["Timestamp", "User ID", "Platform", "Query", "Response Preview", "RAG Context Preview", "Model", "Response Time (ms)"]
+                ["Timestamp", "User ID", "Platform", "Query", "Full Response", "Full RAG Context", "Model", "Response Time (ms)"]
             ]
             
             for msg in messages_with_rag:
@@ -541,19 +539,18 @@ class GoogleSheetsSync:
                 ).order_by(Message.created_at.desc()).first()
                 
                 query_content = query_msg.content if query_msg else "No query found"
-                if len(query_content) > 100:
-                    query_content = query_content[:100] + "..."
                 
-                response_preview = msg.content[:150] + "..." if len(msg.content) > 150 else msg.content
-                rag_preview = msg.rag_context[:200] + "..." if len(msg.rag_context) > 200 else msg.rag_context
+                # Display full content without truncation
+                response_content = msg.content
+                rag_context = msg.rag_context
                 
                 data.append([
                     msg.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                     convo.user.anonymous_id,
                     convo.platform,
                     query_content,
-                    response_preview,
-                    rag_preview,
+                    response_content,
+                    rag_context,
                     msg.model_used or 'N/A',
                     msg.response_time_ms or 0
                 ])
@@ -599,13 +596,7 @@ class GoogleSheetsSync:
                         response_content = msg.content
                         rag_context = msg.rag_context or "No RAG context retrieved"
                         
-                        # Truncate very long content for readability
-                        if len(query_content) > 200:
-                            query_content = query_content[:200] + "... [TRUNCATED]"
-                        if len(response_content) > 300:
-                            response_content = response_content[:300] + "... [TRUNCATED]" 
-                        if len(rag_context) > 400:
-                            rag_context = rag_context[:400] + "... [TRUNCATED]"
+                        # Display full content without truncation
                         
                         data.append([
                             convo.user.anonymous_id,
